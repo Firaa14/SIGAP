@@ -18,35 +18,32 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
-        // Ambil data dari form login
-        $data = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-            'role' => 'required|in:SO,CBM,REVIEWER',
-        ]);
+{
+    $data = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+        'role' => 'required|in:SO,CBM,REVIEWER',
+    ]);
 
-        // Cek email + password + role
-        if (Auth::attempt([
-            'email' => $data['email'],
-            'password' => $data['password'],
-            'role' => $data['role'],
-        ])) {
+    if (Auth::attempt([
+        'email' => $data['email'],
+        'password' => $data['password'],
+    ])) {
 
-            // Buat session baru setelah berhasil login
-            $request->session()->regenerate();
+        $request->session()->regenerate();
 
-            // LANGSUNG KE DASHBOARD
-            return redirect()->route('dashboard');
-        }
+        // Simpan role yang dipilih saat login
+        session(['login_role' => $data['role']]);
 
-        // Kalau salah, kembali ke login
-        return back()
-            ->withInput($request->only('email', 'role'))
-            ->withErrors([
-                'email' => 'Email, password, atau role tidak sesuai.',
-            ]);
+        return redirect()->route('dashboard');
     }
+
+    return back()
+        ->withInput($request->only('email', 'role'))
+        ->withErrors([
+            'email' => 'Email atau password tidak sesuai.',
+        ]);
+}
 
     public function logout(Request $request)
     {

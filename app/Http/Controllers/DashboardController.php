@@ -22,11 +22,11 @@ class DashboardController extends Controller
             ['slug' => 'mendalan',     'name' => 'PLTA Mendalan',     'code' => 'BMDL', 'location' => 'Malang, Jawa Timur',      'capacity' => '23.4 MW'],
             ['slug' => 'siman',        'name' => 'PLTA Siman',        'code' => 'BSMN', 'location' => 'Malang, Jawa Timur',      'capacity' => '12 MW'],
             ['slug' => 'wonorejo',     'name' => 'PLTA Wonorejo',     'code' => 'BWRJ', 'location' => 'Tulungagung, Jawa Timur', 'capacity' => '6.25 MW'],
-            ['slug' => 'plengan',      'name' => 'PLTA Plengan',      'code' => 'BPLG', 'location' => 'Bandung, Jawa Barat',     'capacity' => '6.3 MW'],
-            ['slug' => 'lamajan',      'name' => 'PLTA Lamajan',      'code' => 'BLMJ', 'location' => 'Bandung, Jawa Barat',     'capacity' => '18.5 MW'],
-            ['slug' => 'cikalong',     'name' => 'PLTA Cikalong',     'code' => 'BCKG', 'location' => 'Bandung, Jawa Barat',     'capacity' => '17.5 MW'],
-            ['slug' => 'bengkok',      'name' => 'PLTA Bengkok',      'code' => 'BBGK', 'location' => 'Bandung, Jawa Barat',     'capacity' => '3 MW'],
-            ['slug' => 'dago',         'name' => 'PLTA Dago',         'code' => 'BDGO', 'location' => 'Bandung, Jawa Barat',     'capacity' => '1.75 MW'],
+            ['slug' => 'ampelgading',      'name' => 'PLTA Ampelgading',      'code' => 'BAMG', 'location' => 'Malang, Jawa Timur',     'capacity' => '6.3 MW'],
+            ['slug' => 'giringan',      'name' => 'PLTA Giringan',      'code' => 'BGRG', 'location' => 'Bandung, Jawa Barat',     'capacity' => '18.5 MW'],
+            ['slug' => 'golang',     'name' => 'PLTA Golang',     'code' => 'BGLG', 'location' => 'Bandung, Jawa Barat',     'capacity' => '17.5 MW'],
+            ['slug' => 'ngebel',      'name' => 'PLTA Ngebel',      'code' => 'BNB', 'location' => 'Bandung, Jawa Barat',     'capacity' => '3 MW'],
+            ['slug' => 'selorejo',         'name' => 'Selorejo',         'code' => 'BSLJ', 'location' => 'Bandung, Jawa Barat',     'capacity' => '1.75 MW'],
         ];
     }
 

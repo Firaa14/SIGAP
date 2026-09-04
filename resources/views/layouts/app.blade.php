@@ -54,30 +54,16 @@
                 <div class="sidebar-section-label">Data PLTA</div>
 
                 @php
-                    $pltaList = [
-                        ['slug' => 'sengguruh', 'name' => 'Sengguruh', 'code' => 'BSGR'],
-                        ['slug' => 'sutami', 'name' => 'Sutami', 'code' => 'BSTM'],
-                        ['slug' => 'wlingi', 'name' => 'Wlingi', 'code' => 'BWLG'],
-                        ['slug' => 'lodoyo', 'name' => 'Lodoyo', 'code' => 'BLDY'],
-                        ['slug' => 'tulungagung', 'name' => 'Tulungagung', 'code' => 'BTLA'],
-                        ['slug' => 'mendalan', 'name' => 'Mendalan', 'code' => 'BMDL'],
-                        ['slug' => 'siman', 'name' => 'Siman', 'code' => 'BSMN'],
-                        ['slug' => 'wonorejo', 'name' => 'Wonorejo', 'code' => 'BWRJ'],
-                        ['slug' => 'plengan', 'name' => 'Plengan', 'code' => 'BPLG'],
-                        ['slug' => 'lamajan', 'name' => 'Lamajan', 'code' => 'BLMJ'],
-                        ['slug' => 'cikalong', 'name' => 'Cikalong', 'code' => 'BCKG'],
-                        ['slug' => 'bengkok', 'name' => 'Bengkok', 'code' => 'BBGK'],
-                        ['slug' => 'dago', 'name' => 'Dago', 'code' => 'BDGO'],
-                    ];
+                    $pltaList = \App\Models\Plta::query()->orderBy('id')->get();
                 @endphp
 
                 @foreach ($pltaList as $plta)
                     <a href="{{ route('plta.show', $plta['slug']) }}"
                         class="sidebar-nav-item {{ request()->is('plta/' . $plta['slug']) ? 'active' : '' }}"
-                        id="nav-plta-{{ $plta['slug'] }}" title="PLTA {{ $plta['name'] }} — {{ $plta['code'] }}">
+                        id="nav-plta-{{ $plta->slug }}" title="{{ $plta->nama_plta }} — {{ $plta->kode_prefix }}">
                         <span class="nav-icon" style="font-size:10px;">▸</span>
-                        <span class="nav-label">{{ $plta['name'] }}</span>
-                        <span class="plta-code">{{ $plta['code'] }}</span>
+                        <span class="nav-label">{{ str_replace('PLTA ', '', $plta->nama_plta) }}</span>
+                        <span class="plta-code">{{ $plta->kode_prefix }}</span>
                     </a>
                 @endforeach
 

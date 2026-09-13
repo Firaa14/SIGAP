@@ -5,8 +5,11 @@ namespace App\Services;
 use App\Models\Equipment;
 use App\Models\EquipmentWo;
 use App\Models\Plta;
+use App\Models\UploadHistory;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Reader\Exception;
+use PhpOffice\PhpSpreadsheet\Reader\Exception as SpreadsheetException;
 
 class ExcelUploadService
 {
@@ -16,6 +19,20 @@ class ExcelUploadService
      * @var string[]
      */
     private const VALID_WORKTYPES = ['CM', 'EJ', 'EV', 'PAM'];
+
+    /**
+     * Kolom wajib yang harus ada di Excel.
+     *
+     * @var string[]
+     */
+    private const REQUIRED_COLUMNS = ['NO WO', 'DESCRIPTION', 'WORKTYPE', 'STATUS', 'ASSETNUM'];
+
+    /**
+     * Kolom opsional yang akan dibaca jika ada.
+     *
+     * @var string[]
+     */
+    private const OPTIONAL_COLUMNS = ['NAMA ASSET', 'REPORTDATE', 'SITEID', 'LOCATION'];
 
     /**
      * Status WO → ABNORMAL.
@@ -33,24 +50,55 @@ class ExcelUploadService
 
     /**
      * Baca file Excel dan kembalikan raw rows (associative array per baris).
-     * Kolom diambil dari header baris pertama (EXACT MATCH, ALL CAPS).
+     * Mencoba membaca sheet "DATA" terlebih dahulu; jika tidak ada, gunakan active sheet.
+     * Kolom diambil dari header baris pertama.
      *
-     * @return array<int, array<string, string>>
+     * @return array{rows: array<int, array<string, string>>, sheet_name: string, missing_required: string[]}
      *
-     * @throws Exception
+     * @throws SpreadsheetException
      */
     public function read(string $filePath): array
     {
         $spreadsheet = IOFactory::load($filePath);
-        $sheet = $spreadsheet->getActiveSheet();
+
+        // Coba ambil sheet "DATA" terlebih dahulu
+        $sheetNames = $spreadsheet->getSheetNames();
+        $dataSheetName = null;
+
+        foreach ($sheetNames as $name) {
+            if (strtoupper(trim($name)) === 'DATA') {
+                $dataSheetName = $name;
+                break;
+            }
+        }
+
+        $sheet = $dataSheetName !== null
+            ? $spreadsheet->getSheetByName($dataSheetName)
+            : $spreadsheet->getActiveSheet();
+
+        $usedSheetName = $sheet->getTitle();
         $rows = $sheet->toArray(null, true, true, false);
 
         if (empty($rows)) {
-            return [];
+            return ['rows' => [], 'sheet_name' => $usedSheetName, 'missing_required' => self::REQUIRED_COLUMNS];
         }
 
         // Baris pertama = header
         $headers = array_map('trim', $rows[0]);
+
+        // Normalkan header ke uppercase untuk case-insensitive matching
+        $headerMap = [];
+        foreach ($headers as $colIndex => $headerName) {
+            $headerMap[strtoupper($headerName)] = $colIndex;
+        }
+
+        // Cek kolom wajib
+        $missingRequired = [];
+        foreach (self::REQUIRED_COLUMNS as $required) {
+            if (! isset($headerMap[$required])) {
+                $missingRequired[] = $required;
+            }
+        }
 
         $data = [];
         $rowCount = count($rows);
@@ -65,42 +113,68 @@ class ExcelUploadService
             }
 
             $mapped = [];
-            foreach ($headers as $colIndex => $headerName) {
-                $mapped[$headerName] = isset($rowRaw[$colIndex])
-                    ? trim((string) $rowRaw[$colIndex])
+
+            // Baca kolom wajib
+            foreach (self::REQUIRED_COLUMNS as $col) {
+                $idx = $headerMap[$col] ?? null;
+                $mapped[$col] = $idx !== null && isset($rowRaw[$idx])
+                    ? trim((string) $rowRaw[$idx])
                     : '';
             }
 
-            $mapped['_row_number'] = (string) ($i + 1); // nomor baris di Excel (1-indexed, +1 karena header)
+            // Baca kolom opsional jika ada
+            foreach (self::OPTIONAL_COLUMNS as $col) {
+                $idx = $headerMap[$col] ?? null;
+                if ($idx !== null) {
+                    $mapped[$col] = isset($rowRaw[$idx]) ? trim((string) $rowRaw[$idx]) : '';
+                }
+            }
+
+            $mapped['_row_number'] = (string) ($i + 1);
             $data[] = $mapped;
         }
 
-        return $data;
+        return [
+            'rows' => $data,
+            'sheet_name' => $usedSheetName,
+            'missing_required' => $missingRequired,
+        ];
     }
 
     /**
      * Validasi raw rows dari Excel.
      *
      * Mengembalikan:
-     * - valid: baris siap commit (sudah resolved ke equipment_id + status_otomatis)
+     * - valid: baris siap commit (sudah resolved ke equipment_id + status_otomatis + is_new flag)
      * - errors: daftar error per baris
+     * - summary: statistik keseluruhan
      *
      * @param  array<int, array<string, string>>  $rows
      * @return array{
-     *   valid: array<int, array{equipment_id: int, assetnum: string, no_wo: string, description: string, worktype: string, wo_status: string, status_otomatis: string, plta_name: string, row: int}>,
-     *   errors: array<int, array{row: int, assetnum: string, errors: string[]}>,
-     *   summary: array{total: int, valid_count: int, error_count: int, pltas_found: string[]}
+     *   valid: array<int, array{
+     *     equipment_id: int, assetnum: string, no_wo: string, description: string,
+     *     worktype: string, wo_status: string, status_otomatis: string,
+     *     plta_name: string, nama_asset: string, report_date: string,
+     *     row: int, is_new: bool
+     *   }>,
+     *   errors: array<int, array{row: int, assetnum: string, no_wo: string, errors: string[]}>,
+     *   summary: array{total: int, valid_count: int, error_count: int, new_count: int, update_count: int, pltas_found: string[]}
      * }
      */
     public function validate(array $rows): array
     {
-        // Pre-load semua PLTA prefix → plta_name mapping
+        // Pre-load semua PLTA prefix → plta mapping
         $pltaPrefixMap = Plta::all()->keyBy('kode_prefix');
+
+        // Pre-load semua equipment_id yang sudah punya WO (untuk flag is_new)
+        $existingWoEquipmentIds = EquipmentWo::pluck('equipment_id')->flip()->all();
 
         $valid = [];
         $errors = [];
-        $seenAssetNums = [];  // untuk deteksi duplikat dalam file
+        $seenAssetNums = [];
         $pltasFound = [];
+        $newCount = 0;
+        $updateCount = 0;
 
         foreach ($rows as $row) {
             $rowNum = (int) ($row['_row_number'] ?? 0);
@@ -109,6 +183,8 @@ class ExcelUploadService
             $desc = trim($row['DESCRIPTION'] ?? '');
             $worktype = strtoupper(trim($row['WORKTYPE'] ?? ''));
             $status = strtoupper(trim($row['STATUS'] ?? ''));
+            $namaAsset = trim($row['NAMA ASSET'] ?? '');
+            $reportDate = trim($row['REPORTDATE'] ?? '');
 
             $rowErrors = [];
 
@@ -138,13 +214,12 @@ class ExcelUploadService
                 $seenAssetNums[$assetnum] = $rowNum;
             }
 
-            // --- Hanya lanjutkan resolusi DB jika field wajib valid ---
+            // --- Resolusi DB: Equipment & PLTA ---
             $equipment = null;
             $statusOto = null;
             $pltaName = '—';
 
             if ($assetnum !== '' && ! isset($seenAssetNums[$assetnum.'_dup'])) {
-                // Resolusi prefix ASSETNUM
                 $prefix = strtoupper(substr($assetnum, 0, 4));
 
                 if (! $pltaPrefixMap->has($prefix)) {
@@ -152,8 +227,6 @@ class ExcelUploadService
                 } else {
                     /** @var Plta $plta */
                     $plta = $pltaPrefixMap->get($prefix);
-
-                    // Cari equipment di DB
                     $equipment = Equipment::byAssetnum($assetnum)->first();
 
                     if (! $equipment) {
@@ -161,34 +234,37 @@ class ExcelUploadService
                     } else {
                         $pltaName = $plta->nama_plta;
                         $pltasFound[$plta->nama_plta] = true;
+
+                        // Isi nama_asset dari DB jika tidak ada di Excel
+                        if ($namaAsset === '') {
+                            $namaAsset = $equipment->equipment;
+                        }
                     }
                 }
             }
 
-            // --- Hitung status otomatis (hanya jika worktype & status valid) ---
-            if (empty($rowErrors) || (count($rowErrors) === 0)) {
-                // tidak ada error, lanjut
-            }
-
-            $unknownStatusCombo = false;
-            if (
-                $equipment
-                && in_array($worktype, self::VALID_WORKTYPES, true)
-                && $status !== ''
-            ) {
+            // --- Hitung status otomatis ---
+            if ($equipment && in_array($worktype, self::VALID_WORKTYPES, true) && $status !== '') {
                 if (in_array($status, self::ABNORMAL_STATUSES, true)) {
                     $statusOto = 'abnormal';
                 } elseif (in_array($status, self::NORMAL_STATUSES, true)) {
                     $statusOto = 'normal';
                 } else {
-                    $unknownStatusCombo = true;
                     $rowErrors[] = "Kombinasi Worktype \"{$worktype}\" + Status WO \"{$status}\" tidak dikenali. "
                         .'Status yang valid: '.implode(', ', array_merge(self::ABNORMAL_STATUSES, self::NORMAL_STATUSES)).'.';
                 }
             }
 
             // --- Klasifikasi baris ---
-            if (empty($rowErrors)) {
+            if (empty($rowErrors) && $equipment !== null && $statusOto !== null) {
+                $isNew = ! isset($existingWoEquipmentIds[$equipment->id]);
+
+                if ($isNew) {
+                    $newCount++;
+                } else {
+                    $updateCount++;
+                }
+
                 $valid[] = [
                     'equipment_id' => $equipment->id,
                     'assetnum' => $assetnum,
@@ -198,7 +274,10 @@ class ExcelUploadService
                     'wo_status' => $status,
                     'status_otomatis' => $statusOto,
                     'plta_name' => $pltaName,
+                    'nama_asset' => $namaAsset,
+                    'report_date' => $reportDate,
                     'row' => $rowNum,
+                    'is_new' => $isNew,
                 ];
             } else {
                 $errors[] = [
@@ -217,6 +296,8 @@ class ExcelUploadService
                 'total' => count($rows),
                 'valid_count' => count($valid),
                 'error_count' => count($errors),
+                'new_count' => $newCount,
+                'update_count' => $updateCount,
                 'pltas_found' => array_keys($pltasFound),
             ],
         ];
@@ -225,63 +306,40 @@ class ExcelUploadService
     /**
      * Commit data yang sudah divalidasi ke database dalam satu transaksi.
      * Status manual (not_ready) tidak disentuh.
+     * Menyimpan riwayat upload ke upload_histories.
      *
-     * @param  array<int, array{equipment_id: int, assetnum: string, no_wo: string, description: string, worktype: string, wo_status: string, status_otomatis: string}>  $validRows
-     *
-     * @throws \Throwable
-     */
-    public function commit(array $validRows): void
-    {
-        \DB::transaction(function () use ($validRows) {
-            $uploadedAt = now();
-
-            foreach ($validRows as $row) {
-                EquipmentWo::updateOrCreate(
-                    ['equipment_id' => $row['equipment_id']],
-                    [
-                        'no_wo' => $row['no_wo'],
-                        'description' => $row['description'],
-                        'worktype' => $row['worktype'],
-                        'wo_status' => $row['wo_status'],
-                        'status_otomatis' => $row['status_otomatis'],
-                        // status_manual SENGAJA tidak disentuh → pakai updateOrCreate
-                        // dengan cara: setelah updateOrCreate, hanya update kolom yg bukan status_manual
-                        'uploaded_at' => $uploadedAt,
-                    ]
-                );
-            }
-        });
-    }
-
-    /**
-     * Commit dengan perlindungan status_manual.
-     * Menggunakan upsert manual agar status_manual tidak ditimpa.
-     *
-     * @param  array<int, array{equipment_id: int, no_wo: string, description: string, worktype: string, wo_status: string, status_otomatis: string}>  $validRows
+     * @param  array<int, array{equipment_id: int, assetnum: string, no_wo: string, description: string, worktype: string, wo_status: string, status_otomatis: string, plta_name: string, is_new: bool}>  $validRows
+     * @param  string  $filename  Nama file yang diupload
+     * @param  int  $totalRows  Total baris di file (termasuk yang error)
+     * @param  int  $errorRows  Jumlah baris yang gagal validasi
+     * @return array{history_id: int, imported: int, new_rows: int, updated_rows: int, plta_distribution: array<string, int>}
      *
      * @throws \Throwable
      */
-    public function commitProtected(array $validRows): void
+    public function commitProtected(array $validRows, string $filename, int $totalRows, int $errorRows): array
     {
-        \DB::transaction(function () use ($validRows) {
+        $result = DB::transaction(function () use ($validRows, $filename, $totalRows, $errorRows): array {
             $uploadedAt = now();
+            $newCount = 0;
+            $updatedCount = 0;
+            $pltaDistribution = [];
 
             foreach ($validRows as $row) {
-                $wo = EquipmentWo::where('equipment_id', $row['equipment_id'])->first();
+                $existingWo = EquipmentWo::where('equipment_id', $row['equipment_id'])->first();
 
-                if ($wo) {
-                    // Update semua kecuali status_manual
-                    $wo->update([
+                if ($existingWo) {
+                    // Update — jangan sentuh status_manual
+                    $existingWo->update([
                         'no_wo' => $row['no_wo'],
                         'description' => $row['description'],
                         'worktype' => $row['worktype'],
                         'wo_status' => $row['wo_status'],
                         'status_otomatis' => $row['status_otomatis'],
                         'uploaded_at' => $uploadedAt,
-                        // status_manual TIDAK DISENTUH
                     ]);
+                    $updatedCount++;
                 } else {
-                    // Insert baru, status_manual = null secara default
+                    // Insert baru
                     EquipmentWo::create([
                         'equipment_id' => $row['equipment_id'],
                         'no_wo' => $row['no_wo'],
@@ -292,8 +350,41 @@ class ExcelUploadService
                         'status_manual' => null,
                         'uploaded_at' => $uploadedAt,
                     ]);
+                    $newCount++;
                 }
+
+                // Hitung distribusi PLTA
+                $pltaName = $row['plta_name'];
+                $pltaDistribution[$pltaName] = ($pltaDistribution[$pltaName] ?? 0) + 1;
             }
+
+            $imported = $newCount + $updatedCount;
+
+            // Simpan riwayat upload
+            $history = UploadHistory::create([
+                'user_id' => Auth::id(),
+                'filename' => $filename,
+                'total_rows' => $totalRows,
+                'valid_rows' => count($validRows),
+                'imported_rows' => $imported,
+                'new_rows' => $newCount,
+                'updated_rows' => $updatedCount,
+                'skipped_rows' => 0,
+                'error_rows' => $errorRows,
+                'status' => 'done',
+                'plta_distribution' => $pltaDistribution,
+                'uploaded_at' => $uploadedAt,
+            ]);
+
+            return [
+                'history_id' => $history->id,
+                'imported' => $imported,
+                'new_rows' => $newCount,
+                'updated_rows' => $updatedCount,
+                'plta_distribution' => $pltaDistribution,
+            ];
         });
+
+        return $result;
     }
 }

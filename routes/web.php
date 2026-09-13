@@ -6,7 +6,6 @@ use App\Http\Controllers\PltaController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 
-
 // ================================
 // LOGIN
 // ================================
@@ -20,7 +19,6 @@ Route::post('/login', [AuthController::class, 'login'])
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
-
 
 // ================================
 // HALAMAN SETELAH LOGIN
@@ -42,4 +40,10 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/upload', [UploadController::class, 'preview'])
         ->name('upload.preview');
+
+    Route::post('/upload/confirm', [UploadController::class, 'commit'])
+        ->name('upload.commit');
+
+    Route::get('/upload/result/{history}', [UploadController::class, 'result'])
+        ->name('upload.result');
 });

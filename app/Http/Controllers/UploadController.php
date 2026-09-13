@@ -2,52 +2,190 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UploadHistory;
+use App\Services\ExcelUploadService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class UploadController extends Controller
 {
     /**
-     * Dummy preview data untuk simulasi upload Excel.
-     *
-     * @return array<int, array{assetnum: string, no_wo: string, description: string, worktype: string, status: string, plta: string, status_operasi: string}>
+     * Tampilkan halaman upload form (kosong, tanpa preview).
      */
-    private function getDummyPreviewData(): array
-    {
-        return [
-            ['assetnum' => 'BSGR010078', 'no_wo' => 'WO-2024-0892', 'description' => 'Governor Valve Leaking', 'worktype' => 'CM', 'status' => 'INPRG', 'plta' => 'Sengguruh', 'status_operasi' => 'Abnormal'],
-            ['assetnum' => 'BSTM010045', 'no_wo' => 'WO-2024-0888', 'description' => 'Penstock Valve Inspection', 'worktype' => 'EV', 'status' => 'APPR', 'plta' => 'Sutami', 'status_operasi' => 'Abnormal'],
-            ['assetnum' => 'BWLG010012', 'no_wo' => 'WO-2024-0891', 'description' => 'Runner Balancing', 'worktype' => 'PAM', 'status' => 'CLOSE', 'plta' => 'Wlingi', 'status_operasi' => 'Normal'],
-            ['assetnum' => 'BSTM020033', 'no_wo' => 'WO-2024-0905', 'description' => 'Thrust Bearing Vibration', 'worktype' => 'CM', 'status' => 'WPTW', 'plta' => 'Sutami', 'status_operasi' => 'Abnormal'],
-            ['assetnum' => 'BSLJ010021', 'no_wo' => 'WO-2024-0889', 'description' => 'Bearing Temperature High', 'worktype' => 'CM', 'status' => 'INPRG', 'plta' => 'Selorejo', 'status_operasi' => 'Abnormal'],
-            ['assetnum' => 'BSTM030071', 'no_wo' => 'WO-2024-0841', 'description' => 'Guide Vane Maintenance', 'worktype' => 'PAM', 'status' => 'COMP', 'plta' => 'Sutami', 'status_operasi' => 'Normal'],
-            ['assetnum' => 'BWNJ010021', 'no_wo' => 'WO-2024-0911', 'description' => 'Runner Cavitation Repair', 'worktype' => 'EJ', 'status' => 'INPRG', 'plta' => 'Wonorejo', 'status_operasi' => 'Abnormal'],
-            ['assetnum' => 'BAMG010009', 'no_wo' => 'WO-2024-0883', 'description' => 'Nozzle Cleaning & Check', 'worktype' => 'PAM', 'status' => 'CLOSE', 'plta' => 'Ampelgading', 'status_operasi' => 'Normal'],
-        ];
-    }
-
     public function index(): View
     {
         $pltaList = DashboardController::pltaList();
-        $showPreview = false;
-        $previewData = [];
 
-        return view('upload.index', compact('pltaList', 'showPreview', 'previewData'));
+        return view('upload.index', [
+            'pltaList' => $pltaList,
+            'showPreview' => false,
+            'previewData' => [],
+        ]);
     }
 
-    public function preview(): View
+    /**
+     * Terima file Excel, parse, validasi, dan tampilkan preview.
+     * Data belum disimpan ke database.
+     */
+    public function preview(Request $request, ExcelUploadService $service): View|RedirectResponse
     {
         $pltaList = DashboardController::pltaList();
-        $showPreview = true;
-        $previewData = $this->getDummyPreviewData();
 
-        $validationResults = [
-            'total_rows' => 8,
-            'valid_rows' => 8,
-            'invalid_rows' => 0,
-            'valid_worktypes' => ['CM', 'EJ', 'EV', 'PAM'],
-            'found_plta' => ['Sengguruh', 'Sutami', 'Wlingi', 'Selorejo', 'Wonorejo', 'Ampelgading'],
-        ];
+        // Validasi file
+        $request->validate([
+            'excel_file' => [
+                'required',
+                'file',
+                'mimes:xlsx,xls',
+                'max:20480', // 20 MB
+            ],
+        ], [
+            'excel_file.required' => 'Pilih file Excel terlebih dahulu.',
+            'excel_file.file' => 'Upload harus berupa file.',
+            'excel_file.mimes' => 'File harus berformat .xlsx atau .xls.',
+            'excel_file.max' => 'Ukuran file maksimum 20 MB.',
+        ]);
 
-        return view('upload.index', compact('pltaList', 'showPreview', 'previewData', 'validationResults'));
+        $file = $request->file('excel_file');
+        $originalName = $file->getClientOriginalName();
+
+        // Simpan sementara
+        $tempPath = $file->store('temp', 'local');
+        $absoluteTempPath = Storage::disk('local')->path($tempPath);
+
+        try {
+            // Parse Excel
+            $readResult = $service->read($absoluteTempPath);
+
+            // Cek kolom wajib
+            if (! empty($readResult['missing_required'])) {
+                Storage::disk('local')->delete($tempPath);
+
+                return view('upload.index', [
+                    'pltaList' => $pltaList,
+                    'showPreview' => false,
+                    'previewData' => [],
+                    'uploadError' => 'Kolom wajib tidak ditemukan dalam file: '.implode(', ', $readResult['missing_required']).'.',
+                ]);
+            }
+
+            $rows = $readResult['rows'];
+
+            if (empty($rows)) {
+                Storage::disk('local')->delete($tempPath);
+
+                return view('upload.index', [
+                    'pltaList' => $pltaList,
+                    'showPreview' => false,
+                    'previewData' => [],
+                    'uploadError' => 'File Excel tidak memiliki data (kosong).',
+                ]);
+            }
+
+            // Validasi baris
+            $validated = $service->validate($rows);
+
+        } catch (\Exception $e) {
+            Storage::disk('local')->delete($tempPath);
+
+            return view('upload.index', [
+                'pltaList' => $pltaList,
+                'showPreview' => false,
+                'previewData' => [],
+                'uploadError' => 'File tidak dapat diproses. Pastikan file Excel tidak rusak dan formatnya benar.',
+            ]);
+        }
+
+        // Simpan valid rows ke session agar tidak perlu re-parse saat confirm
+        session([
+            'upload_valid_rows' => $validated['valid'],
+            'upload_filename' => $originalName,
+            'upload_total_rows' => $validated['summary']['total'],
+            'upload_error_rows_count' => $validated['summary']['error_count'],
+            'upload_temp_path' => $tempPath,
+        ]);
+
+        return view('upload.index', [
+            'pltaList' => $pltaList,
+            'showPreview' => true,
+            'previewData' => $validated['valid'],
+            'errorRows' => $validated['errors'],
+            'sheetName' => $readResult['sheet_name'],
+            'originalFilename' => $originalName,
+            'validationResults' => [
+                'total_rows' => $validated['summary']['total'],
+                'valid_rows' => $validated['summary']['valid_count'],
+                'invalid_rows' => $validated['summary']['error_count'],
+                'new_count' => $validated['summary']['new_count'],
+                'update_count' => $validated['summary']['update_count'],
+                'found_plta' => $validated['summary']['pltas_found'],
+            ],
+        ]);
+    }
+
+    /**
+     * Konfirmasi dan simpan data ke database.
+     * Dipanggil setelah user menekan "Confirm & Import".
+     */
+    public function commit(Request $request, ExcelUploadService $service): RedirectResponse
+    {
+        $validRows = session('upload_valid_rows');
+        $filename = session('upload_filename');
+        $totalRows = session('upload_total_rows');
+        $errorRowsCount = session('upload_error_rows_count');
+        $tempPath = session('upload_temp_path');
+
+        // Jika session kosong (expired / di-reload), kembalikan ke upload
+        if (empty($validRows) || ! $filename) {
+            return redirect()->route('upload.index')
+                ->with('error', 'Sesi preview telah berakhir. Silakan upload file kembali.');
+        }
+
+        try {
+            $result = $service->commitProtected($validRows, $filename, $totalRows, $errorRowsCount);
+        } catch (\Throwable $e) {
+            return redirect()->route('upload.index')
+                ->with('error', 'Proses import gagal. Tidak ada data yang tersimpan. Silakan coba lagi.');
+        } finally {
+            // Hapus file sementara
+            if ($tempPath) {
+                Storage::disk('local')->delete($tempPath);
+            }
+            // Clear session
+            session()->forget([
+                'upload_valid_rows',
+                'upload_filename',
+                'upload_total_rows',
+                'upload_error_rows_count',
+                'upload_temp_path',
+            ]);
+        }
+
+        return redirect()->route('upload.result', ['history' => $result['history_id']]);
+    }
+
+    /**
+     * Tampilkan halaman hasil import berhasil.
+     */
+    public function result(UploadHistory $history): View
+    {
+        $pltaList = DashboardController::pltaList();
+
+        // Susun distribusi PLTA sesuai urutan 13 PLTA canonical
+        $canonicalOrder = collect($pltaList)->pluck('name');
+        $distribution = $history->plta_distribution ?? [];
+
+        $pltaDistribution = $canonicalOrder->map(fn (string $name) => [
+            'name' => $name,
+            'count' => $distribution[$name] ?? 0,
+        ])->filter(fn (array $item) => $item['count'] > 0)->values();
+
+        return view('upload.result', [
+            'pltaList' => $pltaList,
+            'history' => $history,
+            'pltaDistribution' => $pltaDistribution,
+        ]);
     }
 }

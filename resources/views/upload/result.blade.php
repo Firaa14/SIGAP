@@ -125,7 +125,7 @@
                 </div>
                 <div class="card-actions">
                     <span style="font-size:11.5px; color:var(--text-muted);">
-                        {{ $pltaDistribution->count() }} PLTA terdampak
+                        {{ $pltaDistribution->where('count', '>', 0)->count() }} dari {{ $pltaDistribution->count() }} PLTA terdampak
                     </span>
                 </div>
             </div>
@@ -148,12 +148,13 @@
                     <tbody>
                         @foreach($pltaDistribution as $item)
                         @php
-                            $pltaSlug = collect($pltaList)->firstWhere('name', $item['name'])['slug'] ?? null;
-                            $barWidth = $maxCount > 0 ? round(($item['count'] / $maxCount) * 100) : 0;
+                            $pltaSlug  = collect($pltaList)->firstWhere('name', $item['name'])['slug'] ?? null;
+                            $barWidth  = ($maxCount > 0 && $item['count'] > 0) ? round(($item['count'] / $maxCount) * 100) : 0;
+                            $hasData   = $item['count'] > 0;
                         @endphp
-                        <tr style="border-bottom:1px solid #F0F4F8;">
+                        <tr style="border-bottom:1px solid #F0F4F8; {{ $hasData ? '' : 'opacity:0.45;' }}">
                             <td style="padding:10px 16px;">
-                                @if($pltaSlug)
+                                @if($pltaSlug && $hasData)
                                 <a href="{{ route('plta.show', $pltaSlug) }}"
                                    style="font-size:12.5px; font-weight:500; color:var(--color-primary); text-decoration:none;">
                                     {{ str_replace('PLTA ', '', $item['name']) }}
@@ -164,8 +165,8 @@
                                 </span>
                                 @endif
                             </td>
-                            <td style="padding:10px 16px; text-align:right; font-size:13px; font-weight:700; color:var(--color-primary);">
-                                {{ number_format($item['count']) }}
+                            <td style="padding:10px 16px; text-align:right; font-size:13px; font-weight:700; color:{{ $hasData ? 'var(--color-primary)' : 'var(--text-muted)' }};">
+                                {{ $hasData ? number_format($item['count']) : '—' }}
                             </td>
                             <td style="padding:10px 16px;">
                                 <div style="background:#E5E7EB; border-radius:100px; height:6px; overflow:hidden;">

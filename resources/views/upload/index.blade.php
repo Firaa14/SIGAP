@@ -407,6 +407,82 @@
 </div>
 @endif
 
+{{-- ======================================================
+     IMPORT LOADING OVERLAY
+     Ditampilkan saat tombol Konfirmasi & Import ditekan.
+====================================================== --}}
+<div id="import-overlay" style="
+    display: none;
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+">
+    <div style="
+        background: white;
+        border-radius: 16px;
+        padding: 40px 48px;
+        text-align: center;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+        max-width: 400px;
+        width: 90%;
+    ">
+        {{-- Spinner --}}
+        <div style="
+            width: 56px; height: 56px;
+            border: 5px solid #E5E7EB;
+            border-top-color: var(--color-primary, #1E3A5F);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 0.9s linear infinite;
+        " id="import-spinner"></div>
+
+        <div style="font-size: 16px; font-weight: 700; color: var(--text-primary, #1E293B); margin-bottom: 8px;">
+            Sedang Memproses Import…
+        </div>
+        <div id="import-overlay-msg" style="font-size: 13px; color: var(--text-secondary, #64748B); line-height: 1.5;">
+            Mohon tunggu, data Work Order sedang diproses dan didistribusikan ke seluruh PLTA.
+        </div>
+
+        {{-- Progress hint --}}
+        <div style="
+            margin-top: 20px;
+            background: #F1F5F9;
+            border-radius: 100px;
+            height: 6px;
+            overflow: hidden;
+        ">
+            <div id="import-progress-bar" style="
+                height: 100%;
+                width: 0%;
+                background: linear-gradient(90deg, var(--color-primary, #1E3A5F), #3B82F6);
+                border-radius: 100px;
+                transition: width 0.4s ease;
+                animation: indeterminate 1.8s ease-in-out infinite;
+            "></div>
+        </div>
+
+        <div style="margin-top: 14px; font-size: 11px; color: var(--text-muted, #94A3B8);">
+            Jangan tutup atau me-refresh halaman ini.
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+@keyframes indeterminate {
+    0%   { transform: translateX(-100%); width: 50%; }
+    50%  { transform: translateX(150%);  width: 60%; }
+    100% { transform: translateX(350%);  width: 40%; }
+}
+</style>
+
 @endsection
 
 @section('scripts')
@@ -471,16 +547,53 @@
         });
     }
 
-    // Confirm & Import
+    // Confirm & Import — tampilkan overlay loading, cegah double-submit
+    let importSubmitting = false;
+
     function handleConfirm(btn) {
+        if (importSubmitting) {
+            return false;
+        }
         if (!confirm('Apakah Anda yakin ingin mengimport data ini ke database?\n\nProses ini tidak dapat dibatalkan setelah dikonfirmasi.')) {
             return false;
         }
-        btn.textContent = '⏳ Memproses...';
-        btn.disabled    = true;
-        btn.style.opacity = '0.7';
+
+        importSubmitting = true;
+
+        // Tampilkan overlay SEBELUM return true, tapi jangan disable button dulu.
+        // Disabling btn.disabled di dalam onclick handler (sebelum return) akan
+        // membatalkan form submission di browser — karena browser mengecek ulang
+        // apakah submit button masih enabled sebelum mengirim request.
+        const overlay = document.getElementById('import-overlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+        }
+
+        // Update pesan overlay sesuai jumlah baris
+        const rowCount = {{ $validationResults['valid_rows'] ?? count($previewData ?? []) }};
+        const msgEl = document.getElementById('import-overlay-msg');
+        if (msgEl && rowCount > 0) {
+            msgEl.textContent = 'Memproses ' + rowCount.toLocaleString('id-ID') + ' baris data Work Order…';
+        }
+
+        // Disable button SETELAH browser sudah queue form submission (next tick)
+        // Ini mencegah browser membatalkan POST karena tombol disabled.
+        setTimeout(function () {
+            btn.disabled     = true;
+            btn.style.opacity = '0.6';
+        }, 0);
+
         return true;
     }
+
+    // Jika user menekan tombol Back dari halaman result, reset flag
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted) {
+            importSubmitting = false;
+            const overlay = document.getElementById('import-overlay');
+            if (overlay) { overlay.style.display = 'none'; }
+        }
+    });
 
     // Scroll ke preview jika ada
     @if($showPreview)

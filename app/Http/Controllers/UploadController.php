@@ -152,8 +152,13 @@ class UploadController extends Controller
         try {
             $result = $service->commitProtected($validRows, $filename, $totalRows, $errorRowsCount);
         } catch (\Throwable $e) {
+            Log::error('Import commit gagal.', [
+                'filename' => $filename,
+                'exception' => $e,
+            ]);
+
             return redirect()->route('upload.index')
-                ->with('error', 'Proses import gagal. Tidak ada data yang tersimpan. Silakan coba lagi.');
+                ->with('error', 'Proses import gagal: '.$e->getMessage().' — Tidak ada data yang tersimpan. Silakan coba lagi.');
         } finally {
             // Hapus file sementara
             if ($tempPath) {
@@ -186,7 +191,7 @@ class UploadController extends Controller
         $pltaDistribution = $canonicalOrder->map(fn (string $name) => [
             'name' => $name,
             'count' => $distribution[$name] ?? 0,
-        ])->filter(fn (array $item) => $item['count'] > 0)->values();
+        ])->values();
 
         return view('upload.result', [
             'pltaList' => $pltaList,

@@ -8,6 +8,7 @@ use App\Models\Plta;
 use App\Models\UploadHistory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Exception as SpreadsheetException;
 
@@ -163,11 +164,37 @@ class ExcelUploadService
      */
     public function validate(array $rows): array
     {
-        // Pre-load semua PLTA prefix → plta mapping
+        Log::info('[IMPORT] VALIDATION START', ['total_rows' => count($rows)]);
+
+        // Pre-load semua PLTA prefix → plta mapping (1 query)
         $pltaPrefixMap = Plta::all()->keyBy('kode_prefix');
 
-        // Pre-load semua equipment_id yang sudah punya WO (untuk flag is_new)
+        // Pre-load semua equipment_id yang sudah punya WO (1 query)
         $existingWoEquipmentIds = EquipmentWo::pluck('equipment_id')->flip()->all();
+
+        // ── Batch pre-load Equipment ──────────────────────────────────────────
+        // Kumpulkan semua ASSETNUM non-kosong dari file terlebih dahulu,
+        // lalu ambil SEMUA matching equipment dalam SATU query.
+        // Ini menghilangkan N+1 query (dulu: 1 SELECT per baris).
+        $rawAssetNums = [];
+        foreach ($rows as $row) {
+            $a = strtoupper(trim($row['ASSETNUM'] ?? ''));
+            if ($a !== '') {
+                $rawAssetNums[] = $a;
+            }
+        }
+        $uniqueAssetNums = array_unique($rawAssetNums);
+
+        /** @var array<string, Equipment> $equipmentMap  assetnum (uppercase) → Equipment */
+        $equipmentMap = Equipment::whereIn('assetnum', $uniqueAssetNums)
+            ->get()
+            ->keyBy(fn (Equipment $e) => strtoupper($e->assetnum))
+            ->all();
+
+        Log::info('[IMPORT] EQUIPMENT MAP LOADED', [
+            'unique_assetnums_requested' => count($uniqueAssetNums),
+            'equipments_found' => count($equipmentMap),
+        ]);
 
         $valid = [];
         $errors = [];
@@ -214,7 +241,7 @@ class ExcelUploadService
                 $seenAssetNums[$assetnum] = $rowNum;
             }
 
-            // --- Resolusi DB: Equipment & PLTA ---
+            // --- Resolusi DB: Equipment & PLTA (O(1) lookup dari memory) ---
             $equipment = null;
             $statusOto = null;
             $pltaName = '—';
@@ -227,7 +254,9 @@ class ExcelUploadService
                 } else {
                     /** @var Plta $plta */
                     $plta = $pltaPrefixMap->get($prefix);
-                    $equipment = Equipment::byAssetnum($assetnum)->first();
+
+                    // O(1) lookup dari map yang sudah di-preload — tidak ada query DB
+                    $equipment = $equipmentMap[$assetnum] ?? null;
 
                     if (! $equipment) {
                         $rowErrors[] = "ASSETNUM \"{$assetnum}\" tidak ditemukan dalam data master equipment.";
@@ -289,6 +318,13 @@ class ExcelUploadService
             }
         }
 
+        Log::info('[IMPORT] VALIDATION COMPLETE', [
+            'valid' => count($valid),
+            'errors' => count($errors),
+            'new' => $newCount,
+            'update' => $updateCount,
+        ]);
+
         return [
             'valid' => $valid,
             'errors' => $errors,
@@ -305,7 +341,14 @@ class ExcelUploadService
 
     /**
      * Commit data yang sudah divalidasi ke database dalam satu transaksi.
-     * Status manual (not_ready) tidak disentuh.
+     *
+     * Menggunakan bulk processing untuk menghindari N+1 query:
+     * 1. Satu query WHERE IN untuk ambil semua EquipmentWo yang sudah ada.
+     * 2. Pisahkan baris menjadi bucket INSERT dan UPDATE di memory PHP.
+     * 3. Satu bulk INSERT untuk semua baris baru.
+     * 4. Loop UPDATE tanpa SELECT overhead (data sudah di memory).
+     *
+     * Status manual (not_ready) tidak disentuh pada operasi UPDATE.
      * Menyimpan riwayat upload ke upload_histories.
      *
      * @param  array<int, array{equipment_id: int, assetnum: string, no_wo: string, description: string, worktype: string, wo_status: string, status_otomatis: string, plta_name: string, is_new: bool}>  $validRows
@@ -318,49 +361,82 @@ class ExcelUploadService
      */
     public function commitProtected(array $validRows, string $filename, int $totalRows, int $errorRows): array
     {
+        Log::info('[IMPORT] COMMIT START', [
+            'filename' => $filename,
+            'valid_rows' => count($validRows),
+        ]);
+
         $result = DB::transaction(function () use ($validRows, $filename, $totalRows, $errorRows): array {
             $uploadedAt = now();
-            $newCount = 0;
-            $updatedCount = 0;
             $pltaDistribution = [];
 
+            // ── Step 1: Kumpulkan semua equipment_id dari baris valid ──────────────
+            $equipmentIds = array_column($validRows, 'equipment_id');
+            Log::info('[IMPORT] WO PROCESSING START', ['equipment_ids_count' => count($equipmentIds)]);
+
+            // ── Step 2: Ambil SEMUA EquipmentWo yang sudah ada dalam SATU query ───
+            /** @var array<int, EquipmentWo> $existingWoMap */
+            $existingWoMap = EquipmentWo::whereIn('equipment_id', $equipmentIds)
+                ->get()
+                ->keyBy('equipment_id')
+                ->all();
+
+            Log::info('[IMPORT] EXISTING WO MAP LOADED', ['existing_wo_count' => count($existingWoMap)]);
+
+            // ── Step 3: Pisahkan baris menjadi bucket INSERT dan UPDATE ───────────
+            $toInsert = [];
+            $toUpdate = []; // array of [EquipmentWo $model, array $data]
+
             foreach ($validRows as $row) {
-                $existingWo = EquipmentWo::where('equipment_id', $row['equipment_id'])->first();
-
-                if ($existingWo) {
-                    // Update — jangan sentuh status_manual
-                    $existingWo->update([
-                        'no_wo' => $row['no_wo'],
-                        'description' => $row['description'],
-                        'worktype' => $row['worktype'],
-                        'wo_status' => $row['wo_status'],
-                        'status_otomatis' => $row['status_otomatis'],
-                        'uploaded_at' => $uploadedAt,
-                    ]);
-                    $updatedCount++;
-                } else {
-                    // Insert baru
-                    EquipmentWo::create([
-                        'equipment_id' => $row['equipment_id'],
-                        'no_wo' => $row['no_wo'],
-                        'description' => $row['description'],
-                        'worktype' => $row['worktype'],
-                        'wo_status' => $row['wo_status'],
-                        'status_otomatis' => $row['status_otomatis'],
-                        'status_manual' => null,
-                        'uploaded_at' => $uploadedAt,
-                    ]);
-                    $newCount++;
-                }
-
-                // Hitung distribusi PLTA
                 $pltaName = $row['plta_name'];
                 $pltaDistribution[$pltaName] = ($pltaDistribution[$pltaName] ?? 0) + 1;
+
+                $data = [
+                    'no_wo' => $row['no_wo'],
+                    'description' => $row['description'],
+                    'worktype' => $row['worktype'],
+                    'wo_status' => $row['wo_status'],
+                    'status_otomatis' => $row['status_otomatis'],
+                    'uploaded_at' => $uploadedAt,
+                ];
+
+                if (isset($existingWoMap[$row['equipment_id']])) {
+                    $toUpdate[] = [$existingWoMap[$row['equipment_id']], $data];
+                } else {
+                    $toInsert[] = array_merge($data, [
+                        'equipment_id' => $row['equipment_id'],
+                        'status_manual' => null,
+                        'created_at' => $uploadedAt,
+                        'updated_at' => $uploadedAt,
+                    ]);
+                }
             }
 
+            // ── Step 4: Bulk INSERT semua baris baru dalam SATU query ─────────────
+            if (! empty($toInsert)) {
+                DB::table('equipment_wo')->insert($toInsert);
+                Log::info('[IMPORT] BULK INSERT DONE', ['inserted' => count($toInsert)]);
+            }
+
+            // ── Step 5: Update baris yang sudah ada (tanpa SELECT per baris) ──────
+            // Setiap baris punya data yang berbeda, dan status_manual tidak boleh
+            // disentuh — update dilakukan per record tapi tanpa N SELECT overhead
+            // karena model sudah di memory dari Step 2.
+            foreach ($toUpdate as [$existingWo, $data]) {
+                $existingWo->update($data);
+            }
+
+            $newCount = count($toInsert);
+            $updatedCount = count($toUpdate);
             $imported = $newCount + $updatedCount;
 
-            // Simpan riwayat upload
+            Log::info('[IMPORT] WO PROCESSING COMPLETE', [
+                'new' => $newCount,
+                'updated' => $updatedCount,
+                'total' => $imported,
+            ]);
+
+            // ── Step 6: Simpan riwayat upload ─────────────────────────────────────
             $history = UploadHistory::create([
                 'user_id' => Auth::id(),
                 'filename' => $filename,
@@ -376,6 +452,8 @@ class ExcelUploadService
                 'uploaded_at' => $uploadedAt,
             ]);
 
+            Log::info('[IMPORT] UPLOAD HISTORY SAVED', ['history_id' => $history->id]);
+
             return [
                 'history_id' => $history->id,
                 'imported' => $imported,
@@ -384,6 +462,8 @@ class ExcelUploadService
                 'plta_distribution' => $pltaDistribution,
             ];
         });
+
+        Log::info('[IMPORT] COMMIT COMPLETE', ['history_id' => $result['history_id']]);
 
         return $result;
     }

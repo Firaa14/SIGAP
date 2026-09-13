@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\PltaController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
@@ -46,4 +47,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/upload/result/{history}', [UploadController::class, 'result'])
         ->name('upload.result');
+
+    // EQUIPMENT
+    Route::get('/equipment/create', [EquipmentController::class, 'create'])
+        ->name('equipment.create');
+
+    Route::post('/equipment', [EquipmentController::class, 'store'])
+        ->name('equipment.store');
 });

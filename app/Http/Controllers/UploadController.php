@@ -6,6 +6,7 @@ use App\Models\UploadHistory;
 use App\Services\ExcelUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -87,7 +88,12 @@ class UploadController extends Controller
             // Validasi baris
             $validated = $service->validate($rows);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            Log::error('Excel upload processing failed.', [
+                'filename' => $originalName,
+                'exception' => $e,
+            ]);
+
             Storage::disk('local')->delete($tempPath);
 
             return view('upload.index', [

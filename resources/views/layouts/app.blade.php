@@ -48,6 +48,12 @@
                     <span class="nav-label">Upload Data WO</span>
                 </a>
 
+                <a href="{{ route('equipment.create') }}"
+                    class="sidebar-nav-item {{ request()->routeIs('equipment.*') ? 'active' : '' }}" id="nav-equipment-create">
+                    <span class="nav-icon">＋</span>
+                    <span class="nav-label">Insert Equipment</span>
+                </a>
+
                 <hr class="sidebar-divider">
 
                 {{-- Daftar PLTA --}}

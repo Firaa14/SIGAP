@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Equipment extends Model
 {
+    protected $table = 'equipments';
+
     protected $fillable = [
         'plta_id',
         'unit',

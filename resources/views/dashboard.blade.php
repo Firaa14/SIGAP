@@ -123,7 +123,7 @@
                                         @endphp
                                         <span class="status-badge {{ $statusClass }}">{{ $activity['status'] }}</span>
                                     </td>
-                                    <td style="font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-muted);">
+                                    <td class="activity-wo">
                                         {{ $activity['wo'] }}
                                     </td>
                                 </tr>
@@ -196,12 +196,13 @@
                             PLTA:</div>
                         <div style="display:flex; flex-wrap:wrap; gap:8px;" id="plta-distribution-chips">
                             @foreach($pltaDistribution as $item)
-                                <span style="
-                                                                                                                                    display:inline-flex; align-items:center; gap:6px;
-                                                                                                                                    padding:5px 12px; border-radius:999px;
-                                                                                                                                    background:var(--bg-secondary); border:1px solid var(--border-color);
-                                                                                                                                    font-size:11.5px; color:var(--text-secondary);
-                                                                                                                                ">
+                                <span
+                                    style="
+                                                                                                                                                    display:inline-flex; align-items:center; gap:6px;
+                                                                                                                                                    padding:5px 12px; border-radius:999px;
+                                                                                                                                                    background:var(--bg-secondary); border:1px solid var(--border-color);
+                                                                                                                                                    font-size:11.5px; color:var(--text-secondary);
+                                                                                                                                                ">
                                     <span style="font-weight:600; color:var(--text-primary);">{{ $item['count'] }}</span>
                                     {{ str_replace('PLTA ', '', $item['name']) }}
                                 </span>

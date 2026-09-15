@@ -1,11 +1,17 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="SIGAP - Sistem Informasi Monitoring Equipment PLTA | PLN Nusantara Power">
     <title>@yield('title', 'Dashboard') — SIGAP | PLN Nusantara Power</title>
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('sigap-theme');
+            document.documentElement.dataset.theme = savedTheme === 'dark' ? 'dark' : 'light';
+        })();
+    </script>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @stack('styles')
 </head>
@@ -50,7 +56,8 @@
                 </a>
 
                 <a href="{{ route('equipment.create') }}"
-                    class="sidebar-nav-item {{ request()->routeIs('equipment.*') ? 'active' : '' }}" id="nav-equipment-create">
+                    class="sidebar-nav-item {{ request()->routeIs('equipment.*') ? 'active' : '' }}"
+                    id="nav-equipment-create">
                     <span class="nav-icon">＋</span>
                     <span class="nav-label">Insert Equipment</span>
                 </a>
@@ -105,6 +112,12 @@
                         <div id="current-time"></div>
                     </div>
 
+                    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Aktifkan dark mode"
+                        title="Aktifkan dark mode">
+                        <span class="theme-toggle-icon theme-toggle-sun" aria-hidden="true">☀</span>
+                        <span class="theme-toggle-icon theme-toggle-moon" aria-hidden="true">☾</span>
+                    </button>
+
                     {{-- Logout --}}
                     <form action="{{ route('logout') }}" method="POST" id="logout-form">
                         @csrf
@@ -130,6 +143,24 @@
     </div>
 
     <script>
+        // Theme preference is shared across every authenticated page.
+        const themeToggle = document.getElementById('theme-toggle');
+        const updateThemeToggle = function () {
+            const isDark = document.documentElement.dataset.theme === 'dark';
+            if (!themeToggle) return;
+            themeToggle.setAttribute('aria-label', isDark ? 'Aktifkan light mode' : 'Aktifkan dark mode');
+            themeToggle.setAttribute('title', isDark ? 'Aktifkan light mode' : 'Aktifkan dark mode');
+        };
+        if (themeToggle) {
+            themeToggle.addEventListener('click', function () {
+                const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+                document.documentElement.dataset.theme = nextTheme;
+                localStorage.setItem('sigap-theme', nextTheme);
+                updateThemeToggle();
+            });
+            updateThemeToggle();
+        }
+
         // Live clock
         function updateClock() {
             const now = new Date();

@@ -13,6 +13,13 @@ class Plta extends Model
         'slug',
         'location',
         'capacity',
+        'latitude',
+        'longitude',
+    ];
+
+    protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     /**

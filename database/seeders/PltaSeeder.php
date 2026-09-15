@@ -8,9 +8,10 @@ use Illuminate\Database\Seeder;
 class PltaSeeder extends Seeder
 {
     /**
-     * 13 PLTA dengan kode_prefix dan slug canonical.
+     * 13 PLTA dengan kode_prefix, slug canonical, dan koordinat lokasi
+     * (diambil dari titik lokasi Google Maps masing-masing PLTA).
      *
-     * @return array<int, array{nama_plta: string, kode_prefix: string, slug: string, location: string, capacity: string}>
+     * @return array<int, array{nama_plta: string, kode_prefix: string, slug: string, location: string, capacity: string, latitude: float, longitude: float}>
      */
     public static function pltaData(): array
     {
@@ -21,6 +22,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'ampelgading',
                 'location' => 'Malang, Jawa Timur',
                 'capacity' => '2 x 5 MW',
+                'latitude' => -8.2600164,
+                'longitude' => 112.9108671,
             ],
             [
                 'nama_plta' => 'PLTA Sengguruh',
@@ -28,6 +31,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'sengguruh',
                 'location' => 'Malang, Jawa Timur',
                 'capacity' => '2 x 14.5 MW',
+                'latitude' => -8.1852575,
+                'longitude' => 112.5492457,
             ],
             [
                 'nama_plta' => 'PLTA Sutami',
@@ -35,6 +40,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'sutami',
                 'location' => 'Malang, Jawa Timur',
                 'capacity' => '3 x 35 MW',
+                'latitude' => -8.1612004,
+                'longitude' => 112.4442189,
             ],
             [
                 'nama_plta' => 'PLTA Selorejo',
@@ -42,6 +49,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'selorejo',
                 'location' => 'Blitar, Jawa Timur',
                 'capacity' => '1 x 4.8 MW',
+                'latitude' => -7.8733008,
+                'longitude' => 112.3515660,
             ],
             [
                 'nama_plta' => 'PLTA Wonorejo',
@@ -49,6 +58,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'wonorejo',
                 'location' => 'Tulungagung, Jawa Timur',
                 'capacity' => '1 x 6.2 MW',
+                'latitude' => -8.0205297,
+                'longitude' => 111.8075256,
             ],
             [
                 'nama_plta' => 'PLTA Lodoyo',
@@ -56,6 +67,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'lodoyo',
                 'location' => 'Blitar, Jawa Timur',
                 'capacity' => '1 x 4.7 MW',
+                'latitude' => -8.1489650,
+                'longitude' => 112.1905331,
             ],
             [
                 'nama_plta' => 'PLTA Siman',
@@ -63,6 +76,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'siman',
                 'location' => 'Malang, Jawa Timur',
                 'capacity' => '3 x 3.6 MW',
+                'latitude' => -7.8293071,
+                'longitude' => 112.3084503,
             ],
             [
                 'nama_plta' => 'PLTA Golang',
@@ -70,6 +85,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'golang',
                 'location' => 'Madiun, Jawa Timur',
                 'capacity' => '3 x 0.9 MW',
+                'latitude' => -7.7043509,
+                'longitude' => 111.6584054,
             ],
             [
                 'nama_plta' => 'PLTA Giringan',
@@ -77,6 +94,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'giringan',
                 'location' => 'Madiun, Jawa Timur',
                 'capacity' => '2 x 0.9 MW'.'1 x 1.4 MW',
+                'latitude' => -7.7216238,
+                'longitude' => 111.6743170,
             ],
             [
                 'nama_plta' => 'PLTA Tulungagung',
@@ -84,6 +103,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'tulungagung',
                 'location' => 'Tulungagung, Jawa Timur',
                 'capacity' => '2 x 18 MW',
+                'latitude' => -8.2534440,
+                'longitude' => 111.7941460,
             ],
             [
                 'nama_plta' => 'PLTA Ngebel',
@@ -91,6 +112,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'ngebel',
                 'location' => 'Ponorogo, Jawa Timur',
                 'capacity' => '1 x 2.2 MW',
+                'latitude' => -7.8148424,
+                'longitude' => 111.6205171,
             ],
             [
                 'nama_plta' => 'PLTA Mendalan',
@@ -98,6 +121,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'mendalan',
                 'location' => 'Malang, Jawa Timur',
                 'capacity' => '1 x 5.6 MW'.'3 x 5.8 MW',
+                'latitude' => -7.8558336,
+                'longitude' => 112.3220126,
             ],
             [
                 'nama_plta' => 'PLTA Wlingi',
@@ -105,6 +130,8 @@ class PltaSeeder extends Seeder
                 'slug' => 'wlingi',
                 'location' => 'Blitar, Jawa Timur',
                 'capacity' => '2 x 27 MW',
+                'latitude' => -8.1420988,
+                'longitude' => 112.2473165,
             ],
         ];
     }
@@ -112,7 +139,9 @@ class PltaSeeder extends Seeder
     public function run(): void
     {
         foreach (self::pltaData() as $data) {
-            Plta::firstOrCreate(['kode_prefix' => $data['kode_prefix']], $data);
+            // updateOrCreate supaya PLTA yang sudah ada di database (nama, capacity, dst)
+            // ikut ter-update dengan koordinat latitude/longitude baru tanpa duplikasi baris.
+            Plta::updateOrCreate(['kode_prefix' => $data['kode_prefix']], $data);
         }
     }
 }

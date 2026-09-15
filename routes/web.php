@@ -31,6 +31,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])
         ->name('dashboard');
 
+    Route::get('/dashboard/map-data', [DashboardController::class, 'mapData'])
+        ->name('dashboard.map-data');
+
     // PLTA
     Route::get('/plta/{slug}', [PltaController::class, 'show'])
         ->name('plta.show');

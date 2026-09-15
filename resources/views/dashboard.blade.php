@@ -9,6 +9,10 @@
     <li class="breadcrumb-item">Dashboard</li>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+@endpush
+
 @section('content')
 
 {{-- ======================================================
@@ -19,7 +23,7 @@
     <div class="stat-card">
         <div class="stat-icon blue">⚡</div>
         <div class="stat-body">
-            <div class="stat-value">{{ $stats['total_plta'] }}</div>
+            <div class="stat-value" data-stat="total_plta">{{ $stats['total_plta'] }}</div>
             <div class="stat-label">Total PLTA</div>
         </div>
     </div>
@@ -27,7 +31,7 @@
     <div class="stat-card">
         <div class="stat-icon purple">⚙</div>
         <div class="stat-body">
-            <div class="stat-value">{{ $stats['total_equipment'] }}</div>
+            <div class="stat-value" data-stat="total_equipment">{{ $stats['total_equipment'] }}</div>
             <div class="stat-label">Total Equipment</div>
         </div>
     </div>
@@ -35,7 +39,7 @@
     <div class="stat-card">
         <div class="stat-icon green">✓</div>
         <div class="stat-body">
-            <div class="stat-value">{{ $stats['normal'] }}</div>
+            <div class="stat-value" data-stat="normal">{{ $stats['normal'] }}</div>
             <div class="stat-label">Status Normal</div>
         </div>
     </div>
@@ -43,7 +47,7 @@
     <div class="stat-card">
         <div class="stat-icon red">!</div>
         <div class="stat-body">
-            <div class="stat-value">{{ $stats['abnormal'] }}</div>
+            <div class="stat-value" data-stat="abnormal">{{ $stats['abnormal'] }}</div>
             <div class="stat-label">Status Abnormal</div>
         </div>
     </div>
@@ -51,11 +55,41 @@
     <div class="stat-card">
         <div class="stat-icon amber">⏸</div>
         <div class="stat-body">
-            <div class="stat-value">{{ $stats['not_ready'] }}</div>
+            <div class="stat-value" data-stat="not_ready">{{ $stats['not_ready'] }}</div>
             <div class="stat-label">Not Ready</div>
         </div>
     </div>
 
+</div>
+
+{{-- ======================================================
+     PETA SEBARAN 13 PLTA (SATELLITE VIEW)
+====================================================== --}}
+<div class="card map-card" id="plta-map-card">
+    <div class="card-header">
+        <div class="card-title">
+            <span class="card-title-icon">🛰</span>
+            Peta Sebaran 13 PLTA — UP Brantas
+        </div>
+        <div class="map-toolbar">
+            <div class="map-legend">
+                <span class="map-legend-item"><span class="map-legend-dot normal"></span> Normal</span>
+                <span class="map-legend-item"><span class="map-legend-dot not_ready"></span> Not Ready</span>
+                <span class="map-legend-item"><span class="map-legend-dot abnormal"></span> Abnormal</span>
+            </div>
+            <button type="button" class="map-toggle-btn" id="map-toggle-labels">Tampilkan Semua Label</button>
+        </div>
+    </div>
+    <div class="map-wrapper">
+        <div id="plta-map" role="img" aria-label="Peta sebaran lokasi 13 PLTA UP Brantas"></div>
+        <div class="map-sync-badge">
+            <span class="map-sync-dot"></span>
+            <span>Auto-sync 30 detik</span>
+        </div>
+        <div class="map-timestamp-badge">
+            <span class="label">Tangkapan layar per:</span><span data-live-clock>—</span>
+        </div>
+    </div>
 </div>
 
 {{-- ======================================================
@@ -244,4 +278,13 @@
     </div>
 </div>
 
+@endsection
+
+@section('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+    window.SIGAP_MAP_DATA = @json($mapData);
+    window.SIGAP_MAP_DATA_URL = @json(route('dashboard.map-data'));
+</script>
+<script src="{{ asset('js/dashboard-map.js') }}"></script>
 @endsection

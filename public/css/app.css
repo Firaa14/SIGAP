@@ -402,20 +402,31 @@ body {
 }
 
 .stat-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
+    background: linear-gradient(155deg, #16294B 0%, #0E1D38 100%);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: var(--border-radius-lg);
     padding: 18px 20px;
     display: flex;
     align-items: flex-start;
     gap: 14px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 4px 14px rgba(5,15,35,0.28);
     transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(140px 80px at 15% 0%, rgba(255,255,255,0.06), transparent 70%);
+    pointer-events: none;
 }
 
 .stat-card:hover {
-    box-shadow: var(--shadow-md);
-    border-color: #C8D6E5;
+    border-color: rgba(255,255,255,0.16);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(5,15,35,0.36);
 }
 
 .stat-icon {
@@ -427,35 +438,383 @@ body {
     justify-content: center;
     font-size: 16px;
     flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
 }
 
-.stat-icon.blue    { background: #EBF4FF; color: var(--color-accent); }
-.stat-icon.green   { background: #ECFDF5; color: #059669; }
-.stat-icon.red     { background: #FEF2F2; color: #DC2626; }
-.stat-icon.amber   { background: #FFFBEB; color: #D97706; }
-.stat-icon.purple  { background: #F5F3FF; color: #7C3AED; }
+.stat-icon.blue    { background: rgba(74,158,255,0.16);  color: #6AB4FF; }
+.stat-icon.green   { background: rgba(16,185,129,0.16);  color: #34D399; }
+.stat-icon.red     { background: rgba(239,68,68,0.16);   color: #F87171; }
+.stat-icon.amber   { background: rgba(245,158,11,0.16);  color: #FBBF24; }
+.stat-icon.purple  { background: rgba(167,139,250,0.16); color: #C4B5FD; }
 
 .stat-body {
     flex: 1;
     min-width: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .stat-value {
     font-size: 24px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #FFFFFF;
     line-height: 1.1;
     font-feature-settings: "tnum";
+    transition: color 0.3s ease;
+}
+
+.stat-value.stat-value-pulse {
+    color: #6AB4FF;
 }
 
 .stat-label {
     font-size: 11px;
-    color: var(--text-muted);
+    color: #8FA3C4;
     margin-top: 3px;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
+
+/* ============================================================
+   PETA SEBARAN PLTA
+   ============================================================ */
+
+.map-card {
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.map-card .card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.map-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.map-legend {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+}
+
+.map-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.map-legend-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.map-legend-dot.normal   { background: #22D3EE; box-shadow: 0 0 6px rgba(34,211,238,0.9); }
+.map-legend-dot.abnormal { background: #EF4444; box-shadow: 0 0 6px rgba(239,68,68,0.9); }
+.map-legend-dot.not_ready{ background: #F59E0B; box-shadow: 0 0 6px rgba(245,158,11,0.9); }
+
+.map-toggle-btn {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-accent);
+    background: #EBF4FF;
+    border: 1px solid rgba(0,102,204,0.25);
+    border-radius: 999px;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.map-toggle-btn:hover {
+    background: var(--color-accent);
+    color: #fff;
+}
+
+.map-toggle-btn.active {
+    background: var(--color-accent);
+    color: #fff;
+}
+
+.map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 560px;
+    background: #0B1B33;
+}
+
+#plta-map {
+    width: 100%;
+    height: 100%;
+    background: #0B1B33;
+}
+
+.map-timestamp-badge {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 500;
+    background: rgba(10,20,40,0.82);
+    backdrop-filter: blur(4px);
+    color: #E4ECFB;
+    font-size: 11px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+    line-height: 1.5;
+    pointer-events: none;
+}
+
+.map-timestamp-badge .label {
+    color: #8FA3C4;
+    margin-right: 5px;
+}
+
+.map-sync-badge {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    z-index: 500;
+    background: rgba(10,20,40,0.82);
+    backdrop-filter: blur(4px);
+    color: #8FA3C4;
+    font-size: 10.5px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+}
+
+.map-sync-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #34D399;
+    box-shadow: 0 0 5px rgba(52,211,153,0.9);
+    animation: map-sync-blink 2s ease-in-out infinite;
+}
+
+@keyframes map-sync-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}
+
+/* --- Marker: pin + pulsing rings, corporate/subdued style --- */
+
+.plta-marker {
+    position: relative;
+    width: 22px;
+    height: 22px;
+}
+
+.plta-marker-pin {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid #fff;
+    z-index: 3;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+}
+
+.plta-marker-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+/* Normal: slow, calm breathing glow (cyan) */
+.plta-marker.status-normal .plta-marker-pin { background: #22D3EE; }
+.plta-marker.status-normal .plta-marker-ring {
+    width: 14px;
+    height: 14px;
+    box-shadow: 0 0 0 0 rgba(34,211,238,0.55);
+    animation: plta-pulse-normal 2.8s ease-in-out infinite;
+}
+
+@keyframes plta-pulse-normal {
+    0%   { box-shadow: 0 0 0 0 rgba(34,211,238,0.45); }
+    70%  { box-shadow: 0 0 0 12px rgba(34,211,238,0); }
+    100% { box-shadow: 0 0 0 0 rgba(34,211,238,0); }
+}
+
+/* Not Ready: slower amber blink, standby feel */
+.plta-marker.status-not_ready .plta-marker-pin {
+    background: #F59E0B;
+    animation: plta-blink-notready 1.8s ease-in-out infinite;
+}
+.plta-marker.status-not_ready .plta-marker-ring {
+    width: 14px;
+    height: 14px;
+    box-shadow: 0 0 0 0 rgba(245,158,11,0.5);
+    animation: plta-pulse-normal 2.6s ease-in-out infinite;
+}
+
+@keyframes plta-blink-notready {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+}
+
+/* Abnormal: urgent radiating double ring alarm (red) */
+.plta-marker.status-abnormal .plta-marker-pin { background: #EF4444; }
+.plta-marker.status-abnormal .plta-marker-ring {
+    width: 14px;
+    height: 14px;
+    animation: plta-pulse-abnormal 1.5s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+.plta-marker.status-abnormal .plta-marker-ring-2 {
+    width: 14px;
+    height: 14px;
+    animation: plta-pulse-abnormal 1.5s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+    animation-delay: 0.5s;
+}
+
+@keyframes plta-pulse-abnormal {
+    0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.55); }
+    100% { box-shadow: 0 0 0 22px rgba(239,68,68,0); }
+}
+
+/* --- Tooltip / info card shown on hover (or permanent via toggle) --- */
+
+.leaflet-tooltip.plta-tooltip {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    opacity: 1 !important;
+}
+
+.leaflet-tooltip.plta-tooltip::before {
+    display: none;
+}
+
+.plta-tip-card {
+    min-width: 172px;
+    background: rgba(12,24,46,0.94);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+    font-family: inherit;
+}
+
+.plta-tip-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.plta-tip-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: #6AB4FF;
+    letter-spacing: 0.4px;
+}
+
+.plta-tip-badge {
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 2px 7px;
+    border-radius: 999px;
+}
+
+.plta-tip-badge.normal    { background: rgba(34,211,238,0.18); color: #67E8F9; }
+.plta-tip-badge.abnormal  { background: rgba(239,68,68,0.2);   color: #FCA5A5; }
+.plta-tip-badge.not_ready { background: rgba(245,158,11,0.2);  color: #FCD34D; }
+
+.plta-tip-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 3px;
+    line-height: 1.25;
+}
+
+.plta-tip-capacity {
+    font-size: 11px;
+    color: #B9C6DE;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.plta-tip-counts {
+    display: flex;
+    gap: 10px;
+    font-size: 10.5px;
+    color: #B9C6DE;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 7px;
+}
+
+.plta-tip-counts span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.plta-tip-counts .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.plta-tip-counts .dot.normal    { background: #22D3EE; }
+.plta-tip-counts .dot.abnormal  { background: #EF4444; }
+.plta-tip-counts .dot.not_ready { background: #F59E0B; }
+
+/* --- Popup on click: detail + link --- */
+
+.leaflet-popup-content-wrapper.plta-popup {
+    background: rgba(12,24,46,0.97);
+    color: #fff;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.14);
+}
+
+.leaflet-popup.plta-popup-wrap .leaflet-popup-tip {
+    background: rgba(12,24,46,0.97);
+}
+
+.plta-popup-body { min-width: 190px; }
+
+.plta-popup-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #6AB4FF;
+    text-decoration: none;
+}
+
+.plta-popup-link:hover { text-decoration: underline; }
 
 /* ============================================================
    CARDS / PANELS
@@ -1292,6 +1651,15 @@ body {
 
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .map-wrapper {
+        height: 420px;
+    }
+
+    .map-toolbar {
+        width: 100%;
+        justify-content: space-between;
     }
 }
 

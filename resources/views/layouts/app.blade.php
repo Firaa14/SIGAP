@@ -7,6 +7,7 @@
     <meta name="description" content="SIGAP - Sistem Informasi Monitoring Equipment PLTA | PLN Nusantara Power">
     <title>@yield('title', 'Dashboard') — SIGAP | PLN Nusantara Power</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    @stack('styles')
 </head>
 
 <body>
@@ -138,6 +139,14 @@
             const timeEl = document.getElementById('current-time');
             if (dateEl) dateEl.textContent = now.toLocaleDateString('id-ID', dateOptions);
             if (timeEl) timeEl.textContent = now.toLocaleTimeString('id-ID', timeOptions);
+
+            // Elemen lain di halaman (mis. badge timestamp di atas peta) ikut mengikuti
+            // jam yang sama, dipakai untuk keperluan screenshot/pelaporan.
+            const fullOptions = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            const liveClockEls = document.querySelectorAll('[data-live-clock]');
+            liveClockEls.forEach(function (el) {
+                el.textContent = now.toLocaleString('id-ID', fullOptions).replace(/\./g, ':').replace(',', ' ·');
+            });
         }
         updateClock();
         setInterval(updateClock, 1000);

@@ -12,9 +12,6 @@ use Illuminate\View\View;
 
 class UploadController extends Controller
 {
-    /**
-     * Tampilkan halaman upload form (kosong, tanpa preview).
-     */
     public function index(): View
     {
         $pltaList = DashboardController::pltaList();
@@ -26,21 +23,16 @@ class UploadController extends Controller
         ]);
     }
 
-    /**
-     * Terima file Excel, parse, validasi, dan tampilkan preview.
-     * Data belum disimpan ke database.
-     */
     public function preview(Request $request, ExcelUploadService $service): View|RedirectResponse
     {
         $pltaList = DashboardController::pltaList();
 
-        // Validasi file
         $request->validate([
             'excel_file' => [
                 'required',
                 'file',
                 'mimes:xlsx,xls',
-                'max:20480', // 20 MB
+                'max:20480',
             ],
         ], [
             'excel_file.required' => 'Pilih file Excel terlebih dahulu.',
@@ -52,15 +44,12 @@ class UploadController extends Controller
         $file = $request->file('excel_file');
         $originalName = $file->getClientOriginalName();
 
-        // Simpan sementara
         $tempPath = $file->store('temp', 'local');
         $absoluteTempPath = Storage::disk('local')->path($tempPath);
 
         try {
-            // Parse Excel
             $readResult = $service->read($absoluteTempPath);
 
-            // Cek kolom wajib
             if (! empty($readResult['missing_required'])) {
                 Storage::disk('local')->delete($tempPath);
 
@@ -85,7 +74,6 @@ class UploadController extends Controller
                 ]);
             }
 
-            // Validasi baris
             $validated = $service->validate($rows);
 
         } catch (\Throwable $e) {
@@ -104,7 +92,6 @@ class UploadController extends Controller
             ]);
         }
 
-        // Simpan valid rows ke session agar tidak perlu re-parse saat confirm
         session([
             'upload_valid_rows' => $validated['valid'],
             'upload_filename' => $originalName,
@@ -131,10 +118,6 @@ class UploadController extends Controller
         ]);
     }
 
-    /**
-     * Konfirmasi dan simpan data ke database.
-     * Dipanggil setelah user menekan "Confirm & Import".
-     */
     public function commit(Request $request, ExcelUploadService $service): RedirectResponse
     {
         $validRows = session('upload_valid_rows');
@@ -143,14 +126,18 @@ class UploadController extends Controller
         $errorRowsCount = session('upload_error_rows_count');
         $tempPath = session('upload_temp_path');
 
-        // Jika session kosong (expired / di-reload), kembalikan ke upload
         if (empty($validRows) || ! $filename) {
             return redirect()->route('upload.index')
                 ->with('error', 'Sesi preview telah berakhir. Silakan upload file kembali.');
         }
 
         try {
-            $result = $service->commitProtected($validRows, $filename, $totalRows, $errorRowsCount);
+            $result = $service->commitProtected(
+                $validRows,
+                $filename,
+                $totalRows,
+                $errorRowsCount
+            );
         } catch (\Throwable $e) {
             Log::error('Import commit gagal.', [
                 'filename' => $filename,
@@ -158,13 +145,15 @@ class UploadController extends Controller
             ]);
 
             return redirect()->route('upload.index')
-                ->with('error', 'Proses import gagal: '.$e->getMessage().' — Tidak ada data yang tersimpan. Silakan coba lagi.');
+                ->with(
+                    'error',
+                    'Proses import gagal: '.$e->getMessage().' — Tidak ada data yang tersimpan. Silakan coba lagi.'
+                );
         } finally {
-            // Hapus file sementara
             if ($tempPath) {
                 Storage::disk('local')->delete($tempPath);
             }
-            // Clear session
+
             session()->forget([
                 'upload_valid_rows',
                 'upload_filename',
@@ -174,17 +163,15 @@ class UploadController extends Controller
             ]);
         }
 
-        return redirect()->route('upload.result', ['history' => $result['history_id']]);
+        session()->put('show_upload_result', $result['history_id']);
+
+        return redirect()->route('dashboard');
     }
 
-    /**
-     * Tampilkan halaman hasil import berhasil.
-     */
     public function result(UploadHistory $history): View
     {
         $pltaList = DashboardController::pltaList();
 
-        // Susun distribusi PLTA sesuai urutan 13 PLTA canonical
         $canonicalOrder = collect($pltaList)->pluck('name');
         $distribution = $history->plta_distribution ?? [];
 

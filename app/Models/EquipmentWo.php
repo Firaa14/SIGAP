@@ -17,25 +17,22 @@ class EquipmentWo extends Model
         'wo_status',
         'status_otomatis',
         'status_manual',
+        'report_date',
+        'total_durasi',
         'uploaded_at',
     ];
 
     protected $casts = [
+        'report_date' => 'date',
+        'total_durasi' => 'integer',
         'uploaded_at' => 'datetime',
     ];
 
-    /**
-     * @return BelongsTo<Equipment, $this>
-     */
     public function equipment(): BelongsTo
     {
         return $this->belongsTo(Equipment::class);
     }
 
-    /**
-     * Format keterangan untuk presentation layer:
-     * "{no_wo} — {description} [{wo_status}]"
-     */
     public function getKeteranganAttribute(): string
     {
         if (! $this->no_wo && ! $this->description) {

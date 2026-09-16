@@ -6,6 +6,7 @@ use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\PltaController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EquipmentStatusController;
 
 // ================================
 // LOGIN
@@ -21,6 +22,8 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
+Route::get('/equipment-status', [EquipmentStatusController::class, 'index'])
+    ->name('equipment.status');
 // ================================
 // HALAMAN SETELAH LOGIN
 // ================================

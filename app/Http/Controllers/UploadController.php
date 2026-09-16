@@ -84,11 +84,15 @@ class UploadController extends Controller
 
             Storage::disk('local')->delete($tempPath);
 
+            $errorMessage = config('app.debug')
+                ? 'File tidak dapat diproses: '.$e->getMessage()
+                : 'File tidak dapat diproses. Pastikan file Excel tidak rusak dan formatnya benar.';
+
             return view('upload.index', [
                 'pltaList' => $pltaList,
                 'showPreview' => false,
                 'previewData' => [],
-                'uploadError' => 'File tidak dapat diproses. Pastikan file Excel tidak rusak dan formatnya benar.',
+                'uploadError' => $errorMessage,
             ]);
         }
 

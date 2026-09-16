@@ -51,14 +51,14 @@
     <div class="status-tabs">
 
         <a
-            href="{{ route('equipment.status', ['status' => 'normal']) }}"
+            href="{{ route('status.index', ['status' => 'normal']) }}"
             class="status-tab normal {{ $status === 'normal' ? 'active' : '' }}"
         >
             Normal
         </a>
 
         <a
-            href="{{ route('equipment.status', ['status' => 'abnormal']) }}"
+            href="{{ route('status.index', ['status' => 'abnormal']) }}"
             class="status-tab abnormal {{ $status === 'abnormal' ? 'active' : '' }}"
         >
             Abnormal
@@ -101,6 +101,8 @@
                             <th>ASSETNUM</th>
                             <th>Status</th>
                             <th>No WO</th>
+                            <th>Report Date</th>
+                            <th>Durasi</th>
                         </tr>
                     </thead>
 
@@ -140,6 +142,14 @@
 
                                 <td class="activity-wo">
                                     {{ $item['wo'] }}
+                                </td>
+
+                                <td style="font-size:12.5px;">
+                                    {{ $item['report_date'] }}
+                                </td>
+
+                                <td style="font-size:12.5px;">
+                                    {{ $item['total_durasi'] }}
                                 </td>
 
                             </tr>

@@ -2,9 +2,9 @@
 
 namespace App\Imports;
 
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Collection;
 
 // class buat baca file excel yang di-upload
 class UploadImport implements ToCollection, WithHeadingRow

@@ -18,32 +18,32 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-{
-    $data = $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-        'role' => 'required|in:SO,CBM,REVIEWER',
-    ]);
-
-    if (Auth::attempt([
-        'email' => $data['email'],
-        'password' => $data['password'],
-    ])) {
-
-        $request->session()->regenerate();
-
-        // Simpan role yang dipilih saat login
-        session(['login_role' => $data['role']]);
-
-        return redirect()->route('dashboard');
-    }
-
-    return back()
-        ->withInput($request->only('email', 'role'))
-        ->withErrors([
-            'email' => 'Email atau password tidak sesuai.',
+    {
+        $data = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+            'role' => 'required|in:SO,CBM,REVIEWER',
         ]);
-}
+
+        if (Auth::attempt([
+            'email' => $data['email'],
+            'password' => $data['password'],
+        ])) {
+
+            $request->session()->regenerate();
+
+            // Simpan role yang dipilih saat login
+            session(['login_role' => $data['role']]);
+
+            return redirect()->route('dashboard');
+        }
+
+        return back()
+            ->withInput($request->only('email', 'role'))
+            ->withErrors([
+                'email' => 'Email atau password tidak sesuai.',
+            ]);
+    }
 
     public function logout(Request $request)
     {

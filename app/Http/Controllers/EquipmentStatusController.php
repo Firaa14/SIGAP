@@ -40,6 +40,8 @@ class EquipmentStatusController extends Controller
                     'assetnum' => $equipment?->assetnum ?? '—',
                     'status' => $equipment?->status_operasi ?? '—',
                     'wo' => $wo->no_wo ?? '—',
+                    'report_date' => $wo->report_date?->format('d M Y') ?? '—',
+                    'total_durasi' => $wo->total_durasi !== null ? $wo->total_durasi.' hari' : '—',
                 ];
             });
 

@@ -3,10 +3,10 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EquipmentController;
+use App\Http\Controllers\EquipmentStatusController;
 use App\Http\Controllers\PltaController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\EquipmentStatusController;
 
 // ================================
 // LOGIN
@@ -22,8 +22,6 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
-Route::get('/equipment-status', [EquipmentStatusController::class, 'index'])
-    ->name('equipment.status');
 // ================================
 // HALAMAN SETELAH LOGIN
 // ================================
@@ -36,6 +34,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard/map-data', [DashboardController::class, 'mapData'])
         ->name('dashboard.map-data');
+
+    // STATUS EQUIPMENT (dibuka dari klik stat card Normal/Abnormal di dashboard)
+    // Sengaja TIDAK ditaruh di sidebar/menu manapun.
+    Route::get('/equipment-status', [EquipmentStatusController::class, 'index'])
+        ->name('status.index');
 
     // PLTA
     Route::get('/plta/{slug}', [PltaController::class, 'show'])

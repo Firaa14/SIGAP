@@ -109,6 +109,8 @@
                             <th>ASSETNUM</th>
                             <th>Status Operasi</th>
                             <th>Keterangan</th>
+                            <th>Report Date</th>
+                            <th>Durasi</th>
                         </tr>
                     </thead>
                     <tbody id="equipment-tbody">
@@ -156,6 +158,12 @@
                                             {{ $eq['keterangan']['description'] }}
                                         </div>
                                     @endif
+                                </td>
+                                <td style="font-size:12.5px; white-space:nowrap;">
+                                    {{ $eq['report_date'] }}
+                                </td>
+                                <td style="font-size:12.5px; white-space:nowrap;">
+                                    {{ $eq['durasi_hari'] }}
                                 </td>
                             </tr>
                         @endforeach

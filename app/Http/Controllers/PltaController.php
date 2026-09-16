@@ -39,6 +39,8 @@ class PltaController extends Controller
                     'description' => $eq->wo?->description ?? '—',
                     'status' => $eq->wo?->wo_status ?? '',
                 ],
+                'report_date' => $eq->wo?->report_date?->format('d M Y') ?? '—',
+                'durasi_hari' => $eq->wo?->durasi_hari !== null ? $eq->wo->durasi_hari.' hari' : '—',
             ])->values()->all()
             : [];
 

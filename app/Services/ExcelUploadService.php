@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ExcelUploadService
 {
@@ -117,7 +119,17 @@ class ExcelUploadService
             foreach (self::OPTIONAL_COLUMNS as $col) {
                 $idx = $headerMap[$col] ?? null;
 
-                if ($idx !== null) {
+                if ($idx === null) {
+                    continue;
+                }
+
+                if ($col === 'REPORTDATE') {
+                    // Baca langsung dari cell Excel (bukan cuma teks hasil toArray)
+                    // supaya cell yang diformat sebagai tanggal Excel asli (serial
+                    // number) tetap dikonversi dengan benar, dan hasilnya
+                    // dinormalisasi ke format Y-m-d yang aman diparse Carbon.
+                    $mapped[$col] = $this->extractReportDate($sheet, $idx, $i + 1);
+                } else {
                     $mapped[$col] = isset($rowRaw[$idx])
                         ? trim((string) $rowRaw[$idx])
                         : '';
@@ -134,6 +146,85 @@ class ExcelUploadService
             'sheet_name' => $usedSheetName,
             'missing_required' => $missingRequired,
         ];
+    }
+
+    /**
+     * Ambil nilai tanggal dari sebuah cell Excel dan normalisasi ke format Y-m-d.
+     *
+     * Menangani dua kondisi:
+     * 1. Cell berformat tanggal Excel asli (serial number) -> dikonversi lewat
+     *    PhpSpreadsheet Date helper, tidak bergantung pada format tampilan/locale.
+     * 2. Cell berisi teks tanggal biasa -> dicoba beberapa format umum secara
+     *    eksplisit (bukan cuma Carbon::parse() yang bisa salah tebak
+     *    d/m/Y vs m/d/Y).
+     *
+     * Mengembalikan string kosong jika kolom kosong atau tidak bisa diparse
+     * sama sekali (baris tetap lanjut diproses, cuma report_date-nya null).
+     *
+     * @param  Worksheet  $sheet
+     */
+    private function extractReportDate($sheet, int $colIndex, int $sheetRow): string
+    {
+        try {
+            $cell = $sheet->getCell([$colIndex + 1, $sheetRow]);
+            $rawValue = $cell->getValue();
+        } catch (\Throwable $e) {
+            Log::warning('[IMPORT] Gagal membaca cell REPORTDATE', [
+                'row' => $sheetRow,
+                'col' => $colIndex + 1,
+                'error' => $e->getMessage(),
+            ]);
+
+            return '';
+        }
+
+        if ($rawValue === null || $rawValue === '') {
+            return '';
+        }
+
+        // Kondisi 1: cell benar-benar cell tanggal Excel (serial number)
+        if (is_numeric($rawValue) && ExcelDate::isDateTime($cell)) {
+            try {
+                return ExcelDate::excelToDateTimeObject($rawValue)->format('Y-m-d');
+            } catch (\Throwable $e) {
+                Log::warning('[IMPORT] Gagal konversi Excel date serial', [
+                    'row' => $sheetRow,
+                    'raw_value' => $rawValue,
+                    'error' => $e->getMessage(),
+                ]);
+                // lanjut ke fallback string di bawah
+            }
+        }
+
+        $rawString = trim((string) $rawValue);
+
+        // Kondisi 2: teks tanggal biasa -- coba format eksplisit dulu
+        // (paling umum dipakai di file Excel Indonesia: d/m/Y)
+        $explicitFormats = ['d/m/Y', 'd-m-Y', 'Y-m-d', 'd/m/y', 'd-m-y'];
+
+        foreach ($explicitFormats as $format) {
+            try {
+                $date = Carbon::createFromFormat($format, $rawString);
+                if ($date !== false) {
+                    return $date->format('Y-m-d');
+                }
+            } catch (\Throwable $e) {
+                // coba format berikutnya
+            }
+        }
+
+        // Fallback terakhir: biarkan Carbon menebak sendiri
+        try {
+            return Carbon::parse($rawString)->format('Y-m-d');
+        } catch (\Throwable $e) {
+            Log::warning('[IMPORT] Gagal parse REPORTDATE sebagai teks', [
+                'row' => $sheetRow,
+                'raw_value' => $rawString,
+                'error' => $e->getMessage(),
+            ]);
+
+            return '';
+        }
     }
 
     public function validate(array $rows): array
@@ -374,6 +465,12 @@ class ExcelUploadService
                             $uploadedAt->copy()->startOfDay()
                         );
                     } catch (\Throwable $e) {
+                        Log::warning('[IMPORT] Gagal hitung total_durasi', [
+                            'equipment_id' => $row['equipment_id'],
+                            'report_date_raw' => $row['report_date'],
+                            'error' => $e->getMessage(),
+                        ]);
+
                         $reportDate = null;
                         $totalDurasi = null;
                     }

@@ -50,17 +50,13 @@
 
     <div class="status-tabs">
 
-        <a
-            href="{{ route('status.index', ['status' => 'normal']) }}"
-            class="status-tab normal {{ $status === 'normal' ? 'active' : '' }}"
-        >
+        <a href="{{ route('status.index', ['status' => 'normal']) }}"
+            class="status-tab normal {{ $status === 'normal' ? 'active' : '' }}">
             Normal
         </a>
 
-        <a
-            href="{{ route('status.index', ['status' => 'abnormal']) }}"
-            class="status-tab abnormal {{ $status === 'abnormal' ? 'active' : '' }}"
-        >
+        <a href="{{ route('status.index', ['status' => 'abnormal']) }}"
+            class="status-tab abnormal {{ $status === 'abnormal' ? 'active' : '' }}">
             Abnormal
         </a>
 
@@ -149,7 +145,7 @@
                                 </td>
 
                                 <td style="font-size:12.5px;">
-                                    {{ $item['total_durasi'] }}
+                                    {{ $item['durasi_hari'] }}
                                 </td>
 
                             </tr>
@@ -162,10 +158,7 @@
 
             @else
 
-                <div
-                    class="empty-state"
-                    style="padding:32px 0;"
-                >
+                <div class="empty-state" style="padding:32px 0;">
 
                     <div class="empty-state-icon">
                         ⚙

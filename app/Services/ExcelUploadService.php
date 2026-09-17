@@ -86,7 +86,7 @@ class ExcelUploadService
         $missingRequired = [];
 
         foreach (self::REQUIRED_COLUMNS as $required) {
-            if (! isset($headerMap[$required])) {
+            if (!isset($headerMap[$required])) {
                 $missingRequired[] = $required;
             }
         }
@@ -99,7 +99,7 @@ class ExcelUploadService
 
             $rowValues = array_filter(
                 $rowRaw,
-                fn ($v) => $v !== null && $v !== ''
+                fn($v) => $v !== null && $v !== ''
             );
 
             if (empty($rowValues)) {
@@ -253,7 +253,7 @@ class ExcelUploadService
 
         $equipmentMap = Equipment::whereIn('assetnum', $uniqueAssetNums)
             ->get()
-            ->keyBy(fn (Equipment $e) => strtoupper($e->assetnum))
+            ->keyBy(fn(Equipment $e) => strtoupper($e->assetnum))
             ->all();
 
         Log::info('[IMPORT] EQUIPMENT MAP LOADED', [
@@ -295,9 +295,9 @@ class ExcelUploadService
 
             if ($worktype === '') {
                 $rowErrors[] = 'WORKTYPE kosong.';
-            } elseif (! in_array($worktype, self::VALID_WORKTYPES, true)) {
+            } elseif (!in_array($worktype, self::VALID_WORKTYPES, true)) {
                 $rowErrors[] = "Worktype tidak valid: \"{$worktype}\". Worktype yang diizinkan: "
-                    .implode(', ', self::VALID_WORKTYPES).'.';
+                    . implode(', ', self::VALID_WORKTYPES) . '.';
             }
 
             if ($status === '') {
@@ -306,7 +306,7 @@ class ExcelUploadService
 
             if ($assetnum !== '' && isset($seenAssetNums[$assetnum])) {
                 $rowErrors[] = "Duplikat ASSETNUM \"{$assetnum}\" dalam file "
-                    ."(pertama kali muncul di baris {$seenAssetNums[$assetnum]}).";
+                    . "(pertama kali muncul di baris {$seenAssetNums[$assetnum]}).";
             } elseif ($assetnum !== '') {
                 $seenAssetNums[$assetnum] = $rowNum;
             }
@@ -315,17 +315,17 @@ class ExcelUploadService
             $statusOto = null;
             $pltaName = '—';
 
-            if ($assetnum !== '' && ! isset($seenAssetNums[$assetnum.'_dup'])) {
+            if ($assetnum !== '' && !isset($seenAssetNums[$assetnum . '_dup'])) {
                 $prefix = strtoupper(substr($assetnum, 0, 4));
 
-                if (! $pltaPrefixMap->has($prefix)) {
+                if (!$pltaPrefixMap->has($prefix)) {
                     $rowErrors[] = "Prefix ASSETNUM \"{$prefix}\" tidak dikenali dalam sistem.";
                 } else {
                     $plta = $pltaPrefixMap->get($prefix);
 
                     $equipment = $equipmentMap[$assetnum] ?? null;
 
-                    if (! $equipment) {
+                    if (!$equipment) {
                         $rowErrors[] = "ASSETNUM \"{$assetnum}\" tidak ditemukan dalam data master equipment.";
                     } else {
                         $pltaName = $plta->nama_plta;
@@ -349,11 +349,11 @@ class ExcelUploadService
                     $statusOto = 'normal';
                 } else {
                     $rowErrors[] = "Kombinasi Worktype \"{$worktype}\" + Status WO \"{$status}\" tidak dikenali. "
-                        .'Status yang valid: '
-                        .implode(', ', array_merge(
+                        . 'Status yang valid: '
+                        . implode(', ', array_merge(
                             self::ABNORMAL_STATUSES,
                             self::NORMAL_STATUSES
-                        )).'.';
+                        )) . '.';
                 }
             }
 
@@ -362,7 +362,7 @@ class ExcelUploadService
                 && $equipment !== null
                 && $statusOto !== null
             ) {
-                $isNew = ! isset($existingWoEquipmentIds[$equipment->id]);
+                $isNew = !isset($existingWoEquipmentIds[$equipment->id]);
 
                 if ($isNew) {
                     $newCount++;
@@ -426,12 +426,7 @@ class ExcelUploadService
             'valid_rows' => count($validRows),
         ]);
 
-        $result = DB::transaction(function () use (
-            $validRows,
-            $filename,
-            $totalRows,
-            $errorRows
-        ): array {
+        $result = DB::transaction(function () use ($validRows, $filename, $totalRows, $errorRows): array {
             $uploadedAt = now();
 
             $pltaDistribution = [];
@@ -453,26 +448,26 @@ class ExcelUploadService
                     ($pltaDistribution[$pltaName] ?? 0) + 1;
 
                 $reportDate = null;
-                $totalDurasi = null;
+                $durasiHari = null;
 
-                if (! empty($row['report_date'])) {
+                if (!empty($row['report_date'])) {
                     try {
                         $reportDate = Carbon::parse(
                             $row['report_date']
                         )->startOfDay();
 
-                        $totalDurasi = $reportDate->diffInDays(
+                        $durasiHari = $reportDate->diffInDays(
                             $uploadedAt->copy()->startOfDay()
                         );
                     } catch (\Throwable $e) {
-                        Log::warning('[IMPORT] Gagal hitung total_durasi', [
+                        Log::warning('[IMPORT] Gagal hitung durasi_hari', [
                             'equipment_id' => $row['equipment_id'],
                             'report_date_raw' => $row['report_date'],
                             'error' => $e->getMessage(),
                         ]);
 
                         $reportDate = null;
-                        $totalDurasi = null;
+                        $durasiHari = null;
                     }
                 }
 
@@ -483,7 +478,7 @@ class ExcelUploadService
                     'wo_status' => $row['wo_status'],
                     'status_otomatis' => $row['status_otomatis'],
                     'report_date' => $reportDate,
-                    'total_durasi' => $totalDurasi,
+                    'durasi_hari' => $durasiHari,
                     'uploaded_at' => $uploadedAt,
                 ];
 
@@ -502,7 +497,7 @@ class ExcelUploadService
                 }
             }
 
-            if (! empty($toInsert)) {
+            if (!empty($toInsert)) {
                 DB::table('equipment_wo')->insert($toInsert);
             }
 

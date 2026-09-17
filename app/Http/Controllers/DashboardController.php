@@ -18,7 +18,7 @@ class DashboardController extends Controller
      */
     public static function pltaList(): array
     {
-        return Plta::query()->orderBy('id')->get()->map(fn (Plta $plta): array => [
+        return Plta::query()->orderBy('id')->get()->map(fn(Plta $plta): array => [
             'slug' => $plta->slug,
             'name' => $plta->nama_plta,
             'code' => $plta->kode_prefix,
@@ -45,9 +45,9 @@ class DashboardController extends Controller
         return $pltas->map(function (Plta $plta): array {
             $equipments = $plta->equipments;
 
-            $normal = $equipments->filter(fn (Equipment $e) => $e->status_operasi === 'Normal')->count();
-            $abnormal = $equipments->filter(fn (Equipment $e) => $e->status_operasi === 'Abnormal')->count();
-            $notReady = $equipments->filter(fn (Equipment $e) => $e->status_operasi === 'Not Ready')->count();
+            $normal = $equipments->filter(fn(Equipment $e) => $e->status_operasi === 'Normal')->count();
+            $abnormal = $equipments->filter(fn(Equipment $e) => $e->status_operasi === 'Abnormal')->count();
+            $notReady = $equipments->filter(fn(Equipment $e) => $e->status_operasi === 'Not Ready')->count();
 
             $overallStatus = match (true) {
                 $abnormal > 0 => 'abnormal',
@@ -85,9 +85,9 @@ class DashboardController extends Controller
         // Hitung status operasi: ambil semua equipment dengan relasi wo
         $allEquipments = Equipment::with('wo')->get();
 
-        $normal = $allEquipments->filter(fn (Equipment $e) => $e->status_operasi === 'Normal')->count();
-        $abnormal = $allEquipments->filter(fn (Equipment $e) => $e->status_operasi === 'Abnormal')->count();
-        $notReady = $allEquipments->filter(fn (Equipment $e) => $e->status_operasi === 'Not Ready')->count();
+        $normal = $allEquipments->filter(fn(Equipment $e) => $e->status_operasi === 'Normal')->count();
+        $abnormal = $allEquipments->filter(fn(Equipment $e) => $e->status_operasi === 'Abnormal')->count();
+        $notReady = $allEquipments->filter(fn(Equipment $e) => $e->status_operasi === 'Not Ready')->count();
 
         $stats = [
             'total_plta' => count($pltaList),
@@ -118,7 +118,7 @@ class DashboardController extends Controller
                 'status' => $statusOperasi,
                 'wo' => $wo->no_wo ?? '—',
                 'report_date' => $wo->report_date?->format('d M Y') ?? '—',
-                'total_durasi' => $wo->total_durasi !== null ? $wo->total_durasi.' hari' : '—',
+                'durasi_hari' => $wo->durasi_hari !== null ? $wo->durasi_hari . ' hari' : '—',
             ];
         })->all();
 
@@ -132,10 +132,10 @@ class DashboardController extends Controller
         if ($lastUpload) {
             $canonicalNames = collect($pltaList)->pluck('name');
             $rawDistribution = $lastUpload->plta_distribution ?? [];
-            $pltaDistribution = $canonicalNames->map(fn (string $name) => [
+            $pltaDistribution = $canonicalNames->map(fn(string $name) => [
                 'name' => $name,
                 'count' => $rawDistribution[$name] ?? 0,
-            ])->filter(fn (array $item) => $item['count'] > 0)->values();
+            ])->filter(fn(array $item) => $item['count'] > 0)->values();
         }
 
         return view('dashboard', compact(

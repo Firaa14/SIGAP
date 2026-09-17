@@ -18,6 +18,7 @@
             color: inherit;
             transition: transform .15s ease, box-shadow .15s ease;
         }
+
         a.stat-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 14px rgba(0, 0, 0, .25);
@@ -137,7 +138,7 @@
                                     {{ $activity['wo'] }}
                                 </td>
                                 <td style="font-size:12.5px;">{{ $activity['report_date'] }}</td>
-                                <td style="font-size:12.5px;">{{ $activity['total_durasi'] }}</td>
+                                <td style="font-size:12.5px;">{{ $activity['durasi_hari'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>

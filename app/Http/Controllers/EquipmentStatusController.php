@@ -12,7 +12,7 @@ class EquipmentStatusController extends Controller
     {
         $status = $request->get('status', 'normal');
 
-        if (! in_array($status, ['normal', 'abnormal'], true)) {
+        if (!in_array($status, ['normal', 'abnormal'], true)) {
             $status = 'normal';
         }
 
@@ -41,7 +41,7 @@ class EquipmentStatusController extends Controller
                     'status' => $equipment?->status_operasi ?? '—',
                     'wo' => $wo->no_wo ?? '—',
                     'report_date' => $wo->report_date?->format('d M Y') ?? '—',
-                    'total_durasi' => $wo->total_durasi !== null ? $wo->total_durasi.' hari' : '—',
+                    'durasi_hari' => $wo->durasi_hari !== null ? $wo->durasi_hari . ' hari' : '—',
                 ];
             });
 

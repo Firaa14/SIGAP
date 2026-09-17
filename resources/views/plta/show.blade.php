@@ -149,13 +149,15 @@
                                     </select>
                                 </td>
                                 <td class="keterangan-cell">
-                                    @if($eq['keterangan']['no_wo'] !== '-')
-                                        <div class="keterangan-wo">{{ $eq['keterangan']['no_wo'] }}</div>
-                                        <div class="keterangan-desc">{{ $eq['keterangan']['description'] }}</div>
-                                        <span class="keterangan-status">{{ $eq['keterangan']['status'] }}</span>
+                                    @if(count($eq['keterangan']) > 0)
+                                        @foreach($eq['keterangan'] as $wo)
+                                            <div class="keterangan-wo">{{ $wo['no_wo'] }}</div>
+                                            <div class="keterangan-desc">{{ $wo['description'] }}</div>
+                                            <span class="keterangan-status">{{ $wo['status'] }}</span>
+                                        @endforeach
                                     @else
                                         <div style="font-size:12px; color:var(--text-muted); font-style:italic;">
-                                            {{ $eq['keterangan']['description'] }}
+                                            —
                                         </div>
                                     @endif
                                 </td>

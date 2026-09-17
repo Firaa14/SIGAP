@@ -124,10 +124,6 @@ class ExcelUploadService
                 }
 
                 if ($col === 'REPORTDATE') {
-                    // Baca langsung dari cell Excel (bukan cuma teks hasil toArray)
-                    // supaya cell yang diformat sebagai tanggal Excel asli (serial
-                    // number) tetap dikonversi dengan benar, dan hasilnya
-                    // dinormalisasi ke format Y-m-d yang aman diparse Carbon.
                     $mapped[$col] = $this->extractReportDate($sheet, $idx, $i + 1);
                 } else {
                     $mapped[$col] = isset($rowRaw[$idx])
@@ -148,21 +144,6 @@ class ExcelUploadService
         ];
     }
 
-    /**
-     * Ambil nilai tanggal dari sebuah cell Excel dan normalisasi ke format Y-m-d.
-     *
-     * Menangani dua kondisi:
-     * 1. Cell berformat tanggal Excel asli (serial number) -> dikonversi lewat
-     *    PhpSpreadsheet Date helper, tidak bergantung pada format tampilan/locale.
-     * 2. Cell berisi teks tanggal biasa -> dicoba beberapa format umum secara
-     *    eksplisit (bukan cuma Carbon::parse() yang bisa salah tebak
-     *    d/m/Y vs m/d/Y).
-     *
-     * Mengembalikan string kosong jika kolom kosong atau tidak bisa diparse
-     * sama sekali (baris tetap lanjut diproses, cuma report_date-nya null).
-     *
-     * @param  Worksheet  $sheet
-     */
     private function extractReportDate($sheet, int $colIndex, int $sheetRow): string
     {
         try {
@@ -182,7 +163,6 @@ class ExcelUploadService
             return '';
         }
 
-        // Kondisi 1: cell benar-benar cell tanggal Excel (serial number)
         if (is_numeric($rawValue) && ExcelDate::isDateTime($cell)) {
             try {
                 return ExcelDate::excelToDateTimeObject($rawValue)->format('Y-m-d');
@@ -192,14 +172,11 @@ class ExcelUploadService
                     'raw_value' => $rawValue,
                     'error' => $e->getMessage(),
                 ]);
-                // lanjut ke fallback string di bawah
             }
         }
 
         $rawString = trim((string) $rawValue);
 
-        // Kondisi 2: teks tanggal biasa -- coba format eksplisit dulu
-        // (paling umum dipakai di file Excel Indonesia: d/m/Y)
         $explicitFormats = ['d/m/Y', 'd-m-Y', 'Y-m-d', 'd/m/y', 'd-m-y'];
 
         foreach ($explicitFormats as $format) {
@@ -209,11 +186,10 @@ class ExcelUploadService
                     return $date->format('Y-m-d');
                 }
             } catch (\Throwable $e) {
-                // coba format berikutnya
+                //
             }
         }
 
-        // Fallback terakhir: biarkan Carbon menebak sendiri
         try {
             return Carbon::parse($rawString)->format('Y-m-d');
         } catch (\Throwable $e) {
@@ -235,7 +211,10 @@ class ExcelUploadService
 
         $pltaPrefixMap = Plta::all()->keyBy('kode_prefix');
 
-        $existingWoEquipmentIds = EquipmentWo::pluck('equipment_id')
+        // FIX: tambahkan description ke key, supaya WO dengan no_wo + worktype sama
+        // tapi description beda dianggap record yang BERBEDA (bukan saling menimpa).
+        $existingWoKeys = EquipmentWo::get()
+            ->map(fn (EquipmentWo $wo) => $wo->equipment_id.'|'.$wo->no_wo.'|'.$wo->worktype.'|'.$wo->description)
             ->flip()
             ->all();
 
@@ -304,10 +283,7 @@ class ExcelUploadService
                 $rowErrors[] = 'STATUS kosong.';
             }
 
-            if ($assetnum !== '' && isset($seenAssetNums[$assetnum])) {
-                $rowErrors[] = "Duplikat ASSETNUM \"{$assetnum}\" dalam file "
-                    . "(pertama kali muncul di baris {$seenAssetNums[$assetnum]}).";
-            } elseif ($assetnum !== '') {
+            if ($assetnum !== '' && !isset($seenAssetNums[$assetnum])) {
                 $seenAssetNums[$assetnum] = $rowNum;
             }
 
@@ -362,7 +338,9 @@ class ExcelUploadService
                 && $equipment !== null
                 && $statusOto !== null
             ) {
-                $isNew = !isset($existingWoEquipmentIds[$equipment->id]);
+                // FIX: description ikut menentukan apakah row ini "sudah ada" atau "baru"
+                $rowKey = $equipment->id.'|'.$noWo.'|'.$worktype.'|'.$desc;
+                $isNew = !isset($existingWoKeys[$rowKey]);
 
                 if ($isNew) {
                     $newCount++;
@@ -433,9 +411,11 @@ class ExcelUploadService
 
             $equipmentIds = array_column($validRows, 'equipment_id');
 
+            // FIX: description ikut jadi bagian key, supaya WO sama tapi description beda
+            // tidak saling menimpa saat dicocokkan dengan data yang sudah ada di DB.
             $existingWoMap = EquipmentWo::whereIn('equipment_id', $equipmentIds)
                 ->get()
-                ->keyBy('equipment_id')
+                ->keyBy(fn (EquipmentWo $wo) => $wo->equipment_id.'|'.$wo->no_wo.'|'.$wo->worktype.'|'.$wo->description)
                 ->all();
 
             $toInsert = [];
@@ -482,9 +462,12 @@ class ExcelUploadService
                     'uploaded_at' => $uploadedAt,
                 ];
 
-                if (isset($existingWoMap[$row['equipment_id']])) {
+                // FIX: description ikut dalam key pencocokan insert vs update
+                $rowKey = $row['equipment_id'].'|'.$row['no_wo'].'|'.$row['worktype'].'|'.$row['description'];
+
+                if (isset($existingWoMap[$rowKey])) {
                     $toUpdate[] = [
-                        $existingWoMap[$row['equipment_id']],
+                        $existingWoMap[$rowKey],
                         $data,
                     ];
                 } else {

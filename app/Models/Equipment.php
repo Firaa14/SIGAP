@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Equipment extends Model
 {
@@ -29,11 +29,11 @@ class Equipment extends Model
     }
 
     /**
-     * @return HasOne<EquipmentWo, $this>
+     * @return HasMany<EquipmentWo, $this>
      */
-    public function wo(): HasOne
+    public function wos(): HasMany
     {
-        return $this->hasOne(EquipmentWo::class);
+        return $this->hasMany(EquipmentWo::class);
     }
 
     /**
@@ -46,20 +46,21 @@ class Equipment extends Model
      */
     public function getStatusOperasiAttribute(): string
     {
-        $wo = $this->relationLoaded('wo') ? $this->getRelation('wo') : $this->wo;
+        $wos = $this->relationLoaded('wos') ? $this->getRelation('wos') : $this->wos;
 
-        if (! $wo) {
+        if ($wos->isEmpty()) {
             return 'Normal';
         }
 
-        if ($wo->status_manual === 'not_ready') {
+        if ($wos->contains(fn ($wo) => $wo->status_manual === 'not_ready')) {
             return 'Not Ready';
         }
 
-        return match ($wo->status_otomatis) {
-            'abnormal' => 'Abnormal',
-            default => 'Normal',
-        };
+        if ($wos->contains(fn ($wo) => $wo->status_otomatis === 'abnormal')) {
+            return 'Abnormal';
+        }
+
+        return 'Normal';
     }
 
     /**

@@ -19,10 +19,10 @@ class PltaController extends Controller
             return redirect()->route('dashboard');
         }
 
-        // Ambil Plta model + semua equipment + relasi wo dalam 2 query (eager load)
+        // Ambil Plta model + semua equipment + relasi wos dalam 2 query (eager load)
         /** @var Plta|null $pltaModel */
         $pltaModel = Plta::where('slug', $slug)
-            ->with(['equipments.wo'])
+            ->with(['equipments.wos'])
             ->first();
 
         // Map Equipment model ke format array yang dipakai view
@@ -34,13 +34,13 @@ class PltaController extends Controller
                 'kks' => $eq->kks ?? '—',
                 'assetnum' => $eq->assetnum,
                 'status_operasi' => $eq->status_operasi,  // via accessor
-                'keterangan' => [
-                    'no_wo' => $eq->wo?->no_wo ?? '-',
-                    'description' => $eq->wo?->description ?? '—',
-                    'status' => $eq->wo?->wo_status ?? '',
-                ],
-                'report_date' => $eq->wo?->report_date?->format('d M Y') ?? '—',
-                'durasi_hari' => $eq->wo?->durasi_hari !== null ? $eq->wo->durasi_hari.' hari' : '—',
+                'keterangan' => $eq->wos->map(fn ($wo) => [
+                    'no_wo' => $wo->no_wo ?? '-',
+                    'description' => $wo->description ?? '—',
+                    'status' => $wo->wo_status ?? '',
+                ])->values()->all(),
+                'report_date' => $eq->wos->first()?->report_date?->format('d M Y') ?? '—',
+                'durasi_hari' => $eq->wos->first()?->durasi_hari !== null ? $eq->wos->first()->durasi_hari.' hari' : '—',
             ])->values()->all()
             : [];
 

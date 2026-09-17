@@ -40,7 +40,7 @@ class DashboardController extends Controller
      */
     public static function pltaMapData(): array
     {
-        $pltas = Plta::query()->orderBy('id')->with('equipments.wo')->get();
+        $pltas = Plta::query()->orderBy('id')->with('equipments.wos')->get();
 
         return $pltas->map(function (Plta $plta): array {
             $equipments = $plta->equipments;
@@ -82,8 +82,8 @@ class DashboardController extends Controller
         // ── Stats dari DB ─────────────────────────────────────────────────────
         $totalEquipment = Equipment::count();
 
-        // Hitung status operasi: ambil semua equipment dengan relasi wo
-        $allEquipments = Equipment::with('wo')->get();
+        // Hitung status operasi: ambil semua equipment dengan relasi wos
+        $allEquipments = Equipment::with('wos')->get();
 
         $normal = $allEquipments->filter(fn(Equipment $e) => $e->status_operasi === 'Normal')->count();
         $abnormal = $allEquipments->filter(fn(Equipment $e) => $e->status_operasi === 'Abnormal')->count();

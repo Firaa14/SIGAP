@@ -37,6 +37,7 @@ class EquipmentStatusController extends Controller
                 return [
                     'time' => $wo->uploaded_at?->format('d M Y H:i') ?? '—',
                     'plta' => $plta?->nama_plta ?? '—',
+                    'equipment' => $equipment?->equipment ?? '—',
                     'assetnum' => $equipment?->assetnum ?? '—',
                     'status' => $equipment?->status_operasi ?? '—',
                     'wo' => $wo->no_wo ?? '—',

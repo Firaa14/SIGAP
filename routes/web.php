@@ -23,26 +23,28 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->name('logout');
 
 // ================================
-// HALAMAN SETELAH LOGIN
+// HALAMAN PUBLIK (dapat diakses tanpa login — guest = Reviewer/read-only)
+// ================================
+
+Route::get('/', [DashboardController::class, 'index'])
+    ->name('dashboard');
+
+Route::get('/dashboard/map-data', [DashboardController::class, 'mapData'])
+    ->name('dashboard.map-data');
+
+// STATUS EQUIPMENT (dibuka dari klik stat card Normal/Abnormal di dashboard)
+Route::get('/equipment-status', [EquipmentStatusController::class, 'index'])
+    ->name('status.index');
+
+// PLTA
+Route::get('/plta/{slug}', [PltaController::class, 'show'])
+    ->name('plta.show');
+
+// ================================
+// HALAMAN PROTECTED (butuh login — operasi write/edit/upload)
 // ================================
 
 Route::middleware('auth')->group(function () {
-
-    // DASHBOARD
-    Route::get('/', [DashboardController::class, 'index'])
-        ->name('dashboard');
-
-    Route::get('/dashboard/map-data', [DashboardController::class, 'mapData'])
-        ->name('dashboard.map-data');
-
-    // STATUS EQUIPMENT (dibuka dari klik stat card Normal/Abnormal di dashboard)
-    // Sengaja TIDAK ditaruh di sidebar/menu manapun.
-    Route::get('/equipment-status', [EquipmentStatusController::class, 'index'])
-        ->name('status.index');
-
-    // PLTA
-    Route::get('/plta/{slug}', [PltaController::class, 'show'])
-        ->name('plta.show');
 
     // UPLOAD
     Route::get('/upload', [UploadController::class, 'index'])

@@ -14,6 +14,169 @@
     </script>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @stack('styles')
+    <style>
+        /* ============================================================
+           AUTH GATE MODAL
+           ============================================================ */
+        .auth-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 15, 35, 0.62);
+            backdrop-filter: blur(3px);
+            z-index: 9000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.22s ease, visibility 0.22s ease;
+        }
+        .auth-modal-backdrop.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .auth-modal {
+            background: var(--bg-surface, #FFFFFF);
+            border: 1px solid var(--border-color, #E2E8F0);
+            border-radius: 16px;
+            padding: 36px 40px 32px;
+            width: 420px;
+            max-width: calc(100vw - 40px);
+            box-shadow: 0 24px 60px rgba(5, 15, 35, 0.28), 0 8px 20px rgba(5, 15, 35, 0.12);
+            transform: translateY(16px) scale(0.97);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        .auth-modal-backdrop.is-open .auth-modal {
+            transform: translateY(0) scale(1);
+        }
+        .auth-modal-icon-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(0,102,204,0.12) 0%, rgba(0,59,123,0.08) 100%);
+            border: 1px solid rgba(0,102,204,0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .auth-modal-icon-wrap svg {
+            color: var(--color-accent, #0066CC);
+        }
+        .auth-modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary, #172033);
+            margin-bottom: 8px;
+            letter-spacing: -0.2px;
+        }
+        .auth-modal-feature {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0,102,204,0.08);
+            color: var(--color-accent, #0066CC);
+            border: 1px solid rgba(0,102,204,0.18);
+            border-radius: 6px;
+            padding: 3px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .auth-modal-desc {
+            font-size: 13.5px;
+            color: var(--text-secondary, #465268);
+            line-height: 1.65;
+            margin-bottom: 28px;
+        }
+        .auth-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .auth-modal-btn-primary {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            height: 42px;
+            background: var(--color-accent, #0066CC);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 9px;
+            font-size: 13.5px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease;
+        }
+        .auth-modal-btn-primary:hover {
+            background: var(--color-accent-hover, #0055AA);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0,102,204,0.3);
+            color: #FFFFFF;
+            text-decoration: none;
+        }
+        .auth-modal-btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 42px;
+            padding: 0 18px;
+            background: var(--bg-surface-2, #F7F9FC);
+            color: var(--text-secondary, #465268);
+            border: 1px solid var(--border-color, #E2E8F0);
+            border-radius: 9px;
+            font-size: 13.5px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.18s ease, border-color 0.18s ease;
+        }
+        .auth-modal-btn-secondary:hover {
+            background: var(--bg-surface, #FFFFFF);
+            border-color: #B0C4D8;
+        }
+        .auth-modal-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: none;
+            border: none;
+            color: var(--text-muted, #718096);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            line-height: 1;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .auth-modal-close:hover {
+            background: var(--bg-surface-2, #F7F9FC);
+            color: var(--text-primary, #172033);
+        }
+        [data-theme="dark"] .auth-modal {
+            background: var(--bg-surface, #142746);
+            border-color: var(--border-color, rgba(255,255,255,0.12));
+        }
+        [data-theme="dark"] .auth-modal-icon-wrap {
+            background: rgba(74,158,255,0.12);
+            border-color: rgba(74,158,255,0.2);
+        }
+        [data-theme="dark"] .auth-modal-feature {
+            background: rgba(74,158,255,0.12);
+            border-color: rgba(74,158,255,0.2);
+        }
+        [data-theme="dark"] .auth-modal-btn-secondary {
+            background: var(--bg-surface-2, #193052);
+        }
+    </style>
 </head>
 
 <body>
@@ -50,14 +213,17 @@
                 </a>
 
                 <a href="{{ route('upload.index') }}"
-                    class="sidebar-nav-item {{ request()->routeIs('upload.*') ? 'active' : '' }}" id="nav-upload">
+                    class="sidebar-nav-item {{ request()->routeIs('upload.*') ? 'active' : '' }}"
+                    id="nav-upload"
+                    @guest data-requires-auth="true" data-feature="Upload Data WO" @endguest>
                     <span class="nav-icon">↑</span>
                     <span class="nav-label">Upload Data WO</span>
                 </a>
 
                 <a href="{{ route('equipment.create') }}"
                     class="sidebar-nav-item {{ request()->routeIs('equipment.*') ? 'active' : '' }}"
-                    id="nav-equipment-create">
+                    id="nav-equipment-create"
+                    @guest data-requires-auth="true" data-feature="Insert Equipment" @endguest>
                     <span class="nav-icon">＋</span>
                     <span class="nav-label">Insert Equipment</span>
                 </a>
@@ -118,19 +284,36 @@
                         <span class="theme-toggle-icon theme-toggle-moon" aria-hidden="true">☾</span>
                     </button>
 
-                    {{-- Logout --}}
-                    <form action="{{ route('logout') }}" method="POST" id="logout-form">
-                        @csrf
-                        <button type="submit" class="btn-logout-icon" title="Logout">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    @auth
+                        {{-- Role badge + Logout --}}
+                        <span class="topbar-role-badge" title="Role aktif saat ini">
+                            {{ session('login_role', auth()->user()->name) }}
+                        </span>
+                        <form action="{{ route('logout') }}" method="POST" id="logout-form">
+                            @csrf
+                            <button type="submit" class="btn-logout-icon" title="Logout">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                            </button>
+                        </form>
+                    @else
+                        {{-- Tombol Login untuk guest --}}
+                        <a href="{{ route('login') }}" class="btn-login-topbar" id="btn-login-topbar" title="Login">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                <polyline points="16 17 21 12 16 7"></polyline>
-                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                                stroke-linejoin="round" aria-hidden="true">
+                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                                <polyline points="10 17 15 12 10 7"></polyline>
+                                <line x1="15" y1="12" x2="3" y2="12"></line>
                             </svg>
-                        </button>
-                    </form>
+                            Login
+                        </a>
+                    @endauth
                 </div>
             </header>
 
@@ -141,6 +324,47 @@
 
         </div>
     </div>
+
+    {{-- Auth Gate Modal (hanya untuk guest) --}}
+    @guest
+    <div class="auth-modal-backdrop" id="auth-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+        <div class="auth-modal" id="auth-modal">
+            <button type="button" class="auth-modal-close" id="auth-modal-close" aria-label="Tutup">&times;</button>
+            <div class="auth-modal-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+            <div class="auth-modal-title" id="auth-modal-title">Login Diperlukan</div>
+            <div class="auth-modal-feature" id="auth-modal-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 11 12 14 22 4"></polyline>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+                <span id="auth-modal-feature-name">Fitur</span>
+            </div>
+            <p class="auth-modal-desc" id="auth-modal-desc">
+                Fitur ini hanya dapat diakses oleh pengguna yang telah login sebagai <strong>SO</strong> atau <strong>CBM</strong>.
+                Silakan masuk terlebih dahulu untuk melanjutkan.
+            </p>
+            <div class="auth-modal-actions">
+                <a href="{{ route('login') }}" class="auth-modal-btn-primary" id="auth-modal-login-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                        <polyline points="10 17 15 12 10 7"></polyline>
+                        <line x1="15" y1="12" x2="3" y2="12"></line>
+                    </svg>
+                    Login Sekarang
+                </a>
+                <button type="button" class="auth-modal-btn-secondary" id="auth-modal-cancel-btn">Batal</button>
+            </div>
+        </div>
+    </div>
+    @endguest
 
     <script>
         // Theme preference is shared across every authenticated page.
@@ -193,6 +417,49 @@
                 if (val === 'Not Ready') { select.classList.add('notready-select'); }
             }
         });
+
+        // Auth Gate — intercept protected nav links untuk guest
+        (function () {
+            const backdrop  = document.getElementById('auth-modal-backdrop');
+            if (!backdrop) return; // user sudah login, tidak perlu listener
+
+            const closeBtn  = document.getElementById('auth-modal-close');
+            const cancelBtn = document.getElementById('auth-modal-cancel-btn');
+            const featureName = document.getElementById('auth-modal-feature-name');
+
+            function openModal(featureLabel) {
+                if (featureName) featureName.textContent = featureLabel;
+                backdrop.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+                document.getElementById('auth-modal-close').focus();
+            }
+
+            function closeModal() {
+                backdrop.classList.remove('is-open');
+                document.body.style.overflow = '';
+            }
+
+            // Intercept klik pada semua elemen dengan data-requires-auth
+            document.querySelectorAll('[data-requires-auth]').forEach(function (el) {
+                el.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    openModal(el.dataset.feature || 'Fitur Ini');
+                });
+            });
+
+            closeBtn.addEventListener('click', closeModal);
+            cancelBtn.addEventListener('click', closeModal);
+
+            // Tutup saat klik di luar modal
+            backdrop.addEventListener('click', function (e) {
+                if (e.target === backdrop) closeModal();
+            });
+
+            // Tutup dengan Escape
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && backdrop.classList.contains('is-open')) closeModal();
+            });
+        })();
     </script>
 
     @yield('scripts')

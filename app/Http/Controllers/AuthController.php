@@ -22,7 +22,7 @@ class AuthController extends Controller
         $data = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
-            'role' => 'required|in:SO,CBM,REVIEWER',
+            'role' => 'required|in:SO,CBM',
         ]);
 
         if (Auth::attempt([
@@ -52,6 +52,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->route('dashboard');
     }
 }

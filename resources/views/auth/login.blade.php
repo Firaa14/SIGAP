@@ -504,10 +504,6 @@
                             CBM
                         </option>
 
-                        <option value="REVIEWER">
-                            REVIEWER
-                        </option>
-
                     </select>
 
                 </div>
@@ -520,6 +516,38 @@
 
             <div class="footer-text">
                 © {{ date('Y') }} SIGAP — Sistem Informasi Monitoring
+            </div>
+
+            <div style="margin-top:16px;">
+                <a href="{{ route('dashboard') }}"
+                   id="link-back-to-dashboard"
+                   style="
+                       display: flex;
+                       align-items: center;
+                       justify-content: center;
+                       gap: 8px;
+                       width: 100%;
+                       height: 44px;
+                       border: 1px solid var(--login-border);
+                       border-radius: 7px;
+                       background: transparent;
+                       color: var(--login-muted);
+                       font-size: 13.5px;
+                       font-weight: 500;
+                       text-decoration: none;
+                       transition: all 0.2s ease;
+                       cursor: pointer;
+                   "
+                   onmouseover="this.style.borderColor='#003b7b'; this.style.color='#003b7b'; this.style.background='rgba(0,59,123,0.04)';"
+                   onmouseout="this.style.borderColor=''; this.style.color=''; this.style.background='transparent';">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Kembali ke Dashboard
+                </a>
             </div>
 
         </div>

@@ -138,15 +138,29 @@
                                             default => 'notready-select',
                                         };
                                     @endphp
-                                    <select class="status-select {{ $statusSelectClass }}" id="status-{{ $eq['assetnum'] }}"
-                                        data-assetnum="{{ $eq['assetnum'] }}" title="Ubah Status Operasi Equipment">
-                                        <option value="Normal" {{ $eq['status_operasi'] === 'Normal' ? 'selected' : '' }}>Normal
-                                        </option>
-                                        <option value="Abnormal" {{ $eq['status_operasi'] === 'Abnormal' ? 'selected' : '' }}>Abnormal
-                                        </option>
-                                        <option value="Not Ready" {{ $eq['status_operasi'] === 'Not Ready' ? 'selected' : '' }}>Not
-                                            Ready</option>
-                                    </select>
+                                    @if($canEditStatus)
+                                        {{-- SO / CBM: dropdown interaktif dengan AJAX save --}}
+                                        <select class="status-select {{ $statusSelectClass }}"
+                                            id="status-{{ $eq['assetnum'] }}"
+                                            data-assetnum="{{ $eq['assetnum'] }}"
+                                            data-update-url="{{ route('equipment.update-status', $eq['assetnum']) }}"
+                                            title="Ubah Status Operasi Equipment">
+                                            <option value="Normal" {{ $eq['status_operasi'] === 'Normal' ? 'selected' : '' }}>Normal</option>
+                                            <option value="Abnormal" {{ $eq['status_operasi'] === 'Abnormal' ? 'selected' : '' }}>Abnormal</option>
+                                            <option value="Not Ready" {{ $eq['status_operasi'] === 'Not Ready' ? 'selected' : '' }}>Not Ready</option>
+                                        </select>
+                                    @else
+                                        {{-- Guest / Reviewer: read-only, klik memunculkan modal login --}}
+                                        <span class="status-select {{ $statusSelectClass }} status-select-readonly"
+                                            id="status-{{ $eq['assetnum'] }}"
+                                            data-assetnum="{{ $eq['assetnum'] }}"
+                                            data-requires-auth="true"
+                                            data-feature="Ubah Status Operasi"
+                                            title="Login sebagai SO atau CBM untuk mengubah status"
+                                            role="button"
+                                            tabindex="0"
+                                            aria-label="Status: {{ $eq['status_operasi'] }}. Login diperlukan untuk mengubah.">{{ $eq['status_operasi'] }}</span>
+                                    @endif
                                 </td>
                                 <td class="keterangan-cell">
                                     @if(count($eq['keterangan']) > 0)
@@ -217,8 +231,69 @@
 @endsection
 
 @section('scripts')
+    <style>
+        /* Read-only status badge untuk Guest/Reviewer */
+        .status-select-readonly {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            user-select: none;
+            pointer-events: auto;
+        }
+        /* Toast notifikasi simpan status */
+        #status-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            pointer-events: none;
+        }
+        #status-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #status-toast.toast-success {
+            background: #22c55e;
+            color: #fff;
+        }
+        #status-toast.toast-error {
+            background: #ef4444;
+            color: #fff;
+        }
+    </style>
+
+    {{-- Toast element --}}
+    <div id="status-toast" role="alert" aria-live="polite"></div>
+
     <script>
-        // Filter & Search Logic
+        // ============================================================
+        // TOAST HELPER
+        // ============================================================
+        (function () {
+            window.showStatusToast = function (message, type) {
+                const toast = document.getElementById('status-toast');
+                if (!toast) { return; }
+                toast.textContent = message;
+                toast.className = 'show ' + (type === 'error' ? 'toast-error' : 'toast-success');
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(function () {
+                    toast.className = toast.className.replace('show', '').trim();
+                }, 3200);
+            };
+        })();
+
+        // ============================================================
+        // FILTER & SEARCH
+        // ============================================================
         (function () {
             const searchInput = document.getElementById('search-equipment');
             const unitFilter = document.getElementById('filter-unit');
@@ -251,9 +326,9 @@
                 countLabel.textContent = visibleCount + ' equipment ditampilkan';
             }
 
-            if (searchInput) searchInput.addEventListener('input', applyFilters);
-            if (unitFilter) unitFilter.addEventListener('change', applyFilters);
-            if (statusFilter) statusFilter.addEventListener('change', applyFilters);
+            if (searchInput) { searchInput.addEventListener('input', applyFilters); }
+            if (unitFilter) { unitFilter.addEventListener('change', applyFilters); }
+            if (statusFilter) { statusFilter.addEventListener('change', applyFilters); }
 
             if (resetBtn) {
                 resetBtn.addEventListener('click', function () {
@@ -264,15 +339,95 @@
                 });
             }
 
-            // Update row data-status saat select diubah
-            document.querySelectorAll('.status-select').forEach(function (select) {
+            // Sinkronisasi data-status pada row saat select diubah (read-only span tidak trigger change)
+            document.querySelectorAll('select.status-select').forEach(function (select) {
                 select.addEventListener('change', function () {
                     const row = this.closest('tr');
                     if (row) { row.dataset.status = this.value; }
-                    // Reapply filters
                     applyFilters();
                 });
             });
+        })();
+
+        // ============================================================
+        // AJAX SAVE — hanya berjalan untuk SO/CBM (select elements)
+        // ============================================================
+        (function () {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]') &&
+                document.querySelector('meta[name="csrf-token"]').getAttribute('content') ||
+                '{{ csrf_token() }}';
+
+            document.querySelectorAll('select.status-select').forEach(function (select) {
+                const originalValue = select.value;
+
+                select.addEventListener('change', function () {
+                    const newStatus = this.value;
+                    const updateUrl = this.dataset.updateUrl;
+                    const assetnum = this.dataset.assetnum;
+
+                    if (!updateUrl) { return; }
+
+                    // Disable sementara untuk mencegah double-submit
+                    select.disabled = true;
+
+                    fetch(updateUrl, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({ status: newStatus }),
+                    })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            return response.json().then(function (data) {
+                                throw new Error(data.error || 'Gagal menyimpan status.');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(function () {
+                        window.showStatusToast('Status ' + assetnum + ' berhasil disimpan: ' + newStatus, 'success');
+                    })
+                    .catch(function (err) {
+                        // Rollback ke nilai sebelumnya jika gagal
+                        select.value = select.dataset.prevValue || originalValue;
+                        // Update class kembali ke nilai lama
+                        const prev = select.value;
+                        select.classList.remove('normal-select', 'abnormal-select', 'notready-select');
+                        if (prev === 'Normal') { select.classList.add('normal-select'); }
+                        else if (prev === 'Abnormal') { select.classList.add('abnormal-select'); }
+                        else { select.classList.add('notready-select'); }
+
+                        window.showStatusToast(err.message || 'Gagal menyimpan status.', 'error');
+                    })
+                    .finally(function () {
+                        select.disabled = false;
+                        // Simpan nilai terakhir yang berhasil
+                        select.dataset.prevValue = select.value;
+                        // Sinkronisasi row data-status
+                        const row = select.closest('tr');
+                        if (row) { row.dataset.status = select.value; }
+                    });
+                });
+            });
+        })();
+
+        // ============================================================
+        // GUEST / REVIEWER — intercept klik pada read-only status span
+        // Reuse mekanisme auth-modal yang sudah ada di app.blade.php
+        // ============================================================
+        (function () {
+            const backdrop = document.getElementById('auth-modal-backdrop');
+            if (!backdrop) {
+                // User sudah login (SO/CBM/Reviewer auth) — tidak perlu listener ini
+                return;
+            }
+
+            // Span read-only sudah punya data-requires-auth="true" sehingga
+            // akan otomatis di-intercept oleh listener global di app.blade.php.
+            // Tidak perlu tambahan JS di sini.
         })();
     </script>
 @endsection

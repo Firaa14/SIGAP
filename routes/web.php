@@ -65,4 +65,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/equipment', [EquipmentController::class, 'store'])
         ->name('equipment.store');
+
+    Route::patch('/equipment/{assetnum}/status', [EquipmentController::class, 'updateStatus'])
+        ->name('equipment.update-status');
 });

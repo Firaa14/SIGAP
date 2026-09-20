@@ -38,9 +38,10 @@ class Equipment extends Model
 
     /**
      * Hitung status operasi yang ditampilkan berdasarkan:
-     * 1. status_manual (not_ready) — prioritas tertinggi
+     * 1. status_manual (override manual oleh SO/CBM) — prioritas tertinggi
+     *    Nilai yang valid: 'normal', 'abnormal', 'not_ready'
      * 2. status_otomatis dari Excel (normal / abnormal)
-     * 3. Default: normal
+     * 3. Default: Normal
      *
      * @return 'Normal'|'Abnormal'|'Not Ready'
      */
@@ -52,10 +53,19 @@ class Equipment extends Model
             return 'Normal';
         }
 
-        if ($wos->contains(fn ($wo) => $wo->status_manual === 'not_ready')) {
-            return 'Not Ready';
+        /** Cek apakah ada WO dengan status_manual yang di-set (override manual SO/CBM). */
+        $manualWo = $wos->first(fn ($wo) => $wo->status_manual !== null);
+
+        if ($manualWo !== null) {
+            return match ($manualWo->status_manual) {
+                'normal' => 'Normal',
+                'abnormal' => 'Abnormal',
+                'not_ready' => 'Not Ready',
+                default => 'Normal',
+            };
         }
 
+        /** Fallback ke status otomatis dari data upload Excel. */
         if ($wos->contains(fn ($wo) => $wo->status_otomatis === 'abnormal')) {
             return 'Abnormal';
         }

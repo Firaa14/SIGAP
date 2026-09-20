@@ -50,6 +50,8 @@ class PltaController extends Controller
             'not_ready' => collect($equipments)->where('status_operasi', 'Not Ready')->count(),
         ];
 
-        return view('plta.show', compact('currentPlta', 'pltaList', 'equipments', 'statusSummary'));
+        $canEditStatus = in_array(session('login_role'), ['SO', 'CBM'], true);
+
+        return view('plta.show', compact('currentPlta', 'pltaList', 'equipments', 'statusSummary', 'canEditStatus'));
     }
 }

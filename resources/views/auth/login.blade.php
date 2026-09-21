@@ -550,7 +550,7 @@
             </form>
 
             <div class="footer-text">
-                © {{ date('Y') }} SIGAP — Sistem Informasi Monitoring
+                © {{ date('Y') }} SIGAP - Sistem Informasi Gangguan Andal Pembangkit
             </div>
 
             <div style="margin-top:16px;">

@@ -294,8 +294,8 @@
             {{-- Sidebar Footer --}}
             <div class="sidebar-footer">
                 <div class="sidebar-footer-text">
-                    © {{ date('Y') }} PLN Nusantara Power<br>
-                    v1.0.0-beta &nbsp;·&nbsp; <span data-i18n="sidebar_ui_prototype">UI Prototype</span>
+                    © {{ date('Y') }} SIGAP - PLN Nusantara Power<br>
+                    Unit Pembangkitan Brantas
                 </div>
             </div>
 

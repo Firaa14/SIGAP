@@ -498,7 +498,8 @@
 <body>
 
     <div class="corner-controls">
-        <button type="button" class="lang-toggle" id="lang-toggle" aria-label="Switch to English" title="Switch to English">
+        <button type="button" class="lang-toggle" id="lang-toggle" aria-label="Switch to English"
+            title="Switch to English">
             <span id="lang-toggle-label">EN</span>
         </button>
         <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Aktifkan dark mode"
@@ -532,7 +533,8 @@
 
                 <br>
 
-                <span id="info-box-desc">Kelola status operasi, keandalan alat, dan Work Order dalam satu platform terpadu.</span>
+                <span id="info-box-desc">Kelola status operasi, keandalan alat, dan Work Order dalam satu platform
+                    terpadu.</span>
             </div>
 
         </div>
@@ -578,9 +580,8 @@
                     </label>
 
                     <input type="password" id="password" name="password" class="input-box"
-                        placeholder="Masukkan password"
-                        data-placeholder-id="Masukkan password" data-placeholder-en="Enter your password"
-                        required>
+                        placeholder="Masukkan password" data-placeholder-id="Masukkan password"
+                        data-placeholder-en="Enter your password" required>
 
                 </div>
 
@@ -627,7 +628,7 @@
             </form>
 
             <div class="footer-text" id="login-footer">
-                © {{ date('Y') }} SIGAP - Sistem Informasi Gangguan Andal Pembangkit
+                © {{ date('Y') }} SIGAP - PLN Nusantara Power Unit Pmebangkitan Brantas
             </div>
 
         </div>
@@ -640,42 +641,42 @@
         // ============================================================
         var LOGIN_I18N = {
             id: {
-                lang_switch:        'Ganti ke Bahasa Inggris',
-                title:              'Selamat Datang',
-                subtitle:           'Silakan masuk ke akun SIGAP Anda',
-                label_email:        'Email',
-                label_password:     'Password',
-                label_role:         'Role',
-                opt_select_role:    'Pilih Role',
-                btn_submit:         'MASUK',
-                btn_back:           'Kembali ke Dashboard',
-                footer:             '© ' + new Date().getFullYear() + ' SIGAP - Sistem Informasi Gangguan Andal Pembangkit',
-                left_desc:          'Sistem Informasi Gangguan Andal Pembangkit sebagai sarana monitoring terpadu kesehatan unit dan equipment PLTA untuk mendukung keandalan operasional pembangkitan.',
-                info_title:         'Manajemen Pemeliharaan Aset',
-                info_desc:          'Kelola status operasi, keandalan alat, dan Work Order dalam satu platform terpadu.',
-                placeholder_email:  'Masukkan email',
-                placeholder_pass:   'Masukkan password',
-                theme_dark:         'Aktifkan dark mode',
-                theme_light:        'Aktifkan light mode',
+                lang_switch: 'Ganti ke Bahasa Inggris',
+                title: 'Selamat Datang',
+                subtitle: 'Silakan masuk ke akun SIGAP Anda',
+                label_email: 'Email',
+                label_password: 'Password',
+                label_role: 'Role',
+                opt_select_role: 'Pilih Role',
+                btn_submit: 'MASUK',
+                btn_back: 'Kembali ke Dashboard',
+                footer: '© ' + new Date().getFullYear() + ' SIGAP - PLN Nusantara Power Unit Pembangkitan Brantas',
+                left_desc: 'Sistem Informasi Gangguan Andal Pembangkit sebagai sarana monitoring terpadu kesehatan unit dan equipment PLTA untuk mendukung keandalan operasional pembangkitan.',
+                info_title: 'Manajemen Pemeliharaan Aset',
+                info_desc: 'Kelola status operasi, keandalan alat, dan Work Order dalam satu platform terpadu.',
+                placeholder_email: 'Masukkan email',
+                placeholder_pass: 'Masukkan password',
+                theme_dark: 'Aktifkan dark mode',
+                theme_light: 'Aktifkan light mode',
             },
             en: {
-                lang_switch:        'Switch to Indonesian',
-                title:              'Welcome',
-                subtitle:           'Please sign in to your SIGAP account',
-                label_email:        'Email',
-                label_password:     'Password',
-                label_role:         'Role',
-                opt_select_role:    'Select Role',
-                btn_submit:         'SIGN IN',
-                btn_back:           'Back to Dashboard',
-                footer:             '© ' + new Date().getFullYear() + ' SIGAP - Reliable Generator Disruption Information System',
-                left_desc:          'Reliable Generator Disruption Information System — an integrated monitoring platform for PLTA unit and equipment health to support operational reliability.',
-                info_title:         'Asset Maintenance Management',
-                info_desc:          'Manage operating status, equipment reliability, and Work Orders in one integrated platform.',
-                placeholder_email:  'Enter your email',
-                placeholder_pass:   'Enter your password',
-                theme_dark:         'Enable dark mode',
-                theme_light:        'Enable light mode',
+                lang_switch: 'Switch to Indonesian',
+                title: 'Welcome',
+                subtitle: 'Please sign in to your SIGAP account',
+                label_email: 'Email',
+                label_password: 'Password',
+                label_role: 'Role',
+                opt_select_role: 'Select Role',
+                btn_submit: 'SIGN IN',
+                btn_back: 'Back to Dashboard',
+                footer: '© ' + new Date().getFullYear() + ' SIGAP - PLN Nusantara Power Unit Pembangkitan Brantas',
+                left_desc: 'Reliable Generator Disruption Information System — an integrated monitoring platform for PLTA unit and equipment health to support operational reliability.',
+                info_title: 'Asset Maintenance Management',
+                info_desc: 'Manage operating status, equipment reliability, and Work Orders in one integrated platform.',
+                placeholder_email: 'Enter your email',
+                placeholder_pass: 'Enter your password',
+                theme_dark: 'Enable dark mode',
+                theme_light: 'Enable light mode',
             },
         };
 
@@ -691,7 +692,7 @@
 
             // Toggle button
             var toggleLabel = document.getElementById('lang-toggle-label');
-            var toggleBtn   = document.getElementById('lang-toggle');
+            var toggleBtn = document.getElementById('lang-toggle');
             if (toggleLabel) { toggleLabel.textContent = lang === 'en' ? 'ID' : 'EN'; }
             if (toggleBtn) {
                 toggleBtn.setAttribute('aria-label', d.lang_switch);
@@ -699,49 +700,49 @@
             }
 
             // Right panel
-            var titleEl    = document.getElementById('login-title');
+            var titleEl = document.getElementById('login-title');
             var subtitleEl = document.getElementById('login-subtitle');
-            var submitBtn  = document.getElementById('btn-submit-login');
-            var backText   = document.getElementById('btn-back-text');
-            var footerEl   = document.getElementById('login-footer');
+            var submitBtn = document.getElementById('btn-submit-login');
+            var backText = document.getElementById('btn-back-text');
+            var footerEl = document.getElementById('login-footer');
             var labelEmail = document.getElementById('label-email');
-            var labelPass  = document.getElementById('label-password');
-            var labelRole  = document.getElementById('label-role');
-            var optRole    = document.getElementById('opt-select-role');
+            var labelPass = document.getElementById('label-password');
+            var labelRole = document.getElementById('label-role');
+            var optRole = document.getElementById('opt-select-role');
             var emailInput = document.getElementById('email');
-            var passInput  = document.getElementById('password');
+            var passInput = document.getElementById('password');
 
-            if (titleEl)    { titleEl.textContent    = d.title; }
+            if (titleEl) { titleEl.textContent = d.title; }
             if (subtitleEl) { subtitleEl.textContent = d.subtitle; }
-            if (submitBtn)  { submitBtn.textContent  = d.btn_submit; }
-            if (backText)   { backText.textContent   = d.btn_back; }
-            if (footerEl)   { footerEl.textContent   = d.footer; }
+            if (submitBtn) { submitBtn.textContent = d.btn_submit; }
+            if (backText) { backText.textContent = d.btn_back; }
+            if (footerEl) { footerEl.textContent = d.footer; }
             if (labelEmail) { labelEmail.textContent = d.label_email; }
-            if (labelPass)  { labelPass.textContent  = d.label_password; }
-            if (labelRole)  { labelRole.textContent  = d.label_role; }
-            if (optRole)    { optRole.textContent    = d.opt_select_role; }
+            if (labelPass) { labelPass.textContent = d.label_password; }
+            if (labelRole) { labelRole.textContent = d.label_role; }
+            if (optRole) { optRole.textContent = d.opt_select_role; }
             if (emailInput) { emailInput.placeholder = d.placeholder_email; }
-            if (passInput)  { passInput.placeholder  = d.placeholder_pass; }
+            if (passInput) { passInput.placeholder = d.placeholder_pass; }
 
             // Left panel
-            var leftDesc   = document.getElementById('login-left-desc');
-            var infoTitle  = document.getElementById('info-box-title');
-            var infoDesc   = document.getElementById('info-box-desc');
-            if (leftDesc)  { leftDesc.textContent  = d.left_desc; }
+            var leftDesc = document.getElementById('login-left-desc');
+            var infoTitle = document.getElementById('info-box-title');
+            var infoDesc = document.getElementById('info-box-desc');
+            if (leftDesc) { leftDesc.textContent = d.left_desc; }
             if (infoTitle) { infoTitle.textContent = d.info_title; }
-            if (infoDesc)  { infoDesc.textContent  = d.info_desc; }
+            if (infoDesc) { infoDesc.textContent = d.info_desc; }
 
             // Theme toggle labels
             updateThemeToggleLabel(lang);
         }
 
         function updateThemeToggleLabel(lang) {
-            var isDark  = document.documentElement.dataset.theme === 'dark';
-            var d       = LOGIN_I18N[lang];
+            var isDark = document.documentElement.dataset.theme === 'dark';
+            var d = LOGIN_I18N[lang];
             var themeBtn = document.getElementById('theme-toggle');
             if (!themeBtn) { return; }
             themeBtn.setAttribute('aria-label', isDark ? d.theme_light : d.theme_dark);
-            themeBtn.setAttribute('title',      isDark ? d.theme_light : d.theme_dark);
+            themeBtn.setAttribute('title', isDark ? d.theme_light : d.theme_dark);
         }
 
         // Init

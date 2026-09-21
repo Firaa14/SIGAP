@@ -33,7 +33,7 @@ class Equipment extends Model
      */
     public function wos(): HasMany
     {
-        return $this->hasMany(EquipmentWo::class);
+        return $this->hasMany(EquipmentWo::class)->orderByDesc('uploaded_at');
     }
 
     /**
@@ -54,7 +54,7 @@ class Equipment extends Model
         }
 
         /** Cek apakah ada WO dengan status_manual yang di-set (override manual SO/CBM). */
-        $manualWo = $wos->first(fn ($wo) => $wo->status_manual !== null);
+        $manualWo = $wos->first(fn($wo) => $wo->status_manual !== null);
 
         if ($manualWo !== null) {
             return match ($manualWo->status_manual) {
@@ -66,7 +66,7 @@ class Equipment extends Model
         }
 
         /** Fallback ke status otomatis dari data upload Excel. */
-        if ($wos->contains(fn ($wo) => $wo->status_otomatis === 'abnormal')) {
+        if ($wos->contains(fn($wo) => $wo->status_otomatis === 'abnormal')) {
             return 'Abnormal';
         }
 

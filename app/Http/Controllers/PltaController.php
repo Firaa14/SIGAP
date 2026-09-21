@@ -15,7 +15,7 @@ class PltaController extends Controller
 
         $currentPlta = collect($pltaList)->firstWhere('slug', $slug);
 
-        if (! $currentPlta) {
+        if (!$currentPlta) {
             return redirect()->route('dashboard');
         }
 
@@ -27,21 +27,24 @@ class PltaController extends Controller
 
         // Map Equipment model ke format array yang dipakai view
         $equipments = $pltaModel
-            ? $pltaModel->equipments->map(fn (Equipment $eq): array => [
-                'unit' => $eq->unit,
-                'system' => $eq->system,
-                'equipment' => $eq->equipment,
-                'kks' => $eq->kks ?? '—',
-                'assetnum' => $eq->assetnum,
-                'status_operasi' => $eq->status_operasi,  // via accessor
-                'keterangan' => $eq->wos->map(fn ($wo) => [
-                    'no_wo' => $wo->no_wo ?? '-',
-                    'description' => $wo->description ?? '—',
-                    'status' => $wo->wo_status ?? '',
-                ])->values()->all(),
-                'report_date' => $eq->wos->first()?->report_date?->format('d M Y') ?? '—',
-                'durasi_hari' => $eq->wos->first()?->durasi_hari !== null ? $eq->wos->first()->durasi_hari.' hari' : '—',
-            ])->values()->all()
+            ? $pltaModel->equipments
+                ->sortByDesc(fn(Equipment $eq) => $eq->wos->first()?->uploaded_at?->timestamp ?? 0)
+                ->values()
+                ->map(fn(Equipment $eq): array => [
+                    'unit' => $eq->unit,
+                    'system' => $eq->system,
+                    'equipment' => $eq->equipment,
+                    'kks' => $eq->kks ?? '—',
+                    'assetnum' => $eq->assetnum,
+                    'status_operasi' => $eq->status_operasi,  // via accessor
+                    'keterangan' => $eq->wos->map(fn($wo) => [
+                        'no_wo' => $wo->no_wo ?? '-',
+                        'description' => $wo->description ?? '—',
+                        'status' => $wo->wo_status ?? '',
+                    ])->values()->all(),
+                    'report_date' => $eq->wos->first()?->report_date?->format('d M Y') ?? '—',
+                    'durasi_hari' => $eq->wos->first()?->durasi_hari !== null ? $eq->wos->first()->durasi_hari . ' hari' : '—',
+                ])->all()
             : [];
 
         $statusSummary = [

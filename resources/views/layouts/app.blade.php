@@ -927,7 +927,7 @@
             const dateEl = document.getElementById('current-date');
             const timeEl = document.getElementById('current-time');
             if (dateEl) { dateEl.textContent = now.toLocaleDateString(locale, dateOptions); }
-            if (timeEl) { timeEl.textContent = now.toLocaleTimeString(locale, timeOptions); }
+            if (timeEl) { timeEl.textContent = now.toLocaleTimeString(locale, timeOptions).replace(/\./g, ':'); }
 
             const fullOptions = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
             const liveClockEls = document.querySelectorAll('[data-live-clock]');

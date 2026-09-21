@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="light">
+<html lang="id" data-theme="light" data-lang="id">
 
 <head>
     <meta charset="UTF-8">
@@ -11,12 +11,15 @@
         (function () {
             const savedTheme = localStorage.getItem('sigap-theme');
             document.documentElement.dataset.theme = savedTheme === 'dark' ? 'dark' : 'light';
+            const savedLang = localStorage.getItem('sigap-lang');
+            document.documentElement.dataset.lang = (savedLang === 'en') ? 'en' : 'id';
+            document.documentElement.lang = (savedLang === 'en') ? 'en' : 'id';
         })();
     </script>
 
     <style>
         :root {
-            --login-surface: rgba(255, 255, 255, 0.93);
+            --login-surface: rgba(255, 255, 255, 0.70);
             --login-heading: #1e293b;
             --login-text: #334155;
             --login-muted: #64748b;
@@ -25,7 +28,7 @@
         }
 
         [data-theme="dark"] {
-            --login-surface: rgba(14, 29, 56, 0.96);
+            --login-surface: rgba(14, 29, 56, 0.70);
             --login-heading: #ffffff;
             --login-text: #dbe7f5;
             --login-muted: #a8b9d1;
@@ -59,6 +62,67 @@
             position: relative;
         }
 
+        /* Corner controls (theme + lang) */
+        .corner-controls {
+            position: fixed;
+            top: 22px;
+            right: 22px;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle {
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 50%;
+            background: rgba(14, 29, 56, 0.72);
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lang-toggle {
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 50%;
+            background: rgba(14, 29, 56, 0.72);
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: inherit;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.18s ease, border-color 0.18s ease;
+        }
+
+        .lang-toggle:hover,
+        .theme-toggle:hover {
+            background: rgba(0, 59, 123, 0.88);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .theme-toggle-moon {
+            display: none;
+        }
+
+        [data-theme="dark"] .theme-toggle-sun {
+            display: none;
+        }
+
+        [data-theme="dark"] .theme-toggle-moon {
+            display: inline;
+        }
+
         .login-wrapper {
             width: 900px;
             min-height: 540px;
@@ -75,33 +139,6 @@
 
             position: relative;
             z-index: 2;
-        }
-
-        .theme-toggle {
-            position: fixed;
-            top: 22px;
-            right: 22px;
-            z-index: 5;
-            width: 38px;
-            height: 38px;
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            border-radius: 50%;
-            background: rgba(14, 29, 56, 0.72);
-            color: #ffffff;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        .theme-toggle-moon {
-            display: none;
-        }
-
-        [data-theme="dark"] .theme-toggle-sun {
-            display: none;
-        }
-
-        [data-theme="dark"] .theme-toggle-moon {
-            display: inline;
         }
 
         .login-left {
@@ -365,7 +402,7 @@
 
             margin-top: 16px;
 
-            color: #94a3b8;
+            color: #6c7582;
 
             font-size: 11px;
         }
@@ -460,11 +497,16 @@
 
 <body>
 
-    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Aktifkan dark mode"
-        title="Aktifkan dark mode">
-        <span class="theme-toggle-sun" aria-hidden="true">☀</span>
-        <span class="theme-toggle-moon" aria-hidden="true">☾</span>
-    </button>
+    <div class="corner-controls">
+        <button type="button" class="lang-toggle" id="lang-toggle" aria-label="Switch to English" title="Switch to English">
+            <span id="lang-toggle-label">EN</span>
+        </button>
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Aktifkan dark mode"
+            title="Aktifkan dark mode">
+            <span class="theme-toggle-sun" aria-hidden="true">☀</span>
+            <span class="theme-toggle-moon" aria-hidden="true">☾</span>
+        </button>
+    </div>
 
     <div class="login-wrapper">
 
@@ -478,30 +520,30 @@
                 SIGAP
             </h2>
 
-            <p>
+            <p id="login-left-desc">
                 Sistem Informasi Gangguan Andal Pembangkit sebagai sarana monitoring terpadu kesehatan unit dan
                 equipment PLTA untuk mendukung keandalan operasional pembangkitan.
             </p>
 
             <div class="info-box">
-                <strong>
+                <strong id="info-box-title">
                     Manajemen Pemeliharaan Aset
                 </strong>
 
                 <br>
 
-                Kelola status operasi, keandalan alat, dan Work Order dalam satu platform terpadu.
+                <span id="info-box-desc">Kelola status operasi, keandalan alat, dan Work Order dalam satu platform terpadu.</span>
             </div>
 
         </div>
 
         <div class="login-right">
 
-            <h1 class="login-title">
+            <h1 class="login-title" id="login-title">
                 Selamat Datang
             </h1>
 
-            <p class="login-subtitle">
+            <p class="login-subtitle" id="login-subtitle">
                 Silakan masuk ke akun SIGAP Anda
             </p>
 
@@ -519,35 +561,38 @@
 
                 <div class="form-group">
 
-                    <label for="email">
+                    <label for="email" id="label-email">
                         Email
                     </label>
 
                     <input type="email" id="email" name="email" class="input-box" placeholder="Masukkan email"
+                        data-placeholder-id="Masukkan email" data-placeholder-en="Enter your email"
                         value="{{ old('email') }}" required>
 
                 </div>
 
                 <div class="form-group">
 
-                    <label for="password">
+                    <label for="password" id="label-password">
                         Password
                     </label>
 
                     <input type="password" id="password" name="password" class="input-box"
-                        placeholder="Masukkan password" required>
+                        placeholder="Masukkan password"
+                        data-placeholder-id="Masukkan password" data-placeholder-en="Enter your password"
+                        required>
 
                 </div>
 
                 <div class="form-group">
 
-                    <label for="role">
+                    <label for="role" id="label-role">
                         Role
                     </label>
 
                     <select name="role" id="role" class="input-box" required>
 
-                        <option value="" disabled selected>
+                        <option value="" disabled selected id="opt-select-role">
                             Pilih Role
                         </option>
 
@@ -564,7 +609,7 @@
                 </div>
 
                 <div class="login-actions">
-                    <button type="submit" class="btn-login">
+                    <button type="submit" class="btn-login" id="btn-submit-login">
                         MASUK
                     </button>
 
@@ -575,13 +620,13 @@
                             <line x1="19" y1="12" x2="5" y2="12"></line>
                             <polyline points="12 19 5 12 12 5"></polyline>
                         </svg>
-                        Kembali ke Dashboard
+                        <span id="btn-back-text">Kembali ke Dashboard</span>
                     </a>
                 </div>
 
             </form>
 
-            <div class="footer-text">
+            <div class="footer-text" id="login-footer">
                 © {{ date('Y') }} SIGAP - Sistem Informasi Gangguan Andal Pembangkit
             </div>
 
@@ -590,19 +635,138 @@
     </div>
 
     <script>
-        const themeToggle = document.getElementById('theme-toggle');
-        const updateThemeToggle = function () {
-            const isDark = document.documentElement.dataset.theme === 'dark';
-            themeToggle.setAttribute('aria-label', isDark ? 'Aktifkan light mode' : 'Aktifkan dark mode');
-            themeToggle.setAttribute('title', isDark ? 'Aktifkan light mode' : 'Aktifkan dark mode');
+        // ============================================================
+        // LOGIN PAGE I18N (standalone — tidak extend layouts.app)
+        // ============================================================
+        var LOGIN_I18N = {
+            id: {
+                lang_switch:        'Ganti ke Bahasa Inggris',
+                title:              'Selamat Datang',
+                subtitle:           'Silakan masuk ke akun SIGAP Anda',
+                label_email:        'Email',
+                label_password:     'Password',
+                label_role:         'Role',
+                opt_select_role:    'Pilih Role',
+                btn_submit:         'MASUK',
+                btn_back:           'Kembali ke Dashboard',
+                footer:             '© ' + new Date().getFullYear() + ' SIGAP - Sistem Informasi Gangguan Andal Pembangkit',
+                left_desc:          'Sistem Informasi Gangguan Andal Pembangkit sebagai sarana monitoring terpadu kesehatan unit dan equipment PLTA untuk mendukung keandalan operasional pembangkitan.',
+                info_title:         'Manajemen Pemeliharaan Aset',
+                info_desc:          'Kelola status operasi, keandalan alat, dan Work Order dalam satu platform terpadu.',
+                placeholder_email:  'Masukkan email',
+                placeholder_pass:   'Masukkan password',
+                theme_dark:         'Aktifkan dark mode',
+                theme_light:        'Aktifkan light mode',
+            },
+            en: {
+                lang_switch:        'Switch to Indonesian',
+                title:              'Welcome',
+                subtitle:           'Please sign in to your SIGAP account',
+                label_email:        'Email',
+                label_password:     'Password',
+                label_role:         'Role',
+                opt_select_role:    'Select Role',
+                btn_submit:         'SIGN IN',
+                btn_back:           'Back to Dashboard',
+                footer:             '© ' + new Date().getFullYear() + ' SIGAP - Reliable Generator Disruption Information System',
+                left_desc:          'Reliable Generator Disruption Information System — an integrated monitoring platform for PLTA unit and equipment health to support operational reliability.',
+                info_title:         'Asset Maintenance Management',
+                info_desc:          'Manage operating status, equipment reliability, and Work Orders in one integrated platform.',
+                placeholder_email:  'Enter your email',
+                placeholder_pass:   'Enter your password',
+                theme_dark:         'Enable dark mode',
+                theme_light:        'Enable light mode',
+            },
         };
-        themeToggle.addEventListener('click', function () {
-            const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-            document.documentElement.dataset.theme = nextTheme;
-            localStorage.setItem('sigap-theme', nextTheme);
-            updateThemeToggle();
-        });
-        updateThemeToggle();
+
+        function getLoginLang() {
+            return localStorage.getItem('sigap-lang') === 'en' ? 'en' : 'id';
+        }
+
+        function applyLoginLang(lang) {
+            document.documentElement.dataset.lang = lang;
+            document.documentElement.lang = lang;
+
+            var d = LOGIN_I18N[lang];
+
+            // Toggle button
+            var toggleLabel = document.getElementById('lang-toggle-label');
+            var toggleBtn   = document.getElementById('lang-toggle');
+            if (toggleLabel) { toggleLabel.textContent = lang === 'en' ? 'ID' : 'EN'; }
+            if (toggleBtn) {
+                toggleBtn.setAttribute('aria-label', d.lang_switch);
+                toggleBtn.setAttribute('title', d.lang_switch);
+            }
+
+            // Right panel
+            var titleEl    = document.getElementById('login-title');
+            var subtitleEl = document.getElementById('login-subtitle');
+            var submitBtn  = document.getElementById('btn-submit-login');
+            var backText   = document.getElementById('btn-back-text');
+            var footerEl   = document.getElementById('login-footer');
+            var labelEmail = document.getElementById('label-email');
+            var labelPass  = document.getElementById('label-password');
+            var labelRole  = document.getElementById('label-role');
+            var optRole    = document.getElementById('opt-select-role');
+            var emailInput = document.getElementById('email');
+            var passInput  = document.getElementById('password');
+
+            if (titleEl)    { titleEl.textContent    = d.title; }
+            if (subtitleEl) { subtitleEl.textContent = d.subtitle; }
+            if (submitBtn)  { submitBtn.textContent  = d.btn_submit; }
+            if (backText)   { backText.textContent   = d.btn_back; }
+            if (footerEl)   { footerEl.textContent   = d.footer; }
+            if (labelEmail) { labelEmail.textContent = d.label_email; }
+            if (labelPass)  { labelPass.textContent  = d.label_password; }
+            if (labelRole)  { labelRole.textContent  = d.label_role; }
+            if (optRole)    { optRole.textContent    = d.opt_select_role; }
+            if (emailInput) { emailInput.placeholder = d.placeholder_email; }
+            if (passInput)  { passInput.placeholder  = d.placeholder_pass; }
+
+            // Left panel
+            var leftDesc   = document.getElementById('login-left-desc');
+            var infoTitle  = document.getElementById('info-box-title');
+            var infoDesc   = document.getElementById('info-box-desc');
+            if (leftDesc)  { leftDesc.textContent  = d.left_desc; }
+            if (infoTitle) { infoTitle.textContent = d.info_title; }
+            if (infoDesc)  { infoDesc.textContent  = d.info_desc; }
+
+            // Theme toggle labels
+            updateThemeToggleLabel(lang);
+        }
+
+        function updateThemeToggleLabel(lang) {
+            var isDark  = document.documentElement.dataset.theme === 'dark';
+            var d       = LOGIN_I18N[lang];
+            var themeBtn = document.getElementById('theme-toggle');
+            if (!themeBtn) { return; }
+            themeBtn.setAttribute('aria-label', isDark ? d.theme_light : d.theme_dark);
+            themeBtn.setAttribute('title',      isDark ? d.theme_light : d.theme_dark);
+        }
+
+        // Init
+        applyLoginLang(getLoginLang());
+
+        // Lang toggle click
+        var langToggle = document.getElementById('lang-toggle');
+        if (langToggle) {
+            langToggle.addEventListener('click', function () {
+                var next = getLoginLang() === 'en' ? 'id' : 'en';
+                localStorage.setItem('sigap-lang', next);
+                applyLoginLang(next);
+            });
+        }
+
+        // Theme toggle click
+        var themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', function () {
+                var nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+                document.documentElement.dataset.theme = nextTheme;
+                localStorage.setItem('sigap-theme', nextTheme);
+                updateThemeToggleLabel(getLoginLang());
+            });
+        }
     </script>
 
 </body>

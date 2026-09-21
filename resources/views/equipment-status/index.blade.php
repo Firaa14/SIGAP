@@ -74,9 +74,9 @@
                 </span>
 
                 @if($status === 'normal')
-                    Equipment Normal
+                    <span data-i18n="status_equipment_normal">Normal Equipment</span>
                 @else
-                    Equipment Abnormal
+                    <span data-i18n="status_equipment_abnormal">Abnormal Equipment</span>
                 @endif
 
             </div>
@@ -92,14 +92,14 @@
 
                     <thead>
                         <tr>
-                            <th>Waktu Upload</th>
+                            <th data-i18n="dash_th_upload_time">Upload Time</th>
                             <th>PLTA</th>
                             <th>Equipment</th>
                             <th>ASSETNUM</th>
                             <th>Status</th>
                             <th>No WO</th>
-                            <th>Report Date</th>
-                            <th>Durasi</th>
+                            <th data-i18n="dash_th_report_date">Tanggal Report</th>
+                            <th data-i18n="dash_th_duration">Durasi</th>
                         </tr>
                     </thead>
 
@@ -170,11 +170,11 @@
                     </div>
 
                     <div class="empty-state-title">
-                        Tidak ada data
+                        <span data-i18n="status_no_data">No data available</span>
                     </div>
 
                     <div class="empty-state-text">
-                        Belum ada equipment dengan status
+                        <span data-i18n="status_no_equipment">No equipment with status</span>
                         {{ $status === 'normal' ? 'Normal' : 'Abnormal' }}.
                     </div>
 

@@ -36,7 +36,7 @@
             <div class="stat-icon blue">⚡</div>
             <div class="stat-body">
                 <div class="stat-value" data-stat="total_plta">{{ $stats['total_plta'] }}</div>
-                <div class="stat-label">Total PLTA</div>
+                <div class="stat-label" data-i18n="dash_total_plta">Total PLTA</div>
             </div>
         </div>
 
@@ -44,7 +44,7 @@
             <div class="stat-icon purple">⚙</div>
             <div class="stat-body">
                 <div class="stat-value" data-stat="total_equipment">{{ $stats['total_equipment'] }}</div>
-                <div class="stat-label">Total Equipment</div>
+                <div class="stat-label" data-i18n="dash_total_equipment">Total Equipment</div>
             </div>
         </div>
 
@@ -52,7 +52,7 @@
             <div class="stat-icon green">✓</div>
             <div class="stat-body">
                 <div class="stat-value" data-stat="normal">{{ $stats['normal'] }}</div>
-                <div class="stat-label">Status Normal</div>
+                <div class="stat-label" data-i18n="dash_status_normal">Status Normal</div>
             </div>
         </a>
 
@@ -60,7 +60,7 @@
             <div class="stat-icon red">!</div>
             <div class="stat-body">
                 <div class="stat-value" data-stat="abnormal">{{ $stats['abnormal'] }}</div>
-                <div class="stat-label">Status Abnormal</div>
+                <div class="stat-label" data-i18n="dash_status_abnormal">Status Abnormal</div>
             </div>
         </a>
 
@@ -68,7 +68,7 @@
             <div class="stat-icon amber">⏸</div>
             <div class="stat-body">
                 <div class="stat-value" data-stat="not_ready">{{ $stats['not_ready'] }}</div>
-                <div class="stat-label">Not Ready</div>
+                <div class="stat-label" data-i18n="dash_status_not_ready">Not Ready</div>
             </div>
         </div>
 
@@ -78,19 +78,24 @@
         <div class="card-header">
             <div class="card-title">
                 <span class="card-title-icon">📍</span>
-                Peta Sebaran PLTA UP Brantas
+                <span data-i18n="dash_map_title">Peta Sebaran PLTA UP Brantas</span>
             </div>
             <div class="map-toolbar">
                 <div class="map-legend">
-                    <span class="map-legend-item"><span class="map-legend-dot normal"></span> Normal</span>
-                    <span class="map-legend-item"><span class="map-legend-dot not_ready"></span> Not Ready</span>
-                    <span class="map-legend-item"><span class="map-legend-dot abnormal"></span> Abnormal</span>
+                    <span class="map-legend-item"><span class="map-legend-dot normal"></span> <span
+                            data-i18n="status_normal">Normal</span></span>
+                    <span class="map-legend-item"><span class="map-legend-dot not_ready"></span> <span
+                            data-i18n="status_not_ready">Not Ready</span></span>
+                    <span class="map-legend-item"><span class="map-legend-dot abnormal"></span> <span
+                            data-i18n="status_abnormal">Abnormal</span></span>
                 </div>
-                <button type="button" class="map-toggle-btn" id="map-toggle-labels">Tampilkan Semua Label</button>
+                <button type="button" class="map-toggle-btn" id="map-toggle-labels" data-i18n="dash_show_labels">Tampilkan
+                    Semua Label</button>
             </div>
         </div>
         <div class="map-wrapper">
-            <div id="plta-map" role="img" aria-label="Peta sebaran lokasi 13 PLTA UP Brantas"></div>
+            <div id="plta-map" role="img" aria-label="Distribution map of 13 PLTA UP Brantas locations"
+                data-i18n-aria="dash_map_aria"></div>
         </div>
     </div>
 
@@ -98,10 +103,12 @@
         <div class="card-header">
             <div class="card-title">
                 <span class="card-title-icon">◷</span>
-                Aktivitas Status Terbaru
+                <span data-i18n="dash_activity_title">Aktivitas Status Terbaru</span>
             </div>
             <div class="card-actions">
-                <span style="font-size:11px; color:var(--text-muted)">Update: {{ date('d M Y') }}</span>
+                <span style="font-size:11px; color:var(--text-muted)">
+                    <span data-i18n="dash_update">Update:</span> {{ date('d M Y') }}
+                </span>
             </div>
         </div>
         <div class="table-wrapper">
@@ -109,13 +116,13 @@
                 <table class="activity-table">
                     <thead>
                         <tr>
-                            <th>Waktu Upload</th>
-                            <th>PLTA</th>
-                            <th>ASSETNUM</th>
-                            <th>Status</th>
-                            <th>No WO</th>
-                            <th>Report Date</th>
-                            <th>Durasi</th>
+                            <th data-i18n="dash_th_upload_time">Upload Time</th>
+                            <th data-i18n="dash_th_plta">PLTA</th>
+                            <th data-i18n="dash_th_assetnum">ASSETNUM</th>
+                            <th data-i18n="dash_th_status">Status</th>
+                            <th data-i18n="dash_th_wo">No WO</th>
+                            <th data-i18n="dash_th_report_date">Tanggal Report</th>
+                            <th data-i18n="dash_th_duration">Durasi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -146,8 +153,9 @@
             @else
                 <div class="empty-state" style="padding:32px 0;">
                     <div class="empty-state-icon">◷</div>
-                    <div class="empty-state-title">Belum ada aktivitas</div>
-                    <div class="empty-state-text">Upload file Excel WO untuk melihat aktivitas terbaru.</div>
+                    <div class="empty-state-title" data-i18n="dash_empty_title">Belum ada aktivitas</div>
+                    <div class="empty-state-text" data-i18n="dash_empty_text">Upload file Excel WO untuk melihat aktivitas
+                        terbaru.</div>
                 </div>
             @endif
         </div>
@@ -162,4 +170,29 @@
         window.SIGAP_MAP_DATA_URL = @json(route('dashboard.map-data'));
     </script>
     <script src="{{ asset('js/dashboard-map.js') }}"></script>
+    <script>
+        // Sync map toggle button label on lang change
+        (function () {
+            const mapToggleBtn = document.getElementById('map-toggle-labels');
+            if (!mapToggleBtn) { return; }
+
+            // Track toggle state
+            let labelsVisible = false;
+            mapToggleBtn.addEventListener('click', function () {
+                labelsVisible = !labelsVisible;
+                const lang = localStorage.getItem('sigap-lang') === 'en' ? 'en' : 'id';
+                mapToggleBtn.textContent = labelsVisible
+                    ? window.SIGAP_I18N[lang].dash_hide_labels
+                    : window.SIGAP_I18N[lang].dash_show_labels;
+            });
+
+            // Re-sync on lang change
+            document.addEventListener('sigap:langchange', function (e) {
+                const lang = e.detail.lang;
+                mapToggleBtn.textContent = labelsVisible
+                    ? window.SIGAP_I18N[lang].dash_hide_labels
+                    : window.SIGAP_I18N[lang].dash_show_labels;
+            });
+        })();
+    </script>
 @endsection

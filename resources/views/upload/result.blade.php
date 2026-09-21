@@ -29,18 +29,18 @@
         box-shadow:0 4px 12px rgba(16,185,129,0.3);
     ">✓</div>
     <div>
-        <div style="font-size:17px; font-weight:700; color:#065F46; margin-bottom:3px;">
+        <div style="font-size:17px; font-weight:700; color:#065F46; margin-bottom:3px;" data-i18n="result_success_title">
             Data Work Order Berhasil Diimport
         </div>
         <div style="font-size:12.5px; color:#047857;">
-            File <strong>{{ $history->filename }}</strong> telah diproses dan data tersebar ke seluruh PLTA yang relevan.
+            <strong>{{ $history->filename }}</strong> <span data-i18n="result_success_desc">telah diproses dan data tersebar ke seluruh PLTA yang relevan.</span>
         </div>
     </div>
     <div style="margin-left:auto; display:flex; gap:10px; flex-shrink:0;">
-        <a href="{{ route('upload.index') }}" class="btn btn-secondary btn-sm" id="btn-upload-again">
+        <a href="{{ route('upload.index') }}" class="btn btn-secondary btn-sm" id="btn-upload-again" data-i18n="result_upload_again">
             ↑ Upload Lagi
         </a>
-        <a href="{{ route('dashboard') }}" class="btn btn-success btn-sm" id="btn-view-dashboard">
+        <a href="{{ route('dashboard') }}" class="btn btn-success btn-sm" id="btn-view-dashboard" data-i18n="result_view_dashboard">
             ⊞ View Dashboard
         </a>
     </div>
@@ -56,7 +56,7 @@
             <div class="card-header">
                 <div class="card-title">
                     <span class="card-title-icon">≡</span>
-                    Ringkasan Import
+                    <span data-i18n="result_summary_title">Ringkasan Import</span>
                 </div>
             </div>
             <div class="card-body">
@@ -69,10 +69,10 @@
                                 📊 {{ $history->filename }}
                             </div>
                             <div style="font-size:11px; color:var(--text-muted);">
-                                Diupload {{ $history->uploaded_at?->format('d M Y, H:i') ?? '—' }}
+                                <span data-i18n="result_uploaded_at">Diupload</span> {{ $history->uploaded_at?->format('d M Y, H:i') ?? '—' }}
                             </div>
                         </div>
-                        <span style="background:#D1FAE5; border:1px solid #6EE7B7; color:#065F46; font-size:11px; font-weight:600; padding:2px 10px; border-radius:100px;">
+                        <span style="background:#D1FAE5; border:1px solid #6EE7B7; color:#065F46; font-size:11px; font-weight:600; padding:2px 10px; border-radius:100px;" data-i18n="result_done_badge">
                             SELESAI
                         </span>
                     </div>
@@ -80,33 +80,34 @@
 
                 {{-- Stats grid --}}
                 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:16px;">
-                    @foreach([
-                        ['Total Baris', number_format($history->total_rows), 'var(--text-primary)', '#F7F9FC', 'var(--border-color)'],
-                        ['Berhasil Diproses', number_format($history->imported_rows), '#059669', '#F0FDF4', '#A7F3D0'],
-                        ['Gagal Validasi', number_format($history->error_rows), $history->error_rows > 0 ? '#DC2626' : '#059669', '#FEF2F2', '#FECACA'],
-                    ] as [$label, $value, $color, $bg, $border])
-                    <div style="background:{{ $bg }}; border:1px solid {{ $border }}; border-radius:8px; padding:12px; text-align:center;">
-                        <div style="font-size:22px; font-weight:700; color:{{ $color }};">{{ $value }}</div>
-                        <div style="font-size:10.5px; color:var(--text-label); margin-top:3px; line-height:1.3;">{{ $label }}</div>
+                    <div style="background:#F7F9FC; border:1px solid var(--border-color); border-radius:8px; padding:12px; text-align:center;">
+                        <div style="font-size:22px; font-weight:700; color:var(--text-primary);">{{ number_format($history->total_rows) }}</div>
+                        <div style="font-size:10.5px; color:var(--text-label); margin-top:3px; line-height:1.3;" data-i18n="result_total_rows">Total Baris</div>
                     </div>
-                    @endforeach
+                    <div style="background:#F0FDF4; border:1px solid #A7F3D0; border-radius:8px; padding:12px; text-align:center;">
+                        <div style="font-size:22px; font-weight:700; color:#059669;">{{ number_format($history->imported_rows) }}</div>
+                        <div style="font-size:10.5px; color:var(--text-label); margin-top:3px; line-height:1.3;" data-i18n="result_success_rows">Berhasil Diproses</div>
+                    </div>
+                    <div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:12px; text-align:center;">
+                        <div style="font-size:22px; font-weight:700; color:{{ $history->error_rows > 0 ? '#DC2626' : '#059669' }};">{{ number_format($history->error_rows) }}</div>
+                        <div style="font-size:10.5px; color:var(--text-label); margin-top:3px; line-height:1.3;" data-i18n="result_failed_rows">Gagal Validasi</div>
+                    </div>
                 </div>
 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    @foreach([
-                        ['Data Baru (INSERT)', number_format($history->new_rows), '#2563EB', '#EFF6FF', '#BFDBFE'],
-                        ['Data Update', number_format($history->updated_rows), '#D97706', '#FFFBEB', '#FDE68A'],
-                    ] as [$label, $value, $color, $bg, $border])
-                    <div style="background:{{ $bg }}; border:1px solid {{ $border }}; border-radius:8px; padding:12px; text-align:center;">
-                        <div style="font-size:20px; font-weight:700; color:{{ $color }};">{{ $value }}</div>
-                        <div style="font-size:10.5px; color:var(--text-label); margin-top:3px; line-height:1.3;">{{ $label }}</div>
+                    <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:12px; text-align:center;">
+                        <div style="font-size:20px; font-weight:700; color:#2563EB;">{{ number_format($history->new_rows) }}</div>
+                        <div style="font-size:10.5px; color:var(--text-label); margin-top:3px; line-height:1.3;" data-i18n="result_new_rows">Data Baru (INSERT)</div>
                     </div>
-                    @endforeach
+                    <div style="background:#FFFBEB; border:1px solid #FDE68A; border-radius:8px; padding:12px; text-align:center;">
+                        <div style="font-size:20px; font-weight:700; color:#D97706;">{{ number_format($history->updated_rows) }}</div>
+                        <div style="font-size:10.5px; color:var(--text-label); margin-top:3px; line-height:1.3;" data-i18n="result_updated_rows">Data Update</div>
+                    </div>
                 </div>
 
                 {{-- Status note --}}
                 <div style="background:#FFFBEB; border:1px solid #FDE68A; border-radius:6px; padding:10px 12px; margin-top:14px; font-size:11.5px; color:#92400E;">
-                    <strong>Catatan:</strong> Status operasi equipment telah diperbarui secara otomatis berdasarkan data WO yang diimport.
+                    <strong data-i18n="result_note_label">Catatan:</strong> <span data-i18n="result_note_text">Status operasi equipment telah diperbarui secara otomatis berdasarkan data WO yang diimport.</span>
                 </div>
 
             </div>
@@ -121,18 +122,21 @@
             <div class="card-header">
                 <div class="card-title">
                     <span class="card-title-icon">◎</span>
-                    Distribusi Data ke PLTA
+                    <span data-i18n="result_distrib_title">Distribusi Data ke PLTA</span>
                 </div>
                 <div class="card-actions">
                     <span style="font-size:11.5px; color:var(--text-muted);">
-                        {{ $pltaDistribution->where('count', '>', 0)->count() }} dari {{ $pltaDistribution->count() }} PLTA terdampak
+                        {{ $pltaDistribution->where('count', '>', 0)->count() }}
+                        <span data-i18n="result_distrib_affected">dari</span>
+                        {{ $pltaDistribution->count() }}
+                        <span data-i18n="result_distrib_affected2">PLTA terdampak</span>
                     </span>
                 </div>
             </div>
             <div class="card-body" style="padding:0;">
 
                 @if($pltaDistribution->isEmpty())
-                <div style="padding:20px; text-align:center; color:var(--text-muted); font-size:12.5px;">
+                <div style="padding:20px; text-align:center; color:var(--text-muted); font-size:12.5px;" data-i18n="result_no_distrib">
                     Tidak ada distribusi PLTA tercatat.
                 </div>
                 @else
@@ -140,8 +144,8 @@
                 <table style="width:100%; border-collapse:collapse;">
                     <thead>
                         <tr style="background:#F7F9FC;">
-                            <th style="padding:8px 16px; text-align:left; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-label); border-bottom:1px solid var(--border-color);">PLTA</th>
-                            <th style="padding:8px 16px; text-align:right; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-label); border-bottom:1px solid var(--border-color);">Jumlah WO</th>
+                            <th style="padding:8px 16px; text-align:left; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-label); border-bottom:1px solid var(--border-color);" data-i18n="result_th_plta">PLTA</th>
+                            <th style="padding:8px 16px; text-align:right; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-label); border-bottom:1px solid var(--border-color);" data-i18n="result_th_wo_count">Jumlah WO</th>
                             <th style="padding:8px 16px; border-bottom:1px solid var(--border-color); width:120px;"></th>
                         </tr>
                     </thead>
@@ -189,10 +193,10 @@
      QUICK ACTIONS
 ====================================================== --}}
 <div style="margin-top:20px; display:flex; justify-content:center; gap:12px;">
-    <a href="{{ route('upload.index') }}" class="btn btn-secondary" id="btn-upload-another">
+    <a href="{{ route('upload.index') }}" class="btn btn-secondary" id="btn-upload-another" data-i18n="result_upload_another">
         ↑ Upload File Lain
     </a>
-    <a href="{{ route('dashboard') }}" class="btn btn-success" id="btn-go-dashboard">
+    <a href="{{ route('dashboard') }}" class="btn btn-success" id="btn-go-dashboard" data-i18n="result_go_dashboard">
         ⊞ Lihat Dashboard PLTA
     </a>
 </div>

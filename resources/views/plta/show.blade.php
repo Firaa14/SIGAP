@@ -21,8 +21,8 @@
             <div class="plta-info-name">{{ $currentPlta['name'] }}</div>
             <div class="plta-info-meta">
                 <span>{{ $currentPlta['location'] }}</span>
-                <span>Kapasitas: {{ $currentPlta['capacity'] }}</span>
-                <span>{{ count($equipments) }} Equipment Terdaftar</span>
+                <span><span data-i18n="plta_capacity">Kapasitas:</span> {{ $currentPlta['capacity'] }}</span>
+                <span>{{ count($equipments) }} <span data-i18n="plta_equipment_registered">Equipment Terdaftar</span></span>
             </div>
         </div>
     </div>
@@ -33,15 +33,15 @@
     <div class="plta-summary-bar" id="plta-status-summary">
         <div class="summary-chip normal">
             <span class="summary-chip-count">{{ $statusSummary['normal'] }}</span>
-            <span>Normal</span>
+            <span data-i18n="status_normal">Normal</span>
         </div>
         <div class="summary-chip abnormal">
             <span class="summary-chip-count">{{ $statusSummary['abnormal'] }}</span>
-            <span>Abnormal</span>
+            <span data-i18n="status_abnormal">Abnormal</span>
         </div>
         <div class="summary-chip not-ready">
             <span class="summary-chip-count">{{ $statusSummary['not_ready'] }}</span>
-            <span>Not Ready</span>
+            <span data-i18n="status_not_ready">Not Ready</span>
         </div>
     </div>
 
@@ -50,14 +50,15 @@
     ====================================================== --}}
     <div class="filter-bar" id="equipment-filter-bar">
         <div class="filter-group">
-            <span class="filter-label">Cari:</span>
+            <span class="filter-label" data-i18n="plta_search_label">Cari:</span>
             <input type="text" class="form-control input-search" id="search-equipment"
+                data-i18n-placeholder="plta_search_placeholder"
                 placeholder="Cari equipment, KKS, ASSETNUM..." autocomplete="off">
         </div>
         <div class="filter-group" style="flex:0; min-width:auto;">
-            <span class="filter-label">Unit:</span>
+            <span class="filter-label" data-i18n="plta_unit_label">Unit:</span>
             <select class="form-control select-sm" id="filter-unit">
-                <option value="">Semua Unit</option>
+                <option value="" data-i18n="plta_all_units">Semua Unit</option>
                 @php $units = array_unique(array_column($equipments, 'unit')); @endphp
                 @foreach($units as $unit)
                     <option value="{{ $unit }}">{{ $unit }}</option>
@@ -65,16 +66,16 @@
             </select>
         </div>
         <div class="filter-group" style="flex:0; min-width:auto;">
-            <span class="filter-label">Status:</span>
+            <span class="filter-label" data-i18n="plta_status_label">Status:</span>
             <select class="form-control select-sm" id="filter-status">
-                <option value="">Semua Status</option>
-                <option value="Normal">Normal</option>
-                <option value="Abnormal">Abnormal</option>
-                <option value="Not Ready">Not Ready</option>
+                <option value="" data-i18n="plta_all_status">Semua Status</option>
+                <option value="Normal" data-i18n="status_normal">Normal</option>
+                <option value="Abnormal" data-i18n="status_abnormal">Abnormal</option>
+                <option value="Not Ready" data-i18n="status_not_ready">Not Ready</option>
             </select>
         </div>
         <div style="margin-left:auto;">
-            <button class="btn btn-secondary btn-sm" id="btn-reset-filter" type="button">
+            <button class="btn btn-secondary btn-sm" id="btn-reset-filter" type="button" data-i18n="plta_reset_filter">
                 ↺ Reset Filter
             </button>
         </div>
@@ -87,11 +88,11 @@
         <div class="card-header">
             <div class="card-title">
                 <span class="card-title-icon">⚙</span>
-                Daftar Equipment — {{ $currentPlta['name'] }}
+                <span data-i18n="plta_table_title">Daftar Equipment —</span> {{ $currentPlta['name'] }}
             </div>
             <div class="card-actions">
                 <span id="equipment-count-label" style="font-size:11px; color:var(--text-muted);">
-                    {{ count($equipments) }} equipment ditampilkan
+                    {{ count($equipments) }} <span data-i18n="plta_equipment_shown">equipment ditampilkan</span>
                 </span>
             </div>
         </div>
@@ -101,16 +102,16 @@
                 <table class="data-table" id="equipment-table">
                     <thead>
                         <tr>
-                            <th class="col-no">No</th>
-                            <th>Unit</th>
-                            <th>System</th>
-                            <th>Equipment</th>
-                            <th>KKS</th>
-                            <th>ASSETNUM</th>
-                            <th>Status Operasi</th>
-                            <th>Keterangan</th>
-                            <th>Report Date</th>
-                            <th>Durasi</th>
+                            <th class="col-no" data-i18n="plta_th_no">No</th>
+                            <th data-i18n="plta_th_unit">Unit</th>
+                            <th data-i18n="plta_th_system">System</th>
+                            <th data-i18n="plta_th_equipment">Equipment</th>
+                            <th data-i18n="plta_th_kks">KKS</th>
+                            <th data-i18n="plta_th_assetnum">ASSETNUM</th>
+                            <th data-i18n="plta_th_op_status">Operating Status</th>
+                            <th data-i18n="plta_th_notes">Deskripsi</th>
+                            <th data-i18n="plta_th_report_date">Tanggal Report</th>
+                            <th data-i18n="plta_th_duration">Durasi</th>
                         </tr>
                     </thead>
                     <tbody id="equipment-tbody">
@@ -144,7 +145,7 @@
                                             id="status-{{ $eq['assetnum'] }}"
                                             data-assetnum="{{ $eq['assetnum'] }}"
                                             data-update-url="{{ route('equipment.update-status', $eq['assetnum']) }}"
-                                            title="Ubah Status Operasi Equipment">
+                                            title="Change Equipment Operating Status">
                                             <option value="Normal" {{ $eq['status_operasi'] === 'Normal' ? 'selected' : '' }}>Normal</option>
                                             <option value="Abnormal" {{ $eq['status_operasi'] === 'Abnormal' ? 'selected' : '' }}>Abnormal</option>
                                             <option value="Not Ready" {{ $eq['status_operasi'] === 'Not Ready' ? 'selected' : '' }}>Not Ready</option>
@@ -155,11 +156,11 @@
                                             id="status-{{ $eq['assetnum'] }}"
                                             data-assetnum="{{ $eq['assetnum'] }}"
                                             data-requires-auth="true"
-                                            data-feature="Ubah Status Operasi"
-                                            title="Login sebagai SO atau CBM untuk mengubah status"
+                                            data-feature="Change Operating Status"
+                                            title="Log in as SO or CBM to change the status"
                                             role="button"
                                             tabindex="0"
-                                            aria-label="Status: {{ $eq['status_operasi'] }}. Login diperlukan untuk mengubah.">{{ $eq['status_operasi'] }}</span>
+                                            aria-label="Status: {{ $eq['status_operasi'] }}. Login required to change it.">{{ $eq['status_operasi'] }}</span>
                                     @endif
                                 </td>
                                 <td class="keterangan-cell">
@@ -190,22 +191,26 @@
             {{-- Empty state saat filter kosong --}}
             <div id="no-results" class="empty-state" style="display:none;">
                 <div class="empty-state-icon">○</div>
-                <div class="empty-state-title">Tidak ada data yang cocok</div>
-                <div class="empty-state-text">Coba ubah kata kunci pencarian atau filter.</div>
+                <div class="empty-state-title" data-i18n="plta_no_data_title">Tidak ada data yang cocok</div>
+                <div class="empty-state-text" data-i18n="plta_no_data_text">Coba ubah kata kunci pencarian atau filter.</div>
             </div>
 
         @else
             <div class="empty-state">
                 <div class="empty-state-icon">⚙</div>
-                <div class="empty-state-title">Belum ada data equipment</div>
-                <div class="empty-state-text">Data equipment untuk {{ $currentPlta['name'] }} belum tersedia.</div>
+                <div class="empty-state-title" data-i18n="plta_empty_title">Belum ada data equipment</div>
+                <div class="empty-state-text">
+                    <span data-i18n="plta_empty_text">Data equipment untuk</span>
+                    {{ $currentPlta['name'] }}
+                    <span data-i18n="plta_empty_text2">belum tersedia.</span>
+                </div>
             </div>
         @endif
     </div>
 
     {{-- Navigasi antar PLTA --}}
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; flex-wrap:wrap; gap:8px;">
-        <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-sm" id="btn-back-dashboard">
+        <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-sm" id="btn-back-dashboard" data-i18n="plta_back_dashboard">
             ← Kembali ke Dashboard
         </a>
         <div style="display:flex; gap:8px;">
@@ -216,12 +221,12 @@
                 $nextSlug = $currentIndex < count($pltaSlugs) - 1 ? $pltaSlugs[$currentIndex + 1] : null;
             @endphp
             @if($prevSlug)
-                <a href="{{ route('plta.show', $prevSlug) }}" class="btn btn-secondary btn-sm" id="btn-prev-plta">
+                <a href="{{ route('plta.show', $prevSlug) }}" class="btn btn-secondary btn-sm" id="btn-prev-plta" data-i18n="plta_prev">
                     ← PLTA Sebelumnya
                 </a>
             @endif
             @if($nextSlug)
-                <a href="{{ route('plta.show', $nextSlug) }}" class="btn btn-primary btn-sm" id="btn-next-plta">
+                <a href="{{ route('plta.show', $nextSlug) }}" class="btn btn-primary btn-sm" id="btn-next-plta" data-i18n="plta_next">
                     PLTA Berikutnya →
                 </a>
             @endif
@@ -296,22 +301,22 @@
         // ============================================================
         (function () {
             const searchInput = document.getElementById('search-equipment');
-            const unitFilter = document.getElementById('filter-unit');
+            const unitFilter  = document.getElementById('filter-unit');
             const statusFilter = document.getElementById('filter-status');
-            const resetBtn = document.getElementById('btn-reset-filter');
-            const rows = document.querySelectorAll('.equipment-row');
-            const noResults = document.getElementById('no-results');
-            const countLabel = document.getElementById('equipment-count-label');
+            const resetBtn    = document.getElementById('btn-reset-filter');
+            const rows        = document.querySelectorAll('.equipment-row');
+            const noResults   = document.getElementById('no-results');
+            const countLabel  = document.getElementById('equipment-count-label');
 
             function applyFilters() {
-                const searchVal = searchInput.value.toLowerCase().trim();
-                const unitVal = unitFilter.value;
-                const statusVal = statusFilter.value;
+                const searchVal  = searchInput.value.toLowerCase().trim();
+                const unitVal    = unitFilter.value;
+                const statusVal  = statusFilter.value;
                 let visibleCount = 0;
 
                 rows.forEach(function (row) {
                     const matchSearch = !searchVal || row.dataset.search.includes(searchVal);
-                    const matchUnit = !unitVal || row.dataset.unit === unitVal;
+                    const matchUnit   = !unitVal   || row.dataset.unit === unitVal;
                     const matchStatus = !statusVal || row.dataset.status === statusVal;
 
                     if (matchSearch && matchUnit && matchStatus) {
@@ -323,29 +328,40 @@
                 });
 
                 noResults.style.display = visibleCount === 0 ? 'block' : 'none';
-                countLabel.textContent = visibleCount + ' equipment ditampilkan';
+
+                // Update count label with i18n
+                const lang = localStorage.getItem('sigap-lang') === 'en' ? 'en' : 'id';
+                const shownLabel = (window.SIGAP_I18N && window.SIGAP_I18N[lang])
+                    ? window.SIGAP_I18N[lang].plta_equipment_shown
+                    : 'equipment ditampilkan';
+                countLabel.innerHTML = visibleCount + ' <span data-i18n="plta_equipment_shown">' + shownLabel + '</span>';
             }
 
-            if (searchInput) { searchInput.addEventListener('input', applyFilters); }
-            if (unitFilter) { unitFilter.addEventListener('change', applyFilters); }
+            if (searchInput)  { searchInput.addEventListener('input', applyFilters); }
+            if (unitFilter)   { unitFilter.addEventListener('change', applyFilters); }
             if (statusFilter) { statusFilter.addEventListener('change', applyFilters); }
 
             if (resetBtn) {
                 resetBtn.addEventListener('click', function () {
-                    searchInput.value = '';
-                    unitFilter.value = '';
+                    searchInput.value  = '';
+                    unitFilter.value   = '';
                     statusFilter.value = '';
                     applyFilters();
                 });
             }
 
-            // Sinkronisasi data-status pada row saat select diubah (read-only span tidak trigger change)
+            // Sinkronisasi data-status pada row saat select diubah
             document.querySelectorAll('select.status-select').forEach(function (select) {
                 select.addEventListener('change', function () {
                     const row = this.closest('tr');
                     if (row) { row.dataset.status = this.value; }
                     applyFilters();
                 });
+            });
+
+            // Re-apply label on lang change
+            document.addEventListener('sigap:langchange', function () {
+                applyFilters();
             });
         })();
 
@@ -363,11 +379,10 @@
                 select.addEventListener('change', function () {
                     const newStatus = this.value;
                     const updateUrl = this.dataset.updateUrl;
-                    const assetnum = this.dataset.assetnum;
+                    const assetnum  = this.dataset.assetnum;
 
                     if (!updateUrl) { return; }
 
-                    // Disable sementara untuk mencegah double-submit
                     select.disabled = true;
 
                     fetch(updateUrl, {
@@ -382,31 +397,27 @@
                     .then(function (response) {
                         if (!response.ok) {
                             return response.json().then(function (data) {
-                                throw new Error(data.error || 'Gagal menyimpan status.');
+                                throw new Error(data.error || window.SIGAP_T('plta_toast_error'));
                             });
                         }
                         return response.json();
                     })
                     .then(function () {
-                        window.showStatusToast('Status ' + assetnum + ' berhasil disimpan: ' + newStatus, 'success');
+                        window.showStatusToast(assetnum + ' ' + window.SIGAP_T('plta_toast_success') + ' ' + newStatus, 'success');
                     })
                     .catch(function (err) {
-                        // Rollback ke nilai sebelumnya jika gagal
                         select.value = select.dataset.prevValue || originalValue;
-                        // Update class kembali ke nilai lama
                         const prev = select.value;
                         select.classList.remove('normal-select', 'abnormal-select', 'notready-select');
-                        if (prev === 'Normal') { select.classList.add('normal-select'); }
+                        if (prev === 'Normal')   { select.classList.add('normal-select'); }
                         else if (prev === 'Abnormal') { select.classList.add('abnormal-select'); }
                         else { select.classList.add('notready-select'); }
 
-                        window.showStatusToast(err.message || 'Gagal menyimpan status.', 'error');
+                        window.showStatusToast(err.message || window.SIGAP_T('plta_toast_error'), 'error');
                     })
                     .finally(function () {
                         select.disabled = false;
-                        // Simpan nilai terakhir yang berhasil
                         select.dataset.prevValue = select.value;
-                        // Sinkronisasi row data-status
                         const row = select.closest('tr');
                         if (row) { row.dataset.status = select.value; }
                     });
@@ -416,18 +427,12 @@
 
         // ============================================================
         // GUEST / REVIEWER — intercept klik pada read-only status span
-        // Reuse mekanisme auth-modal yang sudah ada di app.blade.php
         // ============================================================
         (function () {
             const backdrop = document.getElementById('auth-modal-backdrop');
-            if (!backdrop) {
-                // User sudah login (SO/CBM/Reviewer auth) — tidak perlu listener ini
-                return;
-            }
-
+            if (!backdrop) { return; }
             // Span read-only sudah punya data-requires-auth="true" sehingga
             // akan otomatis di-intercept oleh listener global di app.blade.php.
-            // Tidak perlu tambahan JS di sini.
         })();
     </script>
 @endsection

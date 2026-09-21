@@ -42,7 +42,7 @@
                 <div>
                     <label for="plta_id" class="form-label">PLTA</label>
                     <select name="plta_id" id="plta_id" class="form-control" required>
-                        <option value="">Pilih PLTA</option>
+                        <option value="" data-i18n="equip_select_plta">Pilih PLTA</option>
                         @foreach ($pltas as $plta)
                             <option value="{{ $plta->id }}" @selected(old('plta_id') == $plta->id)>
                                 {{ str_replace('PLTA ', '', $plta->nama_plta) }}
@@ -78,8 +78,8 @@
             </div>
 
             <div class="upload-actions" style="margin-top:20px;">
-                <a href="{{ route('dashboard') }}" class="btn btn-danger btn-sm">Batal</a>
-                <button type="submit" class="btn btn-success btn-sm">Simpan Equipment</button>
+                <a href="{{ route('dashboard') }}" class="btn btn-danger btn-sm" id="btn-cancel-equipment" data-i18n="equip_cancel_btn">Batal</a>
+                <button type="submit" class="btn btn-success btn-sm" id="btn-save-equipment" data-i18n="equip_save_btn">Simpan Equipment</button>
             </div>
         </form>
     </div>

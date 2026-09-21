@@ -17,11 +17,12 @@
     const initialData = Array.isArray(window.SIGAP_MAP_DATA) ? window.SIGAP_MAP_DATA : [];
     const mapDataUrl = window.SIGAP_MAP_DATA_URL || null;
 
-    const STATUS_LABEL = {
-        normal: 'Normal',
-        not_ready: 'Not Ready',
-        abnormal: 'Abnormal',
-    };
+    function translate(key, fallback) {
+        const lang = localStorage.getItem('sigap-lang') === 'en' ? 'en' : 'id';
+        return window.SIGAP_I18N && window.SIGAP_I18N[lang] && window.SIGAP_I18N[lang][key]
+            ? window.SIGAP_I18N[lang][key]
+            : fallback;
+    }
 
     // ── Inisialisasi peta ────────────────────────────────────────────────
     const map = L.map(mapEl, {
@@ -70,7 +71,7 @@
 
     function buildTooltipHtml(plta) {
         const statusKey = plta.status;
-        const statusLabel = STATUS_LABEL[statusKey] || 'Normal';
+        const statusLabel = translate('status_' + statusKey, 'Normal');
 
         return (
             '<div class="plta-tip-card">' +
@@ -81,9 +82,9 @@
                 '<div class="plta-tip-name">' + escapeHtml(plta.short_name || plta.name) + '</div>' +
                 '<div class="plta-tip-capacity">' + escapeHtml(plta.capacity || '—') + '</div>' +
                 '<div class="plta-tip-counts">' +
-                    '<span><span class="dot normal"></span>' + plta.normal + ' Normal</span>' +
-                    '<span><span class="dot not_ready"></span>' + plta.not_ready + ' Not Ready</span>' +
-                    '<span><span class="dot abnormal"></span>' + plta.abnormal + ' Abnormal</span>' +
+                    '<span><span class="dot normal"></span>' + plta.normal + ' ' + translate('status_normal', 'Normal') + '</span>' +
+                    '<span><span class="dot not_ready"></span>' + plta.not_ready + ' ' + translate('status_not_ready', 'Not Ready') + '</span>' +
+                    '<span><span class="dot abnormal"></span>' + plta.abnormal + ' ' + translate('status_abnormal', 'Abnormal') + '</span>' +
                 '</div>' +
             '</div>'
         );
@@ -99,7 +100,7 @@
                     '<span><span class="dot not_ready"></span>' + plta.not_ready + '</span>' +
                     '<span><span class="dot abnormal"></span>' + plta.abnormal + '</span>' +
                 '</div>' +
-                (plta.url ? '<a class="plta-popup-link" href="' + plta.url + '">Lihat Detail Equipment →</a>' : '') +
+                (plta.url ? '<a class="plta-popup-link" href="' + plta.url + '">' + translate('map_view_equipment_details', 'View Equipment Details →') + '</a>' : '') +
             '</div>'
         );
     }
@@ -157,7 +158,9 @@
         toggleBtn.addEventListener('click', function () {
             labelsPermanent = !labelsPermanent;
             toggleBtn.classList.toggle('active', labelsPermanent);
-            toggleBtn.textContent = labelsPermanent ? 'Sembunyikan Label' : 'Tampilkan Semua Label';
+            toggleBtn.textContent = labelsPermanent
+                ? translate('dash_hide_labels', 'Hide Labels')
+                : translate('dash_show_labels', 'Show All Labels');
 
             Object.keys(markerRegistry).forEach(function (slug) {
                 const entry = markerRegistry[slug];

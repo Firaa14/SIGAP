@@ -184,7 +184,7 @@
 
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
 
             background: var(--login-surface);
 
@@ -278,7 +278,7 @@
         }
 
         .btn-login {
-            width: 100%;
+            flex: 1;
             height: 48px;
 
             border: none;
@@ -295,9 +295,21 @@
 
             cursor: pointer;
 
-            margin-top: 5px;
-
             transition: all 0.2s ease;
+        }
+
+        .login-actions {
+            display: flex;
+            align-items: stretch;
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        .login-actions .btn-login,
+        .login-actions .btn-dashboard {
+            flex: 1;
+            height: 48px;
+            box-sizing: border-box;
         }
 
         .btn-login:hover {
@@ -319,7 +331,7 @@
             justify-content: center;
             gap: 8px;
             width: 100%;
-            height: 44px;
+            height: 48px;
             border: 1px solid var(--login-border);
             border-radius: 7px;
             background: var(--login-input);
@@ -351,7 +363,7 @@
         .footer-text {
             text-align: center;
 
-            margin-top: 20px;
+            margin-top: 16px;
 
             color: #94a3b8;
 
@@ -410,6 +422,14 @@
 
             .login-right {
                 padding: 40px 35px;
+            }
+
+            .login-actions {
+                flex-direction: column;
+            }
+
+            .login-actions .btn-dashboard {
+                height: 48px;
             }
 
             .login-title {
@@ -543,26 +563,26 @@
 
                 </div>
 
-                <button type="submit" class="btn-login">
-                    MASUK
-                </button>
+                <div class="login-actions">
+                    <button type="submit" class="btn-login">
+                        MASUK
+                    </button>
+
+                    <a href="{{ route('dashboard') }}" id="link-back-to-dashboard" class="btn-dashboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        Kembali ke Dashboard
+                    </a>
+                </div>
 
             </form>
 
             <div class="footer-text">
                 © {{ date('Y') }} SIGAP - Sistem Informasi Gangguan Andal Pembangkit
-            </div>
-
-            <div style="margin-top:16px;">
-                <a href="{{ route('dashboard') }}" id="link-back-to-dashboard" class="btn-dashboard">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        aria-hidden="true">
-                        <line x1="19" y1="12" x2="5" y2="12"></line>
-                        <polyline points="12 19 5 12 12 5"></polyline>
-                    </svg>
-                    Kembali ke Dashboard
-                </a>
             </div>
 
         </div>

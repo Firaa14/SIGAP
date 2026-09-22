@@ -44,6 +44,7 @@
                     <span class="worktype-tag">CM</span>
                     <span class="worktype-tag">EJ</span>
                     <span class="worktype-tag">EV</span>
+                    <span class="worktype-tag">CP</span>
                     <span class="worktype-tag">PAM</span>
                 </div>
             </li>
@@ -181,7 +182,7 @@
                                     style="padding:9px 14px; font-family:'JetBrains Mono',monospace; font-weight:500; color:var(--color-primary);">
                                     WORKTYPE</td>
                                 <td style="padding:9px 14px; color:var(--text-secondary);"
-                                    data-i18n="upload_col_worktype_desc">CM / EJ / EV / PAM</td>
+                                    data-i18n="upload_col_worktype_desc">CM / EJ / EV / CP / PAM</td>
                                 <td style="padding:9px 14px; text-align:center;"><span
                                         style="color:#059669; font-weight:600; font-size:13px;">✓</span></td>
                             </tr>
@@ -251,10 +252,10 @@
                         <div
                             style="background:var(--status-abnormal-bg); border:1px solid #FECACA; border-radius:6px; padding:12px 14px;">
                             <div style="font-size:11.5px; color:var(--status-abnormal-text); margin-bottom:6px;">Worktype:
-                                <strong>CM / EJ / EV / PAM</strong></div>
+                                <strong>CM / EJ / EV / CP / PAM</strong></div>
                             <div style="font-size:11.5px; color:var(--status-abnormal-text);">Status WO:</div>
                             <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:5px;">
-                                @foreach(['APPR', 'INPRG', 'PTWCL', 'PTWR', 'WPTW'] as $s)
+                                @foreach(['APPR', 'INPRG', 'PTWCL', 'PTWR', 'WPTW', 'WJOBCARD'] as $s)
                                     <span
                                         style="background:#DC2626; color:#FFF; font-size:10.5px; font-weight:600; font-family:'JetBrains Mono',monospace; padding:1px 7px; border-radius:3px;">{{ $s }}</span>
                                 @endforeach
@@ -272,7 +273,7 @@
                         <div
                             style="background:var(--status-normal-bg); border:1px solid #A7F3D0; border-radius:6px; padding:12px 14px;">
                             <div style="font-size:11.5px; color:var(--status-normal-text); margin-bottom:6px;">Worktype:
-                                <strong>CM / EJ / EV / PAM</strong></div>
+                                <strong>CM / EJ / EV / CP / PAM</strong></div>
                             <div style="font-size:11.5px; color:var(--status-normal-text);">Status WO:</div>
                             <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:5px;">
                                 @foreach(['CLOSE', 'COMP'] as $s)
@@ -461,7 +462,7 @@
                                     </td>
                                     <td>
                                         <span style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600;
-                                            @if(in_array($row['wo_status'], ['APPR', 'INPRG', 'PTWCL', 'PTWR', 'WPTW']))
+                                            @if(in_array($row['wo_status'], ['APPR', 'INPRG', 'PTWCL', 'PTWR', 'WPTW', 'WJOBCARD']))
                                                 color:#DC2626; background:#FEF2F2; padding:1px 6px; border-radius:3px; border:1px solid #FECACA;
                                             @else
                                                 color:#059669; background:#ECFDF5; padding:1px 6px; border-radius:3px; border:1px solid #A7F3D0;

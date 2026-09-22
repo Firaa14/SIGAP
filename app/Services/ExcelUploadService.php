@@ -15,7 +15,7 @@ use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class ExcelUploadService
 {
-    private const VALID_WORKTYPES = ['CM', 'EJ', 'EV', 'PAM'];
+    private const VALID_WORKTYPES = ['CM', 'EJ', 'EV', 'PAM', 'CP'];
 
     private const REQUIRED_COLUMNS = [
         'NO WO',
@@ -38,6 +38,7 @@ class ExcelUploadService
         'PTWCL',
         'PTWR',
         'WPTW',
+        'WJOBCARD',
     ];
 
     private const NORMAL_STATUSES = [

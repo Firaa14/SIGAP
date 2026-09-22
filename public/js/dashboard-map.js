@@ -66,8 +66,8 @@
 
         return (
             '<div class="plta-marker status-' + status + '">' +
-                rings +
-                '<span class="plta-marker-pin"></span>' +
+            rings +
+            '<span class="plta-marker-pin"></span>' +
             '</div>'
         );
     }
@@ -87,17 +87,17 @@
 
         return (
             '<div class="plta-tip-card">' +
-                '<div class="plta-tip-head">' +
-                    '<span class="plta-tip-code">' + escapeHtml(plta.code) + '</span>' +
-                    '<span class="plta-tip-badge ' + statusKey + '">' + statusLabel + '</span>' +
-                '</div>' +
-                '<div class="plta-tip-name">' + escapeHtml(plta.short_name || plta.name) + '</div>' +
-                '<div class="plta-tip-capacity">' + escapeHtml(plta.capacity || '—') + '</div>' +
-                '<div class="plta-tip-counts">' +
-                    '<span><span class="dot normal"></span>' + plta.normal + ' ' + translate('status_normal', 'Normal') + '</span>' +
-                    '<span><span class="dot not_ready"></span>' + plta.not_ready + ' ' + translate('status_not_ready', 'Not Ready') + '</span>' +
-                    '<span><span class="dot abnormal"></span>' + plta.abnormal + ' ' + translate('status_abnormal', 'Abnormal') + '</span>' +
-                '</div>' +
+            '<div class="plta-tip-head">' +
+            '<span class="plta-tip-code">' + escapeHtml(plta.code) + '</span>' +
+            '<span class="plta-tip-badge ' + statusKey + '">' + statusLabel + '</span>' +
+            '</div>' +
+            '<div class="plta-tip-name">' + escapeHtml(plta.short_name || plta.name) + '</div>' +
+            '<div class="plta-tip-capacity">' + escapeHtml(plta.capacity || '—') + '</div>' +
+            '<div class="plta-tip-counts">' +
+            '<span><span class="dot normal"></span>' + plta.normal + ' ' + translate('status_normal', 'Normal') + '</span>' +
+            '<span><span class="dot not_ready"></span>' + plta.not_ready + ' ' + translate('status_not_ready', 'Not Ready') + '</span>' +
+            '<span><span class="dot abnormal"></span>' + plta.abnormal + ' ' + translate('status_abnormal', 'Abnormal') + '</span>' +
+            '</div>' +
             '</div>'
         );
     }
@@ -105,14 +105,14 @@
     function buildPopupHtml(plta) {
         return (
             '<div class="plta-popup-body">' +
-                '<div class="plta-tip-name">' + escapeHtml(plta.name) + '</div>' +
-                '<div class="plta-tip-capacity">' + escapeHtml(plta.location || '') + ' &middot; ' + escapeHtml(plta.capacity || '—') + '</div>' +
-                '<div class="plta-tip-counts">' +
-                    '<span><span class="dot normal"></span>' + plta.normal + '</span>' +
-                    '<span><span class="dot not_ready"></span>' + plta.not_ready + '</span>' +
-                    '<span><span class="dot abnormal"></span>' + plta.abnormal + '</span>' +
-                '</div>' +
-                (plta.url ? '<a class="plta-popup-link" href="' + plta.url + '">' + translate('map_view_equipment_details', 'View Equipment Details →') + '</a>' : '') +
+            '<div class="plta-tip-name">' + escapeHtml(plta.name) + '</div>' +
+            '<div class="plta-tip-capacity">' + escapeHtml(plta.location || '') + ' &middot; ' + escapeHtml(plta.capacity || '—') + '</div>' +
+            '<div class="plta-tip-counts">' +
+            '<span><span class="dot normal"></span>' + plta.normal + '</span>' +
+            '<span><span class="dot not_ready"></span>' + plta.not_ready + '</span>' +
+            '<span><span class="dot abnormal"></span>' + plta.abnormal + '</span>' +
+            '</div>' +
+            (plta.url ? '<a class="plta-popup-link" href="' + plta.url + '">' + translate('map_view_equipment_details', 'View Equipment Details →') + '</a>' : '') +
             '</div>'
         );
     }

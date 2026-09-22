@@ -418,6 +418,10 @@ class ExcelUploadService
                 ->keyBy(fn (EquipmentWo $wo) => $wo->equipment_id.'|'.$wo->no_wo.'|'.$wo->worktype.'|'.$wo->description)
                 ->all();
 
+            EquipmentWo::whereIn('equipment_id', $equipmentIds)
+                ->whereNotNull('status_manual')
+                ->update(['status_manual' => null]);
+
             $toInsert = [];
             $toUpdate = [];
 

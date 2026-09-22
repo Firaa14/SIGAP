@@ -639,18 +639,24 @@
 
                         <button type="button" class="password-toggle" id="password-toggle"
                             aria-label="Tampilkan password" title="Tampilkan password">
-                            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" aria-hidden="true">
-                                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path
+                                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0">
+                                </path>
                                 <circle cx="12" cy="12" r="3"></circle>
                             </svg>
-                            <svg class="eye-off-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" aria-hidden="true">
+                            <svg class="eye-off-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
                                 <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
-                                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c5 0 8.73 3.11 10 7a13.16 13.16 0 0 1-1.67 3.02"></path>
-                                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12c1.27 3.89 5 7 10 7a10.43 10.43 0 0 0 5.39-1.61"></path>
+                                <path
+                                    d="M10.73 5.08A10.43 10.43 0 0 1 12 5c5 0 8.73 3.11 10 7a13.16 13.16 0 0 1-1.67 3.02">
+                                </path>
+                                <path
+                                    d="M6.61 6.61A13.526 13.526 0 0 0 2 12c1.27 3.89 5 7 10 7a10.43 10.43 0 0 0 5.39-1.61">
+                                </path>
                                 <line x1="2" y1="2" x2="22" y2="22"></line>
                             </svg>
                         </button>

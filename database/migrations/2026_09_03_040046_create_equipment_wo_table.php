@@ -24,8 +24,8 @@ return new class extends Migration
             $table->string('wo_status', 20)->nullable(); // APPR / INPRG / CLOSE / COMP / dll
             // Status dari Excel: null = belum ada data WO
             $table->enum('status_otomatis', ['normal', 'abnormal'])->nullable();
-            // Status manual dari user: hanya not_ready; null = tidak sedang not_ready
-            $table->enum('status_manual', ['not_ready'])->nullable();
+            // Status manual dari user; null = tidak ada override manual
+            $table->enum('status_manual', ['normal', 'abnormal', 'not_ready'])->nullable();
             $table->timestamp('uploaded_at')->nullable();
             $table->timestamps();
         });

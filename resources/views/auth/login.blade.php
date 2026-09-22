@@ -281,6 +281,58 @@
             transition: 0.2s;
         }
 
+        .password-field {
+            position: relative;
+        }
+
+        .password-field .input-box {
+            padding-right: 46px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(-50%);
+            border: 0;
+            background: transparent;
+            color: var(--login-muted);
+            cursor: pointer;
+        }
+
+        .password-toggle:hover,
+        .password-toggle:focus-visible {
+            color: #003b7b;
+        }
+
+        .password-toggle:focus-visible {
+            outline: 2px solid #4a9eff;
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        .password-toggle svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .password-toggle .eye-off-icon {
+            display: none;
+        }
+
+        .password-toggle.is-visible .eye-icon {
+            display: none;
+        }
+
+        .password-toggle.is-visible .eye-off-icon {
+            display: block;
+        }
+
         .input-box:focus {
             border-color: #003b7b;
 
@@ -579,9 +631,31 @@
                         Password
                     </label>
 
-                    <input type="password" id="password" name="password" class="input-box"
-                        placeholder="Masukkan password" data-placeholder-id="Masukkan password"
-                        data-placeholder-en="Enter your password" required>
+                    <div class="password-field">
+
+                        <input type="password" id="password" name="password" class="input-box"
+                            placeholder="Masukkan password" data-placeholder-id="Masukkan password"
+                            data-placeholder-en="Enter your password" required>
+
+                        <button type="button" class="password-toggle" id="password-toggle"
+                            aria-label="Tampilkan password" title="Tampilkan password">
+                            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" aria-hidden="true">
+                                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-off-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c5 0 8.73 3.11 10 7a13.16 13.16 0 0 1-1.67 3.02"></path>
+                                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12c1.27 3.89 5 7 10 7a10.43 10.43 0 0 0 5.39-1.61"></path>
+                                <line x1="2" y1="2" x2="22" y2="22"></line>
+                            </svg>
+                        </button>
+
+                    </div>
 
                 </div>
 
@@ -656,6 +730,8 @@
                 info_desc: 'Kelola status operasi, keandalan alat, dan Work Order dalam satu platform terpadu.',
                 placeholder_email: 'Masukkan email',
                 placeholder_pass: 'Masukkan password',
+                show_password: 'Tampilkan password',
+                hide_password: 'Sembunyikan password',
                 theme_dark: 'Aktifkan dark mode',
                 theme_light: 'Aktifkan light mode',
             },
@@ -675,6 +751,8 @@
                 info_desc: 'Manage operating status, equipment reliability, and Work Orders in one integrated platform.',
                 placeholder_email: 'Enter your email',
                 placeholder_pass: 'Enter your password',
+                show_password: 'Show password',
+                hide_password: 'Hide password',
                 theme_dark: 'Enable dark mode',
                 theme_light: 'Enable light mode',
             },
@@ -723,6 +801,7 @@
             if (optRole) { optRole.textContent = d.opt_select_role; }
             if (emailInput) { emailInput.placeholder = d.placeholder_email; }
             if (passInput) { passInput.placeholder = d.placeholder_pass; }
+            updatePasswordToggleLabel(lang);
 
             // Left panel
             var leftDesc = document.getElementById('login-left-desc');
@@ -743,6 +822,18 @@
             if (!themeBtn) { return; }
             themeBtn.setAttribute('aria-label', isDark ? d.theme_light : d.theme_dark);
             themeBtn.setAttribute('title', isDark ? d.theme_light : d.theme_dark);
+        }
+
+        function updatePasswordToggleLabel(lang) {
+            var passwordInput = document.getElementById('password');
+            var passwordToggle = document.getElementById('password-toggle');
+            if (!passwordInput || !passwordToggle) { return; }
+
+            var label = passwordInput.type === 'password'
+                ? LOGIN_I18N[lang].show_password
+                : LOGIN_I18N[lang].hide_password;
+            passwordToggle.setAttribute('aria-label', label);
+            passwordToggle.setAttribute('title', label);
         }
 
         // Init
@@ -766,6 +857,18 @@
                 document.documentElement.dataset.theme = nextTheme;
                 localStorage.setItem('sigap-theme', nextTheme);
                 updateThemeToggleLabel(getLoginLang());
+            });
+        }
+
+        // Password visibility toggle
+        var passwordInput = document.getElementById('password');
+        var passwordToggle = document.getElementById('password-toggle');
+        if (passwordInput && passwordToggle) {
+            passwordToggle.addEventListener('click', function () {
+                var isVisible = passwordInput.type === 'text';
+                passwordInput.type = isVisible ? 'password' : 'text';
+                passwordToggle.classList.toggle('is-visible', !isVisible);
+                updatePasswordToggleLabel(getLoginLang());
             });
         }
     </script>

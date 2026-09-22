@@ -225,8 +225,10 @@
 
     <div class="app-wrapper">
 
+        <div class="sidebar-overlay" data-sidebar-overlay aria-hidden="true"></div>
+
         {{-- Sidebar --}}
-        <aside class="sidebar" role="navigation" aria-label="Main Navigation" data-i18n-aria="aria_main_navigation">
+        <aside class="sidebar" id="main-sidebar" role="navigation" aria-label="Main Navigation" data-i18n-aria="aria_main_navigation">
 
             {{-- Brand / Logo --}}
             <div class="sidebar-brand">
@@ -306,6 +308,9 @@
 
             {{-- Top Bar / Header --}}
             <header class="topbar" role="banner">
+                <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Buka navigasi" title="Buka navigasi" aria-controls="main-sidebar" aria-expanded="true">
+                    <span aria-hidden="true">☰</span>
+                </button>
                 <div class="topbar-left">
                     <h1 class="topbar-title">@yield('page-title', 'Dashboard')</h1>
                     <nav aria-label="breadcrumb">
@@ -913,6 +918,49 @@
         document.addEventListener('sigap:langchange', function () {
             updateThemeToggle();
         });
+
+        // ============================================================
+        // SIDEBAR NAVIGATION TOGGLE
+        // ============================================================
+        (function () {
+            const wrapper = document.querySelector('.app-wrapper');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebarOverlay = document.querySelector('[data-sidebar-overlay]');
+            const sidebarLinks = document.querySelectorAll('.sidebar-nav-item');
+
+            if (!wrapper || !sidebarToggle) { return; }
+
+            function setSidebarOpen(isOpen) {
+                wrapper.classList.toggle('sidebar-collapsed', !isOpen);
+                sidebarToggle.setAttribute('aria-expanded', String(isOpen));
+                sidebarToggle.setAttribute('aria-label', isOpen ? 'Tutup navigasi' : 'Buka navigasi');
+                sidebarToggle.setAttribute('title', isOpen ? 'Tutup navigasi' : 'Buka navigasi');
+                if (sidebarOverlay) {
+                    sidebarOverlay.setAttribute('aria-hidden', String(!isOpen));
+                }
+                document.body.classList.toggle('sidebar-open', isOpen && window.innerWidth <= 900);
+            }
+
+            sidebarToggle.addEventListener('click', function () {
+                setSidebarOpen(wrapper.classList.contains('sidebar-collapsed'));
+            });
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', function () { setSidebarOpen(false); });
+            }
+
+            sidebarLinks.forEach(function (link) {
+                link.addEventListener('click', function () {
+                    if (window.innerWidth <= 900) { setSidebarOpen(false); }
+                });
+            });
+
+            setSidebarOpen(window.innerWidth > 900);
+
+            window.addEventListener('resize', function () {
+                if (window.innerWidth > 900) { document.body.classList.remove('sidebar-open'); }
+            });
+        })();
 
         // ============================================================
         // LIVE CLOCK

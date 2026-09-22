@@ -32,6 +32,18 @@
         maxZoom: 17,
     }).setView([-8.0, 112.1], 9);
 
+    function refreshMapSize() {
+        requestAnimationFrame(function () {
+            map.invalidateSize({ animate: false, pan: false });
+        });
+    }
+
+    window.addEventListener('resize', refreshMapSize);
+    if (typeof ResizeObserver !== 'undefined') {
+        const mapResizeObserver = new ResizeObserver(refreshMapSize);
+        mapResizeObserver.observe(mapEl);
+    }
+
     // Basemap satelit (citra) — Esri World Imagery, tidak butuh API key.
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics',

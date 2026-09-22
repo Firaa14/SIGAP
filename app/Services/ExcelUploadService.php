@@ -86,7 +86,7 @@ class ExcelUploadService
         $missingRequired = [];
 
         foreach (self::REQUIRED_COLUMNS as $required) {
-            if (! isset($headerMap[$required])) {
+            if (!isset($headerMap[$required])) {
                 $missingRequired[] = $required;
             }
         }
@@ -99,7 +99,7 @@ class ExcelUploadService
 
             $rowValues = array_filter(
                 $rowRaw,
-                fn ($v) => $v !== null && $v !== ''
+                fn($v) => $v !== null && $v !== ''
             );
 
             if (empty($rowValues)) {
@@ -214,7 +214,7 @@ class ExcelUploadService
         // FIX: tambahkan description ke key, supaya WO dengan no_wo + worktype sama
         // tapi description beda dianggap record yang BERBEDA (bukan saling menimpa).
         $existingWoKeys = EquipmentWo::get()
-            ->map(fn (EquipmentWo $wo) => $wo->equipment_id.'|'.$wo->no_wo.'|'.$wo->worktype.'|'.$wo->description)
+            ->map(fn(EquipmentWo $wo) => $wo->equipment_id . '|' . $wo->no_wo . '|' . $wo->worktype . '|' . $wo->description)
             ->flip()
             ->all();
 
@@ -232,7 +232,7 @@ class ExcelUploadService
 
         $equipmentMap = Equipment::whereIn('assetnum', $uniqueAssetNums)
             ->get()
-            ->keyBy(fn (Equipment $e) => strtoupper($e->assetnum))
+            ->keyBy(fn(Equipment $e) => strtoupper($e->assetnum))
             ->all();
 
         Log::info('[IMPORT] EQUIPMENT MAP LOADED', [
@@ -274,16 +274,16 @@ class ExcelUploadService
 
             if ($worktype === '') {
                 $rowErrors[] = 'WORKTYPE kosong.';
-            } elseif (! in_array($worktype, self::VALID_WORKTYPES, true)) {
+            } elseif (!in_array($worktype, self::VALID_WORKTYPES, true)) {
                 $rowErrors[] = "Worktype tidak valid: \"{$worktype}\". Worktype yang diizinkan: "
-                    .implode(', ', self::VALID_WORKTYPES).'.';
+                    . implode(', ', self::VALID_WORKTYPES) . '.';
             }
 
             if ($status === '') {
                 $rowErrors[] = 'STATUS kosong.';
             }
 
-            if ($assetnum !== '' && ! isset($seenAssetNums[$assetnum])) {
+            if ($assetnum !== '' && !isset($seenAssetNums[$assetnum])) {
                 $seenAssetNums[$assetnum] = $rowNum;
             }
 
@@ -291,17 +291,17 @@ class ExcelUploadService
             $statusOto = null;
             $pltaName = '—';
 
-            if ($assetnum !== '' && ! isset($seenAssetNums[$assetnum.'_dup'])) {
+            if ($assetnum !== '' && !isset($seenAssetNums[$assetnum . '_dup'])) {
                 $prefix = strtoupper(substr($assetnum, 0, 4));
 
-                if (! $pltaPrefixMap->has($prefix)) {
+                if (!$pltaPrefixMap->has($prefix)) {
                     $rowErrors[] = "Prefix ASSETNUM \"{$prefix}\" tidak dikenali dalam sistem.";
                 } else {
                     $plta = $pltaPrefixMap->get($prefix);
 
                     $equipment = $equipmentMap[$assetnum] ?? null;
 
-                    if (! $equipment) {
+                    if (!$equipment) {
                         $rowErrors[] = "ASSETNUM \"{$assetnum}\" tidak ditemukan dalam data master equipment.";
                     } else {
                         $pltaName = $plta->nama_plta;
@@ -325,11 +325,11 @@ class ExcelUploadService
                     $statusOto = 'normal';
                 } else {
                     $rowErrors[] = "Kombinasi Worktype \"{$worktype}\" + Status WO \"{$status}\" tidak dikenali. "
-                        .'Status yang valid: '
-                        .implode(', ', array_merge(
+                        . 'Status yang valid: '
+                        . implode(', ', array_merge(
                             self::ABNORMAL_STATUSES,
                             self::NORMAL_STATUSES
-                        )).'.';
+                        )) . '.';
                 }
             }
 
@@ -339,8 +339,8 @@ class ExcelUploadService
                 && $statusOto !== null
             ) {
                 // FIX: description ikut menentukan apakah row ini "sudah ada" atau "baru"
-                $rowKey = $equipment->id.'|'.$noWo.'|'.$worktype.'|'.$desc;
-                $isNew = ! isset($existingWoKeys[$rowKey]);
+                $rowKey = $equipment->id . '|' . $noWo . '|' . $worktype . '|' . $desc;
+                $isNew = !isset($existingWoKeys[$rowKey]);
 
                 if ($isNew) {
                     $newCount++;
@@ -415,7 +415,7 @@ class ExcelUploadService
             // tidak saling menimpa saat dicocokkan dengan data yang sudah ada di DB.
             $existingWoMap = EquipmentWo::whereIn('equipment_id', $equipmentIds)
                 ->get()
-                ->keyBy(fn (EquipmentWo $wo) => $wo->equipment_id.'|'.$wo->no_wo.'|'.$wo->worktype.'|'.$wo->description)
+                ->keyBy(fn(EquipmentWo $wo) => $wo->equipment_id . '|' . $wo->no_wo . '|' . $wo->worktype . '|' . $wo->description)
                 ->all();
 
             EquipmentWo::whereIn('equipment_id', $equipmentIds)
@@ -434,7 +434,7 @@ class ExcelUploadService
                 $reportDate = null;
                 $durasiHari = null;
 
-                if (! empty($row['report_date'])) {
+                if (!empty($row['report_date'])) {
                     try {
                         $reportDate = Carbon::parse(
                             $row['report_date']
@@ -468,7 +468,7 @@ class ExcelUploadService
                 ];
 
                 // FIX: description ikut dalam key pencocokan insert vs update
-                $rowKey = $row['equipment_id'].'|'.$row['no_wo'].'|'.$row['worktype'].'|'.$row['description'];
+                $rowKey = $row['equipment_id'] . '|' . $row['no_wo'] . '|' . $row['worktype'] . '|' . $row['description'];
 
                 if (isset($existingWoMap[$rowKey])) {
                     $toUpdate[] = [
@@ -485,7 +485,7 @@ class ExcelUploadService
                 }
             }
 
-            if (! empty($toInsert)) {
+            if (!empty($toInsert)) {
                 DB::table('equipment_wo')->insert($toInsert);
             }
 

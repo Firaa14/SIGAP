@@ -103,6 +103,10 @@ body {
     margin-left: 0;
 }
 
+.sidebar-overlay {
+    display: none;
+}
+
 /* ============================================================
    SIDEBAR
    ============================================================ */
@@ -419,6 +423,7 @@ body {
     flex-direction: column;
     min-width: 0;
     min-height: 100vh;
+    transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ============================================================
@@ -443,6 +448,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0;
+    padding-left: 42px;
 }
 
 .sidebar-toggle {
@@ -1814,6 +1820,69 @@ body {
         --sidebar-width: 220px;
     }
 
+    .sidebar {
+        box-shadow: 8px 0 28px rgba(0,0,0,0.24);
+    }
+
+    .app-wrapper.sidebar-collapsed .sidebar {
+        transform: translateX(calc(-1 * var(--sidebar-width) - 8px));
+    }
+
+    .app-wrapper.sidebar-collapsed .main-content {
+        margin-left: 0;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 90;
+        background: rgba(5, 15, 35, 0.48);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+
+    body.sidebar-open .sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .topbar {
+        padding: 0 14px;
+    }
+
+    .topbar-left {
+        min-width: 0;
+        padding-left: 40px;
+    }
+
+    .topbar-title,
+    .breadcrumb {
+        max-width: 45vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .topbar-right {
+        gap: 8px;
+    }
+
+    .topbar-datetime,
+    .topbar-role-badge {
+        display: none;
+    }
+
+    .page-content {
+        padding: 16px;
+    }
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1825,6 +1894,52 @@ body {
     .map-toolbar {
         width: 100%;
         justify-content: space-between;
+    }
+}
+
+@media (max-width: 600px) {
+    .sidebar-toggle {
+        left: 12px;
+    }
+
+    .topbar-title {
+        font-size: 14px;
+    }
+
+    .topbar-right {
+        gap: 6px;
+    }
+
+    .btn-login-topbar span,
+    #logout-form {
+        display: none;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .page-content {
+        padding: 12px;
+    }
+
+    .card-header,
+    .filter-bar,
+    .form-actions {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .data-table-wrap,
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .data-table {
+        min-width: 680px;
     }
 }
 

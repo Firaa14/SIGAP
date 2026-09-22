@@ -37,11 +37,13 @@ class PltaController extends Controller
                     'kks' => $eq->kks ?? '—',
                     'assetnum' => $eq->assetnum,
                     'status_operasi' => $eq->status_operasi,  // via accessor
-                    'keterangan' => $eq->wos->map(fn($wo) => [
-                        'no_wo' => $wo->no_wo ?? '-',
-                        'description' => $wo->description ?? '—',
-                        'status' => $wo->wo_status ?? '',
-                    ])->values()->all(),
+                    'keterangan' => $eq->wos
+                     ->filter(fn($wo) => !empty($wo->no_wo) || !empty($wo->description))
+                     ->map(fn($wo) => [
+                    'no_wo' => $wo->no_wo ?? '-',
+                    'description' => $wo->description ?? '—',
+                    'status' => $wo->wo_status ?? '',
+    ])->values()->all(),
                     'report_date' => $eq->wos->first()?->report_date?->format('d M Y') ?? '—',
                     'durasi_hari' => $eq->wos->first()?->durasi_hari !== null ? $eq->wos->first()->durasi_hari . ' hari' : '—',
                 ])->all()

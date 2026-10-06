@@ -5,8 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -40,10 +39,11 @@ return new class extends Migration
             // Catatan: kolom `description` bertipe TEXT. MySQL tidak bisa membuat
             // unique index langsung di kolom TEXT tanpa panjang (length) tertentu,
             // jadi kita batasi 191 karakter pertama untuk index-nya.
-            $table->unique(
-                ['equipment_id', 'no_wo', 'worktype', DB::raw('description(191)')],
-                'equipment_wo_unique_combo'
-            );
+            $uniqueColumns = DB::connection()->getDriverName() === 'mysql'
+                ? ['equipment_id', 'no_wo', 'worktype', DB::raw('description(191)')]
+                : ['equipment_id', 'no_wo', 'worktype', 'description'];
+
+            $table->unique($uniqueColumns, 'equipment_wo_unique_combo');
         });
     }
 

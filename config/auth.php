@@ -114,4 +114,22 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'login' => [
+        'allowed_email_domains' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('LOGIN_ALLOWED_EMAIL_DOMAINS', 'gmail.com'))
+        ))),
+        'blocked_email_domains' => [
+            'example.com',
+            'example.net',
+            'example.org',
+            'invalid',
+            'localhost',
+            'test',
+            'local',
+            'internal',
+            'home.arpa',
+        ],
+    ],
+
 ];

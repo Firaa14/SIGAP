@@ -48,12 +48,12 @@
     --status-normal-bg: #ECFDF5;
     --status-normal-text: #065F46;
     --status-normal-dot: #10B981;
-    --status-abnormal-bg: #FEF2F2;
-    --status-abnormal-text: #991B1B;
-    --status-abnormal-dot: #EF4444;
-    --status-notready-bg: #FFFBEB;
-    --status-notready-text: #92400E;
-    --status-notready-dot: #F59E0B;
+    --status-abnormal-bg: #FFFBEB;
+    --status-abnormal-text: #92400E;
+    --status-abnormal-dot: #F59E0B;
+    --status-notready-bg: #FEF2F2;
+    --status-notready-text: #991B1B;
+    --status-notready-dot: #EF4444;
 
     /* Shadows */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -692,18 +692,18 @@ body {
 }
 
 .map-legend-dot.normal {
-    background: #22D3EE;
-    box-shadow: 0 0 6px rgba(34, 211, 238, 0.9);
+    background: #22C55E;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.9);
 }
 
 .map-legend-dot.abnormal {
-    background: #EF4444;
-    box-shadow: 0 0 6px rgba(239, 68, 68, 0.9);
+    background: #F59E0B;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.9);
 }
 
 .map-legend-dot.not_ready {
-    background: #F59E0B;
-    box-shadow: 0 0 6px rgba(245, 158, 11, 0.9);
+    background: #EF4444;
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.9);
 }
 
 .map-toggle-btn {
@@ -833,42 +833,42 @@ body {
     z-index: 1;
 }
 
-/* Normal: slow, calm breathing glow (cyan) */
+/* Normal: slow, calm breathing glow (green) */
 .plta-marker.status-normal .plta-marker-pin {
-    background: #22D3EE;
+    background: #22C55E;
 }
 
 .plta-marker.status-normal .plta-marker-ring {
     width: 14px;
     height: 14px;
-    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.55);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55);
     animation: plta-pulse-normal 2.8s ease-in-out infinite;
 }
 
 @keyframes plta-pulse-normal {
     0% {
-        box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.45);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
     }
 
     70% {
-        box-shadow: 0 0 0 12px rgba(34, 211, 238, 0);
+        box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
     }
 
     100% {
-        box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
     }
 }
 
-/* Not Ready: slower amber blink, standby feel */
+/* Not Ready: slower red blink, standby feel */
 .plta-marker.status-not_ready .plta-marker-pin {
-    background: #F59E0B;
+    background: #EF4444;
     animation: plta-blink-notready 1.8s ease-in-out infinite;
 }
 
 .plta-marker.status-not_ready .plta-marker-ring {
     width: 14px;
     height: 14px;
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
     animation: plta-pulse-normal 2.6s ease-in-out infinite;
 }
 
@@ -884,9 +884,9 @@ body {
     }
 }
 
-/* Abnormal: urgent radiating double ring alarm (red) */
+/* Abnormal: urgent radiating double ring alarm (yellow) */
 .plta-marker.status-abnormal .plta-marker-pin {
-    background: #EF4444;
+    background: #F59E0B;
 }
 
 .plta-marker.status-abnormal .plta-marker-ring {
@@ -963,18 +963,18 @@ body {
 }
 
 .plta-tip-badge.normal {
-    background: rgba(34, 211, 238, 0.18);
-    color: #67E8F9;
+    background: rgba(34, 197, 94, 0.18);
+    color: #86EFAC;
 }
 
 .plta-tip-badge.abnormal {
-    background: rgba(239, 68, 68, 0.2);
-    color: #FCA5A5;
+    background: rgba(245, 158, 11, 0.2);
+    color: #FCD34D;
 }
 
 .plta-tip-badge.not_ready {
-    background: rgba(245, 158, 11, 0.2);
-    color: #FCD34D;
+    background: rgba(239, 68, 68, 0.2);
+    color: #FCA5A5;
 }
 
 .plta-tip-name {
@@ -1015,15 +1015,15 @@ body {
 }
 
 .plta-tip-counts .dot.normal {
-    background: #22D3EE;
+    background: #22C55E;
 }
 
 .plta-tip-counts .dot.abnormal {
-    background: #EF4444;
+    background: #F59E0B;
 }
 
 .plta-tip-counts .dot.not_ready {
-    background: #F59E0B;
+    background: #EF4444;
 }
 
 /* --- Popup on click: detail + link --- */

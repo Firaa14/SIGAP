@@ -48,7 +48,7 @@
                     <span class="worktype-tag">PAM</span>
                 </div>
             </li>
-            <li data-i18n="upload_instr_3">Hapus semua baris dengan Worktype selain keempat di atas sebelum upload.</li>
+            <li data-i18n="upload_instr_3">Hapus semua baris dengan Worktype selain kelima di atas sebelum upload.</li>
             <li data-i18n="upload_instr_4">Pastikan file Excel memiliki kolom: <strong>NO WO, DESCRIPTION, WORKTYPE, STATUS,
                     ASSETNUM</strong>.</li>
             <li data-i18n="upload_instr_5">ASSETNUM harus sesuai dengan data master PLTA yang terdaftar dalam sistem.</li>
@@ -191,7 +191,7 @@
                                     style="padding:9px 14px; font-family:'JetBrains Mono',monospace; font-weight:500; color:var(--color-primary);">
                                     STATUS</td>
                                 <td style="padding:9px 14px; color:var(--text-secondary);"
-                                    data-i18n="upload_col_status_desc">APPR / INPRG / CLOSE / COMP / dll</td>
+                                    data-i18n="upload_col_status_desc">APPR / INPRG / PTWCL / PTWR / WPTW</td>
                                 <td style="padding:9px 14px; text-align:center;"><span
                                         style="color:#059669; font-weight:600; font-size:13px;">✓</span></td>
                             </tr>

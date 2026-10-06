@@ -39,9 +39,9 @@
         }
 
         .status-tab.abnormal.active {
-            background: #ef4444;
+            background: var(--status-abnormal-dot);
             color: white;
-            border-color: #ef4444;
+            border-color: var(--status-abnormal-dot);
         }
     </style>
 @endpush

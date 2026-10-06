@@ -57,7 +57,7 @@
         </a>
 
         <a href="{{ route('status.index', ['status' => 'abnormal']) }}" class="stat-card">
-            <div class="stat-icon red">!</div>
+            <div class="stat-icon amber">!</div>
             <div class="stat-body">
                 <div class="stat-value" data-stat="abnormal">{{ $stats['abnormal'] }}</div>
                 <div class="stat-label" data-i18n="dash_status_abnormal">Status Abnormal</div>
@@ -65,7 +65,7 @@
         </a>
 
         <div class="stat-card">
-            <div class="stat-icon amber">⏸</div>
+            <div class="stat-icon red">⏸</div>
             <div class="stat-body">
                 <div class="stat-value" data-stat="not_ready">{{ $stats['not_ready'] }}</div>
                 <div class="stat-label" data-i18n="dash_status_not_ready">Not Ready</div>

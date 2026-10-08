@@ -221,7 +221,6 @@
         }
     </style>
 
-    @if(request()->routeIs('dashboard'))
     <style>
         /* Modal cara penggunaan */
         .guide-modal { width: 520px; padding: 26px 28px 24px; max-height: 86vh; display: flex; flex-direction: column; }
@@ -243,7 +242,6 @@
         .guide-pane p { margin: 0; }
         .guide-pane b { color: var(--text-primary, #172033); font-weight: 600; }
     </style>
-    @endif
 </head>
 
 <body>
@@ -346,8 +344,7 @@
                 </div>
                 <div class="topbar-right">
 
-                    {{-- Info cara penggunaan (Dashboard) --}}
-                    @if(request()->routeIs('dashboard'))
+                    {{-- Info cara penggunaan --}}
                         <button type="button" class="lang-toggle" id="guide-open"
                             data-i18n-title="guide_title" title="Cara Penggunaan" aria-haspopup="dialog">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -358,7 +355,6 @@
                                 <line x1="12" y1="8" x2="12.01" y2="8"></line>
                             </svg>
                         </button>
-                    @endif
 
                     <div class="topbar-datetime" id="topbar-clock">
                         <div class="date" id="current-date"></div>
@@ -458,15 +454,14 @@
     </div>
     @endguest
 
-    {{-- Modal cara penggunaan (Dashboard) --}}
-    @if(request()->routeIs('dashboard'))
+    {{-- Modal cara penggunaan --}}
     <div class="auth-modal-backdrop" id="guide-backdrop" role="dialog" aria-modal="true" aria-labelledby="guide-title">
         <div class="auth-modal guide-modal">
             <button type="button" class="auth-modal-close" id="guide-close" data-i18n-aria="modal_close" aria-label="Close">&times;</button>
             <div class="auth-modal-title" id="guide-title" data-i18n="guide_title">Cara Penggunaan</div>
 
             <div class="guide-tabs">
-                <button type="button" class="guide-tab active" data-guide-tab="upload" data-i18n="guide_tab_upload">Upload Data</button>
+                <button type="button" class="guide-tab active" data-guide-tab="upload" data-i18n="guide_tab_upload">Upload Power Query</button>
                 <button type="button" class="guide-tab" data-guide-tab="insert" data-i18n="guide_tab_insert">Insert Equipment</button>
             </div>
 
@@ -476,7 +471,6 @@
             </div>
         </div>
     </div>
-    @endif
 
     <script>
         // ============================================================
@@ -535,7 +529,7 @@
                 dash_th_plta: 'PLTA',
                 dash_th_assetnum: 'ASSETNUM',
                 dash_th_status: 'Status',
-                dash_th_wo: 'No WO',
+                    dash_th_wo: 'No WO',
                 dash_th_report_date: 'Tanggal Report',
                 dash_th_duration: 'Durasi',
                 dash_empty_title: 'Belum ada aktivitas',
@@ -633,7 +627,7 @@
                 upload_th_preview_no: '#',
                 upload_th_assetnum: 'ASSETNUM',
                 upload_th_asset_name: 'Nama Asset',
-                upload_th_no_wo: 'No WO',
+                    upload_th_no_wo: 'No WO',
                 upload_th_description: 'Description',
                 upload_th_worktype: 'Worktype',
                 upload_th_wo_status: 'Status WO',
@@ -672,7 +666,7 @@
 
                 // Guide
                 guide_title: 'Cara Penggunaan',
-                guide_tab_upload: 'Upload Data',
+                guide_tab_upload: 'Upload Power Query',
                 guide_tab_insert: 'Insert Equipment',
                 guide_upload_html: `
                     <ol>
@@ -785,7 +779,6 @@
                 plta_next: 'Next PLTA →',
                 plta_toast_success: 'saved successfully:',
                 plta_toast_error: 'Failed to save status.',
-                map_view_equipment_details: 'View Equipment Details →',
 
                 // Upload Index
                 upload_flash_fail: 'Failed to Process File',
@@ -884,7 +877,7 @@
 
                 // Guide
                 guide_title: 'How to Use',
-                guide_tab_upload: 'Upload Data',
+                guide_tab_upload: 'Upload Power Query',
                 guide_tab_insert: 'Insert Equipment',
                 guide_upload_html: `
                     <ol>
@@ -933,6 +926,7 @@
                 const toggleBtn   = document.getElementById('lang-toggle');
                 if (toggleLabel) { toggleLabel.textContent = lang === 'en' ? 'ID' : 'EN'; }
                 if (toggleBtn) {
+                    const switchLabel = lang === 'en' ? t('lang_switch') : t('lang_switch');
                     toggleBtn.setAttribute('aria-label', window.SIGAP_I18N[lang].lang_switch);
                     toggleBtn.setAttribute('title', window.SIGAP_I18N[lang].lang_switch);
                 }
@@ -1156,7 +1150,7 @@
         })();
 
         // ============================================================
-        // MODAL CARA PENGGUNAAN (Dashboard)
+        // MODAL CARA PENGGUNAAN
         // ============================================================
         (function () {
             const openBtn  = document.getElementById('guide-open');

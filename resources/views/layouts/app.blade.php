@@ -220,6 +220,30 @@
             color: #FFFFFF;
         }
     </style>
+
+    @if(request()->routeIs('dashboard'))
+    <style>
+        /* Modal cara penggunaan */
+        .guide-modal { width: 520px; padding: 26px 28px 24px; max-height: 86vh; display: flex; flex-direction: column; }
+        .guide-modal .auth-modal-title { margin-bottom: 14px; padding-right: 30px; }
+        .guide-tabs { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid var(--border-color, #E2E8F0); }
+        .guide-tab {
+            padding: 8px 14px; margin-bottom: -1px; background: none; border: none;
+            border-bottom: 2px solid transparent; cursor: pointer;
+            font-size: 13px; font-weight: 600; font-family: inherit;
+            color: var(--text-muted, #718096);
+        }
+        .guide-tab:hover { color: var(--text-primary, #172033); }
+        .guide-tab.active { color: var(--color-accent, #0066CC); border-bottom-color: var(--color-accent, #0066CC); }
+        .guide-body { overflow-y: auto; font-size: 13.5px; line-height: 1.65; color: var(--text-secondary, #465268); }
+        .guide-pane { display: none; }
+        .guide-pane.active { display: block; }
+        .guide-pane ol { margin: 0 0 10px; padding-left: 20px; }
+        .guide-pane li { margin-bottom: 6px; }
+        .guide-pane p { margin: 0; }
+        .guide-pane b { color: var(--text-primary, #172033); font-weight: 600; }
+    </style>
+    @endif
 </head>
 
 <body>
@@ -321,6 +345,21 @@
                     </nav>
                 </div>
                 <div class="topbar-right">
+
+                    {{-- Info cara penggunaan (Dashboard) --}}
+                    @if(request()->routeIs('dashboard'))
+                        <button type="button" class="lang-toggle" id="guide-open"
+                            data-i18n-title="guide_title" title="Cara Penggunaan" aria-haspopup="dialog">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                        </button>
+                    @endif
+
                     <div class="topbar-datetime" id="topbar-clock">
                         <div class="date" id="current-date"></div>
                         <div id="current-time"></div>
@@ -419,6 +458,26 @@
     </div>
     @endguest
 
+    {{-- Modal cara penggunaan (Dashboard) --}}
+    @if(request()->routeIs('dashboard'))
+    <div class="auth-modal-backdrop" id="guide-backdrop" role="dialog" aria-modal="true" aria-labelledby="guide-title">
+        <div class="auth-modal guide-modal">
+            <button type="button" class="auth-modal-close" id="guide-close" data-i18n-aria="modal_close" aria-label="Close">&times;</button>
+            <div class="auth-modal-title" id="guide-title" data-i18n="guide_title">Cara Penggunaan</div>
+
+            <div class="guide-tabs">
+                <button type="button" class="guide-tab active" data-guide-tab="upload" data-i18n="guide_tab_upload">Upload Data</button>
+                <button type="button" class="guide-tab" data-guide-tab="insert" data-i18n="guide_tab_insert">Insert Equipment</button>
+            </div>
+
+            <div class="guide-body">
+                <div class="guide-pane active" id="guide-pane-upload" data-i18n="guide_upload_html"></div>
+                <div class="guide-pane" id="guide-pane-insert" data-i18n="guide_insert_html"></div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <script>
         // ============================================================
         // I18N DICTIONARY
@@ -476,7 +535,7 @@
                 dash_th_plta: 'PLTA',
                 dash_th_assetnum: 'ASSETNUM',
                 dash_th_status: 'Status',
-                    dash_th_wo: 'No WO',
+                dash_th_wo: 'No WO',
                 dash_th_report_date: 'Tanggal Report',
                 dash_th_duration: 'Durasi',
                 dash_empty_title: 'Belum ada aktivitas',
@@ -574,7 +633,7 @@
                 upload_th_preview_no: '#',
                 upload_th_assetnum: 'ASSETNUM',
                 upload_th_asset_name: 'Nama Asset',
-                    upload_th_no_wo: 'No WO',
+                upload_th_no_wo: 'No WO',
                 upload_th_description: 'Description',
                 upload_th_worktype: 'Worktype',
                 upload_th_wo_status: 'Status WO',
@@ -610,6 +669,30 @@
                 equip_save_btn: 'Simpan Equipment',
                 equip_cancel_btn: 'Batal',
                 equip_select_plta: 'Pilih PLTA',
+
+                // Guide
+                guide_title: 'Cara Penggunaan',
+                guide_tab_upload: 'Upload Data',
+                guide_tab_insert: 'Insert Equipment',
+                guide_upload_html: `
+                    <ol>
+                        <li>Login dulu sebagai SO atau CBM.</li>
+                        <li>Siapkan file Excel hasil Power Query (.xlsx atau .xls). File harus sudah difilter dan hanya berisi Worktype CM, EJ, EV, CP, dan PAM.</li>
+                        <li>Kolom yang harus ada: NO WO, DESCRIPTION, WORKTYPE, STATUS, ASSETNUM.</li>
+                        <li>Buka menu Upload Data WO, pilih file, lalu klik Tampilkan Preview.</li>
+                        <li>Cek hasil validasinya. Kalau sudah sesuai, klik Konfirmasi &amp; Import Data.</li>
+                        <li>Tunggu sampai selesai, jangan refresh halaman.</li>
+                    </ol>
+                    <p>Status equipment ditentukan otomatis dari status WO. APPR, INPRG, PTWCL, PTWR, dan WPTW jadi Abnormal. CLOSE dan COMP jadi Normal.</p>`,
+                guide_insert_html: `
+                    <p style="margin-bottom:8px;">Dipakai untuk menambah unit atau equipment baru.</p>
+                    <ol>
+                        <li>Login sebagai SO atau CBM, lalu buka menu Insert Equipment.</li>
+                        <li>Pilih PLTA.</li>
+                        <li>Isi Unit, System, Equipment, KKS, dan ASSETNUM.</li>
+                        <li>Klik Simpan Equipment.</li>
+                    </ol>
+                    <p>4 karakter pertama ASSETNUM adalah kode PLTA, jadi pastikan sesuai dengan PLTA yang dipilih.</p>`,
             },
 
             en: {
@@ -702,6 +785,7 @@
                 plta_next: 'Next PLTA →',
                 plta_toast_success: 'saved successfully:',
                 plta_toast_error: 'Failed to save status.',
+                map_view_equipment_details: 'View Equipment Details →',
 
                 // Upload Index
                 upload_flash_fail: 'Failed to Process File',
@@ -797,6 +881,30 @@
                 equip_save_btn: 'Save Equipment',
                 equip_cancel_btn: 'Cancel',
                 equip_select_plta: 'Select PLTA',
+
+                // Guide
+                guide_title: 'How to Use',
+                guide_tab_upload: 'Upload Data',
+                guide_tab_insert: 'Insert Equipment',
+                guide_upload_html: `
+                    <ol>
+                        <li>Log in first as SO or CBM.</li>
+                        <li>Prepare the Excel file from Power Query (.xlsx or .xls). It must already be filtered and only contain Worktypes CM, EJ, EV, CP, and PAM.</li>
+                        <li>Required columns: NO WO, DESCRIPTION, WORKTYPE, STATUS, ASSETNUM.</li>
+                        <li>Open Upload WO Data, choose the file, then click Show Preview.</li>
+                        <li>Check the validation result. If it looks right, click Confirm &amp; Import Data.</li>
+                        <li>Wait until it finishes and don't refresh the page.</li>
+                    </ol>
+                    <p>Equipment status is set automatically from the WO status. APPR, INPRG, PTWCL, PTWR, and WPTW become Abnormal. CLOSE and COMP become Normal.</p>`,
+                guide_insert_html: `
+                    <p style="margin-bottom:8px;">Use this to add a new unit or equipment.</p>
+                    <ol>
+                        <li>Log in as SO or CBM, then open Insert Equipment.</li>
+                        <li>Select the PLTA.</li>
+                        <li>Fill in Unit, System, Equipment, KKS, and ASSETNUM.</li>
+                        <li>Click Save Equipment.</li>
+                    </ol>
+                    <p>The first 4 characters of ASSETNUM are the PLTA code, so make sure it matches the selected PLTA.</p>`,
             },
         };
 
@@ -825,12 +933,11 @@
                 const toggleBtn   = document.getElementById('lang-toggle');
                 if (toggleLabel) { toggleLabel.textContent = lang === 'en' ? 'ID' : 'EN'; }
                 if (toggleBtn) {
-                    const switchLabel = lang === 'en' ? t('lang_switch') : t('lang_switch');
                     toggleBtn.setAttribute('aria-label', window.SIGAP_I18N[lang].lang_switch);
                     toggleBtn.setAttribute('title', window.SIGAP_I18N[lang].lang_switch);
                 }
 
-                // Apply data-i18n (textContent)
+                // Apply data-i18n (innerHTML)
                 document.querySelectorAll('[data-i18n]').forEach(function (el) {
                     const key = el.getAttribute('data-i18n');
                     const val = window.SIGAP_I18N[lang] && window.SIGAP_I18N[lang][key];
@@ -1045,6 +1152,44 @@
 
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape' && backdrop.classList.contains('is-open')) { closeModal(); }
+            });
+        })();
+
+        // ============================================================
+        // MODAL CARA PENGGUNAAN (Dashboard)
+        // ============================================================
+        (function () {
+            const openBtn  = document.getElementById('guide-open');
+            const backdrop = document.getElementById('guide-backdrop');
+            if (!openBtn || !backdrop) { return; }
+
+            const open  = function () {
+                backdrop.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+            };
+            const close = function () {
+                backdrop.classList.remove('is-open');
+                document.body.style.overflow = '';
+            };
+
+            openBtn.addEventListener('click', open);
+            document.getElementById('guide-close').addEventListener('click', close);
+
+            backdrop.addEventListener('click', function (e) {
+                if (e.target === backdrop) { close(); }
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && backdrop.classList.contains('is-open')) { close(); }
+            });
+
+            document.querySelectorAll('[data-guide-tab]').forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    document.querySelectorAll('.guide-tab').forEach(function (t) { t.classList.remove('active'); });
+                    document.querySelectorAll('.guide-pane').forEach(function (p) { p.classList.remove('active'); });
+                    tab.classList.add('active');
+                    document.getElementById('guide-pane-' + tab.dataset.guideTab).classList.add('active');
+                });
             });
         })();
     </script>

@@ -11,18 +11,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $users = [
-            [
-                'email' => 'so.upbrs@gmail.com',
-                'password' => 's0sigapUPBRS',
-            ],
-            [
-                'email' => 'syafira.so.intern@gmail.com',
-                'password' => 'interns0sigap',
-            ],
-            [
-                'email' => 'bunga.so.intern@gmail.com',
-                'password' => 'interns0sigap',
-            ],
+
         ];
 
         foreach ($users as $user) {

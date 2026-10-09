@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SIGAP - Sistem Informasi Monitoring Equipment PLTA | PLN Nusantara Power">
-    <title>@yield('title', 'Dashboard') — SIGAP | PLN Nusantara Power</title>
+    <meta name="description" content="SIGAP - Sistem Informasi Monitoring Equipment PLTA">
+    <title>@yield('title', 'Dashboard') — SIGAP </title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/png" href="{{ asset('images/sigap-logo.png') }}">
     <script>
@@ -256,14 +256,14 @@
             {{-- Brand / Logo --}}
             <div class="sidebar-brand">
                 @php
-                    $logoPath = public_path('images/logo-pln-np.png');
+                    $logoPath = public_path('images/sigaplogo-baru.png');
                     $logoExists = file_exists($logoPath);
                 @endphp
 
                 @if($logoExists)
-                    <img src="{{ asset('images/logo-pln-np.png') }}" alt="PLN" class="sidebar-logo">
+                    <img src="{{ asset('images/sigaplogo-baru.png') }}" alt="SIGAP" class="sidebar-logo">
                 @else
-                    <div class="sidebar-logo-placeholder" aria-label="PLN Logo">PLN</div>
+                    <div class="sidebar-logo-placeholder" aria-label="SIGAP Logo">SIGAP</div>
                 @endif
             </div>
 
@@ -319,7 +319,7 @@
             {{-- Sidebar Footer --}}
             <div class="sidebar-footer">
                 <div class="sidebar-footer-text">
-                    © {{ date('Y') }} SIGAP - PLN Nusantara Power<br>
+                    © {{ date('Y') }} SIGAP<br>
                     Unit Pembangkitan Brantas
                 </div>
             </div>

@@ -153,33 +153,17 @@
 
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
+            justify-content: center;
+            gap: 24px;
 
             backdrop-filter: blur(3px);
-        }
-
-        .logo-pln {
-            margin-bottom: 32px;
-
-            display: flex;
-            align-items: flex-start;
-            justify-content: flex-start;
-        }
-
-        .logo-pln img {
-            width: 220px;
-            height: auto;
-
-            display: block;
-
-            object-fit: contain;
         }
 
         .login-left h2 {
             font-size: 25px;
             line-height: 1.3;
 
-            margin-bottom: 15px;
+            margin-bottom: 0;
 
             color: #ffffff;
         }
@@ -192,7 +176,7 @@
         }
 
         .info-box {
-            margin-top: 30px;
+            margin-top: 0;
 
             padding: 15px;
 
@@ -510,14 +494,6 @@
                 padding: 30px 35px 40px 35px;
             }
 
-            .logo-pln {
-                margin-bottom: 25px;
-            }
-
-            .logo-pln img {
-                width: 180px;
-            }
-
             .login-left h2 {
                 font-size: 22px;
             }
@@ -556,10 +532,6 @@
                 padding: 30px 25px;
             }
 
-            .logo-pln img {
-                width: 160px;
-            }
-
             .login-title {
                 font-size: 24px;
             }
@@ -585,10 +557,6 @@
     <div class="login-wrapper">
 
         <div class="login-left">
-
-            <div class="logo-pln">
-                <img src="{{ asset('images/logo-pln-np.png') }}" alt="Logo PLN Nusantara Power">
-            </div>
 
             <h2>
                 SIGAP

@@ -54,7 +54,7 @@
             background:
                 linear-gradient(rgba(0, 0, 0, 0.68),
                     rgba(0, 0, 0, 0.68)),
-                url('/images/alt-PLTA.PNG');
+                url("{{ asset('images/alt-PLTA.PNG') }}");
 
             background-size: cover;
             background-position: center;

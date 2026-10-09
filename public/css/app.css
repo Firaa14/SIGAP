@@ -172,9 +172,9 @@ body {
 
 .sidebar-logo,
 .sidebar-logo-full {
-    width: 85%;
+    width: 100%;
     height: auto;
-    max-height: 52px;
+    max-height: 68px;
     object-fit: contain;
     display: block;
     object-position: center;

@@ -290,6 +290,26 @@
             padding-right: 46px;
         }
 
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: -2px 0 18px;
+            color: var(--login-text);
+            font-size: 13px;
+        }
+
+        .remember-me input {
+            width: 16px;
+            height: 16px;
+            accent-color: #003b7b;
+            cursor: pointer;
+        }
+
+        .remember-me label {
+            cursor: pointer;
+        }
+
         .password-toggle {
             position: absolute;
             top: 50%;
@@ -666,6 +686,11 @@
 
                 </div>
 
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
+                    <label for="remember" id="label-remember">Ingat saya</label>
+                </div>
+
                 <div class="form-group">
 
                     <label for="role" id="label-role">
@@ -727,6 +752,7 @@
                 subtitle: 'Silakan masuk ke akun SIGAP Anda',
                 label_email: 'Email',
                 label_password: 'Password',
+                label_remember: 'Ingat saya',
                 label_role: 'Role',
                 opt_select_role: 'Pilih Role',
                 btn_submit: 'MASUK',
@@ -748,6 +774,7 @@
                 subtitle: 'Please sign in to your SIGAP account',
                 label_email: 'Email',
                 label_password: 'Password',
+                label_remember: 'Remember me',
                 label_role: 'Role',
                 opt_select_role: 'Select Role',
                 btn_submit: 'SIGN IN',
@@ -792,6 +819,7 @@
             var footerEl = document.getElementById('login-footer');
             var labelEmail = document.getElementById('label-email');
             var labelPass = document.getElementById('label-password');
+            var labelRemember = document.getElementById('label-remember');
             var labelRole = document.getElementById('label-role');
             var optRole = document.getElementById('opt-select-role');
             var emailInput = document.getElementById('email');
@@ -804,6 +832,7 @@
             if (footerEl) { footerEl.textContent = d.footer; }
             if (labelEmail) { labelEmail.textContent = d.label_email; }
             if (labelPass) { labelPass.textContent = d.label_password; }
+            if (labelRemember) { labelRemember.textContent = d.label_remember; }
             if (labelRole) { labelRole.textContent = d.label_role; }
             if (optRole) { optRole.textContent = d.opt_select_role; }
             if (emailInput) { emailInput.placeholder = d.placeholder_email; }

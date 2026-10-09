@@ -50,7 +50,7 @@ class AuthController extends Controller
             Auth::attempt([
                 'email' => $data['email'],
                 'password' => $data['password'],
-            ])
+            ], $request->boolean('remember'))
         ) {
 
             $request->session()->regenerate();

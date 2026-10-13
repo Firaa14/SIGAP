@@ -172,6 +172,16 @@ class SqsQueue extends Queue implements QueueContract, ClearableQueue
     }
 
     /**
+     * Get the number of jobs across every queue.
+     *
+     * @return int
+     */
+    public function totalSize()
+    {
+        return 0;
+    }
+
+    /**
      * Get the number of pending jobs across every queue.
      *
      * @return int
@@ -350,6 +360,8 @@ class SqsQueue extends Queue implements QueueContract, ClearableQueue
      */
     public function bulk($jobs, $data = '', $queue = null)
     {
+        $queue = enum_value($queue);
+
         $jobs = array_values((array) $jobs);
 
         if (empty($jobs)) {
@@ -595,7 +607,9 @@ class SqsQueue extends Queue implements QueueContract, ClearableQueue
 
         if ($isObject) {
             $messageGroupId = transform($job->messageGroup ?? (method_exists($job, 'messageGroup') ? $job->messageGroup() : null), $transformToString);
-        } elseif ($isFifo) {
+        }
+
+        if ($isFifo && is_null($messageGroupId)) {
             $messageGroupId = transform($queue, $transformToString);
         }
 

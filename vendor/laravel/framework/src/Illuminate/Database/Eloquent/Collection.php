@@ -62,6 +62,8 @@ class Collection extends BaseCollection implements QueueableCollection
     {
         $result = $this->find($key);
 
+        $key = $key instanceof Arrayable ? $key->toArray() : $key;
+
         if (is_array($key) && count($result) === count(array_unique($key))) {
             return $result;
         } elseif (! is_array($key) && ! is_null($result)) {
@@ -221,7 +223,7 @@ class Collection extends BaseCollection implements QueueableCollection
             $relations = func_get_args();
         }
 
-        if ($this->isNotEmpty()) {
+        if ($this->isNotEmpty() && ! empty($relations)) {
             $query = $this->first()->newQueryWithoutRelationships()->with($relations);
 
             foreach ($query->getEagerLoads() as $key => $value) {
@@ -306,7 +308,9 @@ class Collection extends BaseCollection implements QueueableCollection
             $models = $models->collapse();
         }
 
-        $this->loadMissingRelation(new static($models), $path);
+        $models->groupBy(fn ($model) => $model::class)->each(
+            fn ($models) => $this->loadMissingRelation(new static($models), $path)
+        );
     }
 
     /**
@@ -791,6 +795,39 @@ class Collection extends BaseCollection implements QueueableCollection
     public function zip($items)
     {
         return $this->toBase()->zip(...func_get_args());
+    }
+
+    /**
+     * Retrieve duplicate items from the collection.
+     *
+     * @param  (callable(TModel): mixed)|string|null  $callback
+     * @param  bool  $strict
+     * @return \Illuminate\Support\Collection<array-key, mixed>|static
+     */
+    #[\Override]
+    public function duplicates($callback = null, $strict = false)
+    {
+        if (! is_null($callback)) {
+            return $this->toBase()->duplicates($callback, $strict);
+        }
+
+        return parent::duplicates($callback, $strict);
+    }
+
+    /**
+     * Retrieve duplicate items from the collection using strict comparison.
+     *
+     * @param  (callable(TModel): mixed)|string|null  $callback
+     * @return \Illuminate\Support\Collection<array-key, mixed>|static
+     */
+    #[\Override]
+    public function duplicatesStrict($callback = null)
+    {
+        if (! is_null($callback)) {
+            return $this->toBase()->duplicatesStrict($callback);
+        }
+
+        return parent::duplicatesStrict($callback);
     }
 
     /**

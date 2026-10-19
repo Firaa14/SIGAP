@@ -319,8 +319,7 @@
             {{-- Sidebar Footer --}}
             <div class="sidebar-footer">
                 <div class="sidebar-footer-text">
-                    © {{ date('Y') }} SIGAP<br>
-                    Unit Pembangkitan Brantas
+                    © {{ date('Y') }} SIGAP by Intern Universitas Brawijaya.
                 </div>
             </div>
 

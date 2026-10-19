@@ -4,9 +4,20 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\EquipmentStatusController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PltaController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
+
+// ================================
+// LANDING PAGE (halaman awal publik)
+// ================================
+
+Route::get('/', [LandingController::class, 'index'])
+    ->name('landing');
+
+Route::get('/landing/stats', [LandingController::class, 'statsData'])
+    ->name('landing.stats');
 
 // ================================
 // LOGIN
@@ -26,7 +37,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
 // HALAMAN PUBLIK (dapat diakses tanpa login — guest = Reviewer/read-only)
 // ================================
 
-Route::get('/', [DashboardController::class, 'index'])
+Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
 Route::get('/dashboard/map-data', [DashboardController::class, 'mapData'])

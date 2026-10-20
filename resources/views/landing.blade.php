@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-        content="SIGAP — Sistem Informasi Gangguan Andal Pembangkit. Pantau kondisi pembangkit, identifikasi gangguan, dan visualisasikan persebaran PLTA secara interaktif.">
+        content="DIKKP - Digitalisasi Informasi Kesiapan Keandalan Pembangkit. Pantau kondisi pembangkit, identifikasi gangguan, dan visualisasikan persebaran PLTA secara interaktif.">
     <meta name="robots" content="noindex, nofollow">
-    <title>SIGAP — Sistem Informasi Gangguan Andal Pembangkit</title>
+    <title>DIKKP — Sistem Informasi Kesiapan Keandalan Pembangkit</title>
 
     <link rel="icon" type="image/png" href="{{ asset('images/sigap-logo.png') }}">
 
@@ -32,8 +32,8 @@
                     <img src="{{ asset('images/sigap-logo.png') }}" alt="SIGAP" class="lp-nav-logo">
                 @endif
                 <div class="lp-nav-brand-text">
-                    <span class="lp-nav-brand-name">SIGAP</span>
-                    <span class="lp-nav-brand-full">Sistem Informasi Gangguan Andal Pembangkit</span>
+                    <span class="lp-nav-brand-name">DIKKP</span>
+                    <span class="lp-nav-brand-full">Digitalisasi Informasi Kesiapan Keandalan Pembangkit</span>
                 </div>
             </a>
 
@@ -80,7 +80,7 @@
                 <li><span data-scroll-to="lp-guide" role="button" tabindex="0">Panduan Upload</span></li>
                 <li>
                     <a href="{{ route('dashboard') }}" class="lp-mobile-menu-cta" id="lp-mobile-dashboard-btn">
-                        Buka Dashboard SIGAP →
+                        Buka Dashboard DIKKP →
                     </a>
                 </li>
             </ul>
@@ -91,7 +91,7 @@
     <!-- ================================================================
      HERO SECTION
      ================================================================ -->
-    <section class="lp-hero" id="lp-beranda" aria-label="Beranda SIGAP">
+    <section class="lp-hero" id="lp-beranda" aria-label="Beranda DIKKP">
         {{-- Background --}}
         <div class="lp-hero-bg" aria-hidden="true">
             <div class="lp-hero-bg-grid"></div>
@@ -104,13 +104,12 @@
             <div class="lp-hero-content">
 
                 <h1 class="lp-hero-headline">
-                    Sistem Informasi<br>
-                    Gangguan Andal Pembangkit<br>
+                    Digitalisasi Informasi Kesiapan Keandalan Pembangkit<br>
                     <span class="lp-hl-accent">Laporan Non-Rutin</span>
                 </h1>
 
                 <p class="lp-hero-desc">
-                    Sistem Informasi Gangguan Andal Pembangkit sebagai sarana monitoring terpadu kesehatan unit dan
+                    Digitalisasi Informasi Kesiapan Keandalan Pembangkit sebagai sarana monitoring terpadu kesehatan unit dan
                     equipment PLTA untuk mendukung keandalan operasional pembangkitan.
                 </p>
 
@@ -125,7 +124,7 @@
                             <rect x="14" y="14" width="7" height="7"></rect>
                             <rect x="3" y="14" width="7" height="7"></rect>
                         </svg>
-                        Buka Dashboard SIGAP
+                        Buka Dashboard DIKKP
                     </a>
                     <button type="button" class="lp-btn lp-btn-secondary lp-btn-lg" data-scroll-to="lp-features"
                         id="lp-hero-explore-btn">
@@ -210,7 +209,7 @@
                 <div>
                     <h2 class="lp-section-title lp-reveal lp-reveal-delay-1">Status Operasional Terkini</h2>
                     <p class="lp-section-desc lp-reveal lp-reveal-delay-2">
-                        Ringkasan kondisi equipment pembangkit berdasarkan data aktual dari sistem SIGAP.
+                        Ringkasan kondisi equipment pembangkit berdasarkan data aktual dari sistem DIKKP.
                         Data diperbarui secara berkala sesuai upload terakhir yang dilakukan oleh System Owner.
                     </p>
                 </div>
@@ -297,7 +296,7 @@
                     <span>
                         <strong>Data belum tersedia.</strong>
                         Statistik operasional akan ditampilkan setelah System Owner melakukan upload data pertama melalui
-                        dashboard SIGAP.
+                        dashboard DIKKP.
                     </span>
                 </div>
             @endif
@@ -309,11 +308,11 @@
     <!-- ================================================================
      FITUR UTAMA
      ================================================================ -->
-    <section class="lp-features" id="lp-features" aria-label="Fitur utama SIGAP">
+    <section class="lp-features" id="lp-features" aria-label="Fitur utama DIKKP">
         <div class="lp-container">
 
             <div class="lp-features-header">
-                <h2 class="lp-section-title lp-reveal lp-reveal-delay-1">Kemampuan Sistem SIGAP</h2>
+                <h2 class="lp-section-title lp-reveal lp-reveal-delay-1">Kemampuan Sistem DIKKP</h2>
                 <p class="lp-section-desc lp-reveal lp-reveal-delay-2" style="margin:0 auto;">
                     Rangkaian fitur terintegrasi yang dirancang untuk mendukung pemantauan dan analisis gangguan
                     pembangkit secara efektif.
@@ -389,7 +388,7 @@
             <div class="lp-guide-header">
                 <h2 class="lp-section-title lp-reveal lp-reveal-delay-1">Alur Upload Data oleh System Owner</h2>
                 <p class="lp-section-desc lp-reveal lp-reveal-delay-2">
-                    Fitur upload data Work Order hanya dapat dilakukan melalui dashboard SIGAP oleh pengguna dengan
+                    Fitur upload data Work Order hanya dapat dilakukan melalui dashboard DIKKP oleh pengguna dengan
                     otoritas System Owner (SO).
                     Panduan berikut menjelaskan alur proses upload berdasarkan alur yang tersedia di sistem.
                 </p>
@@ -405,7 +404,7 @@
                     </svg>
                 </div>
                 <div>
-                    <strong>Proses upload hanya dapat dilakukan melalui Dashboard SIGAP.</strong>
+                    <strong>Proses upload hanya dapat dilakukan melalui Dashboard DIKKP.</strong>
                     Fitur ini memerlukan autentikasi sebagai <strong>System Owner (SO)</strong> atau
                     <strong>CBM</strong>.
                     Landing page ini bersifat informatif dan tidak menyediakan akses upload langsung.
@@ -418,9 +417,9 @@
                 <div class="lp-guide-step lp-reveal" role="listitem">
                     <div class="lp-guide-step-num" aria-label="Langkah 1">1</div>
                     <div class="lp-guide-step-content">
-                        <h3 class="lp-guide-step-title">Login ke Dashboard SIGAP</h3>
+                        <h3 class="lp-guide-step-title">Login ke Dashboard DIKKP</h3>
                         <p class="lp-guide-step-desc">
-                            Buka dashboard SIGAP melalui tombol "Buka Dashboard SIGAP" di halaman ini.
+                            Buka dashboard DIKKP melalui tombol "Buka Dashboard DIKKP" di halaman ini.
                             Sistem akan menampilkan halaman dashboard. Untuk mengakses fitur upload,
                             klik tombol Login yang tersedia di header dashboard dan masukkan kredensial
                             akun dengan otoritas System Owner (SO) atau CBM.
@@ -450,7 +449,7 @@
                     <div class="lp-guide-step-content">
                         <h3 class="lp-guide-step-title">Buka Menu Upload Data WO</h3>
                         <p class="lp-guide-step-desc">
-                            Di sidebar dashboard SIGAP, klik menu <strong>"Upload Data WO"</strong>.
+                            Di sidebar dashboard DIKKP, klik menu <strong>"Upload Data WO"</strong>.
                             Halaman upload akan menampilkan area drop zone untuk memilih atau menyeret file.
                             Klik <strong>"Pilih File"</strong> atau seret file Excel ke area yang tersedia.
                             Setelah file dipilih, klik <strong>"Tampilkan Preview"</strong> untuk melanjutkan proses
@@ -555,11 +554,11 @@
     <!-- ================================================================
      ALUR AKSES & KEAMANAN
      ================================================================ -->
-    <section class="lp-flow" id="lp-flow" aria-label="Alur akses dan keamanan sistem SIGAP">
+    <section class="lp-flow" id="lp-flow" aria-label="Alur akses dan keamanan sistem DIKKP">
         <div class="lp-container">
 
             <div class="lp-flow-header">
-                <h2 class="lp-section-title lp-reveal lp-reveal-delay-1">Cara Menggunakan SIGAP</h2>
+                <h2 class="lp-section-title lp-reveal lp-reveal-delay-1">Cara Menggunakan DIKKP</h2>
                 <p class="lp-section-desc lp-reveal lp-reveal-delay-2">
                     Alur penggunaan sistem dari landing page hingga fitur operasional yang tersedia sesuai peran
                     pengguna.
@@ -572,21 +571,21 @@
                 <div class="lp-flow-step" role="listitem">
                     <div class="lp-flow-step-num"><span class="lp-flow-step-icon" aria-hidden="true">🌐</span></div>
                     <div class="lp-flow-step-title">Buka Landing Page</div>
-                    <div class="lp-flow-step-desc">Pengguna membuka alamat utama SIGAP dan melihat ringkasan sistem
+                    <div class="lp-flow-step-desc">Pengguna membuka alamat utama DIKKP dan melihat ringkasan sistem
                     </div>
                 </div>
 
                 <div class="lp-flow-step" role="listitem">
                     <div class="lp-flow-step-num"><span class="lp-flow-step-icon" aria-hidden="true">➡</span></div>
                     <div class="lp-flow-step-title">Buka Dashboard</div>
-                    <div class="lp-flow-step-desc">Klik tombol "Buka Dashboard SIGAP" untuk mengakses sistem pemantauan
+                    <div class="lp-flow-step-desc">Klik tombol "Buka Dashboard DIKKP" untuk mengakses sistem pemantauan
                     </div>
                 </div>
 
                 <div class="lp-flow-step" role="listitem">
                     <div class="lp-flow-step-num"><span class="lp-flow-step-icon" aria-hidden="true">📊</span></div>
                     <div class="lp-flow-step-title">Akses Dashboard</div>
-                    <div class="lp-flow-step-desc">Dashboard SIGAP terbuka, menampilkan data terkini sesuai hak akses
+                    <div class="lp-flow-step-desc">Dashboard DIKKP terbuka, menampilkan data terkini sesuai hak akses
                     </div>
                 </div>
 
@@ -668,7 +667,7 @@
     <!-- ================================================================
      CALL TO ACTION
      ================================================================ -->
-    <section class="lp-cta" id="lp-cta" aria-label="Ajakan mengakses dashboard SIGAP">
+    <section class="lp-cta" id="lp-cta" aria-label="Ajakan mengakses dashboard DIKKP">
         <div class="lp-cta-glow" aria-hidden="true"></div>
         <div class="lp-container">
             <div class="lp-cta-inner">
@@ -690,7 +689,7 @@
                             <rect x="14" y="14" width="7" height="7"></rect>
                             <rect x="3" y="14" width="7" height="7"></rect>
                         </svg>
-                        Buka Dashboard SIGAP
+                        Buka Dashboard DIKKP
                     </a>
                     <button type="button" class="lp-btn lp-btn-secondary lp-btn-lg" data-scroll-to="lp-guide"
                         id="lp-cta-guide-btn">
@@ -703,7 +702,7 @@
 
     <footer class="lp-footer lp-footer-compact">
         <div class="lp-container">
-            <div class="lp-footer-copyright">© {{ date('Y') }} SIGAP by Intern Universitas Brawijaya.</div>
+            <div class="lp-footer-copyright">© {{ date('Y') }} DIKKP by Intern Universitas Brawijaya.</div>
         </div>
     </footer>
 

@@ -9,7 +9,7 @@ use Illuminate\View\View;
 class LandingController extends Controller
 {
     /**
-     * Tampilkan landing page SIGAP.
+     * Tampilkan landing page DIKKP.
      * Data statistik diambil langsung dari database (sama seperti DashboardController).
      */
     public function index(): View

@@ -263,7 +263,7 @@
                 @if($logoExists)
                     <img src="{{ asset('images/sigaplogo-baru.png') }}" alt="SIGAP" class="sidebar-logo">
                 @else
-                    <div class="sidebar-logo-placeholder" aria-label="SIGAP Logo">SIGAP</div>
+                    <div class="sidebar-logo-placeholder" aria-label="SIGAP Logo">DIKKP</div>
                 @endif
             </div>
 
@@ -319,7 +319,7 @@
             {{-- Sidebar Footer --}}
             <div class="sidebar-footer">
                 <div class="sidebar-footer-text">
-                    © {{ date('Y') }} SIGAP by Intern Universitas Brawijaya.
+                    © {{ date('Y') }} DIKKP by Intern Universitas Brawijaya.
                 </div>
             </div>
 

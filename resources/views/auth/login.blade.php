@@ -702,7 +702,7 @@
             </form>
 
             <div class="footer-text" id="login-footer">
-                © {{ date('Y') }} SIGAP - PLN Nusantara Power Unit Pmebangkitan Brantas
+                © {{ date('Y') }} SIGAP by Intern Universitas Brawijaya.
             </div>
 
         </div>
@@ -725,7 +725,7 @@
                 opt_select_role: 'Pilih Role',
                 btn_submit: 'MASUK',
                 btn_back: 'Kembali ke Dashboard',
-                footer: '© ' + new Date().getFullYear() + ' SIGAP 2026',
+                footer: '© ' + new Date().getFullYear() + ' SIGAP by Intern Universitas Brawijaya.',
                 left_desc: 'Sistem Informasi Gangguan Andal Pembangkit sebagai sarana monitoring terpadu kesehatan unit dan equipment PLTA untuk mendukung keandalan operasional pembangkitan.',
                 info_title: 'Manajemen Pemeliharaan Aset',
                 info_desc: 'Kelola status operasi, keandalan alat, dan Work Order dalam satu platform terpadu.',
@@ -747,7 +747,7 @@
                 opt_select_role: 'Select Role',
                 btn_submit: 'SIGN IN',
                 btn_back: 'Back to Dashboard',
-                footer: '© ' + new Date().getFullYear() + ' SIGAP 2026',
+                footer: '© ' + new Date().getFullYear() + ' SIGAP by Intern Universitas Brawijaya.',
                 left_desc: 'Reliable Generator Disruption Information System as an integrated monitoring platform for Hydroelectric Power Plant Units and Equipment health to support operational reliability.',
                 info_title: 'Asset Maintenance Management',
                 info_desc: 'Manage operating status, equipment reliability, and Work Orders in one integrated platform.',

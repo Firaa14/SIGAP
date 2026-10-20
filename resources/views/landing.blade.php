@@ -157,12 +157,43 @@
                 @endif
             </div>
 
-            {{-- Visual --}}
-            <div class="lp-hero-visual" aria-hidden="true">
-                <div class="lp-hero-img-wrap">
-                    <img src="{{ asset('images/alt-PLTA1.PNG') }}" alt="Fasilitas PLTA UP Brantas" class="lp-hero-img"
-                        loading="eager">
+            {{-- Visual (Slider Foto PLTA) --}}
+            @php
+                $heroSlides = [
+                    ['file' => 'PLTA AMPELGADING.jpeg', 'alt' => 'PLTA Ampelgading', 'fit' => 'contain'],
+                    ['file' => 'PLTA GIRINGAN.png',    'alt' => 'PLTA Giringan'],
+                    ['file' => 'PLTA GOLANG.jpg',      'alt' => 'PLTA Golang'],
+                    ['file' => 'PLTA LODOYO.jpg',      'alt' => 'PLTA Lodoyo'],
+                    ['file' => 'PLTA MENDALAN.jpg',    'alt' => 'PLTA Mendalan'],
+                    ['file' => 'PLTA NGEBEL.jpg',      'alt' => 'PLTA Ngebel'],
+                    ['file' => 'PLTA SELOREJO.jpg',    'alt' => 'PLTA Selorejo'],
+                    ['file' => 'PLTA SENGGURUH.png',   'alt' => 'PLTA Sengguruh'],
+                    ['file' => 'PLTA SIMAN.jpg',       'alt' => 'PLTA Siman'],
+                    ['file' => 'PLTA SUTAMI.jpg',      'alt' => 'PLTA Sutami'],
+                    ['file' => 'PLTA TULUNGAGUNG.png', 'alt' => 'PLTA Tulungagung'],
+                    ['file' => 'PLTA WLINGI.jpg',      'alt' => 'PLTA Wlingi'],
+                    ['file' => 'PLTA WONOREJO.jpg',    'alt' => 'PLTA Wonorejo'],
+                ];
+            @endphp
+
+            <div class="lp-hero-visual">
+                <div class="lp-hero-img-wrap lp-slider" id="lpSlider">
+                    <div class="lp-slides">
+                        @foreach($heroSlides as $i => $s)
+                            <div class="lp-slide {{ $i === 0 ? 'is-active' : '' }} {{ !empty($s['fit']) ? 'lp-slide--' . $s['fit'] : '' }}">
+                                <img src="{{ asset('images/' . rawurlencode($s['file'])) }}"
+                                     alt="{{ $s['alt'] }}"
+                                     class="lp-hero-img"
+                                     loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+                            </div>
+                        @endforeach
+                    </div>
+
                     <div class="lp-hero-img-overlay"></div>
+
+                    <button type="button" class="lp-slider-nav lp-slider-prev" aria-label="Foto sebelumnya">&#10094;</button>
+                    <button type="button" class="lp-slider-nav lp-slider-next" aria-label="Foto berikutnya">&#10095;</button>
+                    <div class="lp-slider-dots"></div>
                 </div>
             </div>
         </div>

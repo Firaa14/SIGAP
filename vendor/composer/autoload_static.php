@@ -612,6 +612,7 @@ class ComposerStaticInitcda2add6397422fb1a2eb5b9207f1575
         'App\\Http\\Controllers\\DashboardController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardController.php',
         'App\\Http\\Controllers\\EquipmentController' => __DIR__ . '/../..' . '/app/Http/Controllers/EquipmentController.php',
         'App\\Http\\Controllers\\EquipmentStatusController' => __DIR__ . '/../..' . '/app/Http/Controllers/EquipmentStatusController.php',
+        'App\\Http\\Controllers\\LandingController' => __DIR__ . '/../..' . '/app/Http/Controllers/LandingController.php',
         'App\\Http\\Controllers\\PltaController' => __DIR__ . '/../..' . '/app/Http/Controllers/PltaController.php',
         'App\\Http\\Controllers\\UploadController' => __DIR__ . '/../..' . '/app/Http/Controllers/UploadController.php',
         'App\\Imports\\UploadImport' => __DIR__ . '/../..' . '/app/Imports/UploadImport.php',

@@ -12,6 +12,7 @@ return array(
     'App\\Http\\Controllers\\DashboardController' => $baseDir . '/app/Http/Controllers/DashboardController.php',
     'App\\Http\\Controllers\\EquipmentController' => $baseDir . '/app/Http/Controllers/EquipmentController.php',
     'App\\Http\\Controllers\\EquipmentStatusController' => $baseDir . '/app/Http/Controllers/EquipmentStatusController.php',
+    'App\\Http\\Controllers\\LandingController' => $baseDir . '/app/Http/Controllers/LandingController.php',
     'App\\Http\\Controllers\\PltaController' => $baseDir . '/app/Http/Controllers/PltaController.php',
     'App\\Http\\Controllers\\UploadController' => $baseDir . '/app/Http/Controllers/UploadController.php',
     'App\\Imports\\UploadImport' => $baseDir . '/app/Imports/UploadImport.php',

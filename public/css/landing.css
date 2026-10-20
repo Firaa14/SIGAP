@@ -1428,6 +1428,10 @@ a {
         padding: 60px var(--container-px);
     }
 
+    /* Foto/slider disembunyikan di HP & tablet.
+       Supaya slider tampil di HP, ganti baris ini dengan:
+       .lp-hero-visual { display: block; }
+       .lp-hero-img { height: 260px; } */
     .lp-hero-visual { display: none; }
 
     .lp-hero-headline { font-size: clamp(28px, 6vw, 42px); }
@@ -1462,4 +1466,109 @@ a {
 
 .lp-stat-value.lp-stat-pulse {
     animation: lp-stat-pulse 0.7s ease;
+}
+
+/* ============================================================
+   SLIDER FOTO HERO
+   ============================================================ */
+
+/* Track berisi semua foto berjajar ke samping, digeser pakai translateX */
+.lp-slider {
+    overflow: hidden;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-y; /* scroll vertikal di HP tetap jalan */
+}
+.lp-slider.is-dragging { cursor: grabbing; }
+
+.lp-slides {
+    display: flex;
+    transition: transform .5s cubic-bezier(.4, 0, .2, 1);
+    will-change: transform;
+}
+.lp-slides.no-anim { transition: none; } /* dipakai saat foto mengikuti kursor */
+
+.lp-slide {
+    flex: 0 0 100%;
+    min-width: 0;
+}
+
+/* gambar tidak ikut ter-drag oleh browser */
+.lp-slider img {
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+/* overlay gradasi tidak boleh menghalangi geseran */
+.lp-slider .lp-hero-img-overlay { pointer-events: none; }
+
+/* Foto yang ingin tampil utuh (tidak dipotong), contoh: Ampelgading */
+.lp-slide--contain {
+    background: var(--color-navy-light);
+}
+.lp-slide--contain .lp-hero-img {
+    object-fit: contain;
+}
+
+/* Tombol panah kiri / kanan */
+.lp-slider-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, .25);
+    background: rgba(10, 22, 40, .55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .25s, background .25s, transform .25s;
+}
+.lp-slider-prev { left: 14px; }
+.lp-slider-next { right: 14px; }
+
+.lp-slider:hover .lp-slider-nav { opacity: 1; }
+
+.lp-slider-nav:hover {
+    background: var(--color-blue);
+    transform: translateY(-50%) scale(1.08);
+}
+
+/* Di layar sentuh tombol selalu terlihat (tidak ada hover) */
+@media (hover: none) {
+    .lp-slider-nav { opacity: 1; }
+}
+
+/* Titik indikator (dibuat kecil karena ada 13 foto) */
+.lp-slider-dots {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    gap: 6px;
+}
+.lp-slider-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .5);
+    cursor: pointer;
+    transition: all .3s;
+}
+.lp-slider-dot.is-active {
+    background: #3b82f6;
+    width: 20px;
+    border-radius: 6px;
 }

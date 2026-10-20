@@ -7,6 +7,7 @@
  * - Scroll reveal animation
  * - Interactive Leaflet map (reuse existing dashboard-map logic)
  * - Live stats polling dari /landing/stats endpoint
+ * - Slider foto hero (di paling bawah file)
  * ------------------------------------------------------------
  */
 (function () {
@@ -339,4 +340,141 @@
         init();
     }
 
+})();
+
+
+/* ============================================================
+   SLIDER FOTO HERO (foto mengikuti kursor / jari saat digeser)
+   ============================================================ */
+(function () {
+    'use strict';
+
+    var slider = document.getElementById('lpSlider');
+    if (!slider) return;
+
+    var track    = slider.querySelector('.lp-slides');
+    var slides   = slider.querySelectorAll('.lp-slide');
+    var dotsWrap = slider.querySelector('.lp-slider-dots');
+    var btnPrev  = slider.querySelector('.lp-slider-prev');
+    var btnNext  = slider.querySelector('.lp-slider-next');
+    var INTERVAL = 4000; // ms — ganti kalau mau lebih cepat/lambat
+    var current  = 0;
+    var timer    = null;
+
+    if (!track || slides.length < 2) {
+        if (dotsWrap) dotsWrap.style.display = 'none';
+        if (btnPrev)  btnPrev.style.display  = 'none';
+        if (btnNext)  btnNext.style.display  = 'none';
+        return;
+    }
+
+    // Buat dots otomatis sesuai jumlah slide
+    slides.forEach(function (_, i) {
+        var dot = document.createElement('span');
+        dot.className = 'lp-slider-dot' + (i === 0 ? ' is-active' : '');
+        dot.addEventListener('click', function () { goTo(i); restart(); });
+        dotsWrap.appendChild(dot);
+    });
+    var dots = dotsWrap.querySelectorAll('.lp-slider-dot');
+
+    function render(extraPx) {
+        var w = slider.clientWidth;
+        track.style.transform = 'translateX(' + (-current * w + (extraPx || 0)) + 'px)';
+    }
+
+    function goTo(n) {
+        dots[current].classList.remove('is-active');
+        current = (n + slides.length) % slides.length;
+        dots[current].classList.add('is-active');
+        render(0);
+    }
+
+    function stop() {
+        clearInterval(timer);
+        timer = null;
+    }
+
+    function restart() {
+        stop();
+        timer = setInterval(function () { goTo(current + 1); }, INTERVAL);
+    }
+
+    // ── Tombol panah ──
+    if (btnPrev) {
+        btnPrev.addEventListener('click', function () { goTo(current - 1); restart(); });
+    }
+    if (btnNext) {
+        btnNext.addEventListener('click', function () { goTo(current + 1); restart(); });
+    }
+
+    // ── Geser dengan mouse / jari (Pointer Events) ──
+    var startX   = 0;
+    var dx       = 0;
+    var dragging = false;
+
+    slider.addEventListener('pointerdown', function (e) {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;          // hanya klik kiri
+        if (e.target.closest('.lp-slider-dots, .lp-slider-nav')) return;  // titik & panah tetap bisa diklik
+        dragging = true;
+        startX = e.clientX;
+        dx = 0;
+        stop();
+        track.classList.add('no-anim');
+        slider.classList.add('is-dragging');
+        try { slider.setPointerCapture(e.pointerId); } catch (err) { /* abaikan */ }
+    });
+
+    slider.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        dx = e.clientX - startX;
+
+        // di foto pertama/terakhir, geseran terasa berat (tidak bisa ditarik jauh)
+        if ((current === 0 && dx > 0) || (current === slides.length - 1 && dx < 0)) {
+            dx = dx * 0.3;
+        }
+        render(dx);
+    });
+
+    function endDrag() {
+        if (!dragging) return;
+        dragging = false;
+        track.classList.remove('no-anim');
+        slider.classList.remove('is-dragging');
+
+        var threshold = slider.clientWidth * 0.15; // geser 15% lebar foto sudah cukup
+        if (dx < -threshold && current < slides.length - 1) {
+            goTo(current + 1);      // geser kiri = foto berikutnya
+        } else if (dx > threshold && current > 0) {
+            goTo(current - 1);      // geser kanan = foto sebelumnya
+        } else {
+            render(0);              // kurang jauh: kembali ke posisi semula
+        }
+        dx = 0;
+        restart();
+    }
+
+    slider.addEventListener('pointerup', endDrag);
+    slider.addEventListener('pointercancel', endDrag);
+
+    // Pause saat kursor di atas slider
+    slider.addEventListener('mouseenter', stop);
+    slider.addEventListener('mouseleave', function () {
+        if (!dragging) restart();
+    });
+
+    // Pause saat tab browser tidak aktif
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) { stop(); } else { restart(); }
+    });
+
+    // Hitung ulang posisi kalau ukuran layar berubah
+    window.addEventListener('resize', function () {
+        track.classList.add('no-anim');
+        render(0);
+        void track.offsetWidth;
+        track.classList.remove('no-anim');
+    });
+
+    render(0);
+    restart();
 })();

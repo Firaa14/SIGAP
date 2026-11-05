@@ -29,7 +29,7 @@
             <a href="{{ route('landing') }}" class="lp-nav-brand" id="lp-nav-brand">
                 @php $logoPath = public_path('images/sigap-logo.png'); @endphp
                 @if(file_exists($logoPath))
-                    <img src="{{ asset('images/sigap-logo.png') }}" alt="SIGAP" class="lp-nav-logo">
+                    <img src="{{ asset('images/sigap-logo.png') }}" alt="DIKKP" class="lp-nav-logo">
                 @endif
                 <div class="lp-nav-brand-text">
                     <span class="lp-nav-brand-name">DIKKP</span>
@@ -45,8 +45,10 @@
                         id="lp-nav-monitoring">Monitoring</span></li>
                 <li><span class="lp-nav-link" data-scroll-to="lp-features" role="button" tabindex="0"
                         id="lp-nav-features">Fitur</span></li>
-                <li><span class="lp-nav-link" data-scroll-to="lp-guide" role="button" tabindex="0"
+                <li><span class="lp-nav-link" data-scroll-to="lp-flow" role="button" tabindex="0"
                         id="lp-nav-guide">Panduan</span></li>
+                <li><span class="lp-nav-link" data-scroll-to="lp-contact" role="button" tabindex="0"
+                        id="lp-nav-contact">Kontak</span></li>
             </ul>
 
             {{-- Desktop CTA --}}
@@ -77,7 +79,7 @@
                 <li><span data-scroll-to="lp-beranda" role="button" tabindex="0">Beranda</span></li>
                 <li><span data-scroll-to="lp-monitoring" role="button" tabindex="0">Monitoring Gangguan</span></li>
                 <li><span data-scroll-to="lp-features" role="button" tabindex="0">Fitur Utama</span></li>
-                <li><span data-scroll-to="lp-guide" role="button" tabindex="0">Panduan Upload</span></li>
+                <li><span data-scroll-to="lp-flow" role="button" tabindex="0">Panduan</span></li>
                 <li>
                     <a href="{{ route('dashboard') }}" class="lp-mobile-menu-cta" id="lp-mobile-dashboard-btn">
                         Buka Dashboard DIKKP →
@@ -105,11 +107,11 @@
 
                 <h1 class="lp-hero-headline">
                     Digitalisasi Informasi Kesiapan Keandalan Pembangkit<br>
-                    <span class="lp-hl-accent">Laporan Non-Rutin</span>
                 </h1>
 
                 <p class="lp-hero-desc">
-                    Digitalisasi Informasi Kesiapan Keandalan Pembangkit sebagai sarana monitoring terpadu kesehatan unit dan
+                    Digitalisasi Informasi Kesiapan Keandalan Pembangkit sebagai sarana monitoring terpadu kesehatan
+                    unit dan
                     equipment PLTA untuk mendukung keandalan operasional pembangkitan.
                 </p>
 
@@ -148,10 +150,6 @@
                             <span class="lp-hero-metric-val">{{ $stats['total_equipment'] }}</span>
                             <span class="lp-hero-metric-lbl">Total Equipment</span>
                         </div>
-                        <div class="lp-hero-metric">
-                            <span class="lp-hero-metric-val" style="color: #34D399;">{{ $stats['normal'] }}</span>
-                            <span class="lp-hero-metric-lbl">Status Normal</span>
-                        </div>
                     </div>
                 @endif
             </div>
@@ -160,18 +158,18 @@
             @php
                 $heroSlides = [
                     ['file' => 'PLTA AMPELGADING.jpeg', 'alt' => 'PLTA Ampelgading', 'fit' => 'contain'],
-                    ['file' => 'PLTA GIRINGAN.png',    'alt' => 'PLTA Giringan'],
-                    ['file' => 'PLTA GOLANG.jpg',      'alt' => 'PLTA Golang'],
-                    ['file' => 'PLTA LODOYO.jpg',      'alt' => 'PLTA Lodoyo'],
-                    ['file' => 'PLTA MENDALAN.jpg',    'alt' => 'PLTA Mendalan'],
-                    ['file' => 'PLTA NGEBEL.jpg',      'alt' => 'PLTA Ngebel'],
-                    ['file' => 'PLTA SELOREJO.jpg',    'alt' => 'PLTA Selorejo'],
-                    ['file' => 'PLTA SENGGURUH.png',   'alt' => 'PLTA Sengguruh'],
-                    ['file' => 'PLTA SIMAN.jpg',       'alt' => 'PLTA Siman'],
-                    ['file' => 'PLTA SUTAMI.jpg',      'alt' => 'PLTA Sutami'],
+                    ['file' => 'PLTA GIRINGAN.png', 'alt' => 'PLTA Giringan'],
+                    ['file' => 'PLTA GOLANG.jpg', 'alt' => 'PLTA Golang'],
+                    ['file' => 'PLTA LODOYO.jpg', 'alt' => 'PLTA Lodoyo'],
+                    ['file' => 'PLTA MENDALAN.jpg', 'alt' => 'PLTA Mendalan'],
+                    ['file' => 'PLTA NGEBEL.jpg', 'alt' => 'PLTA Ngebel'],
+                    ['file' => 'PLTA SELOREJO.jpg', 'alt' => 'PLTA Selorejo'],
+                    ['file' => 'PLTA SENGGURUH.png', 'alt' => 'PLTA Sengguruh'],
+                    ['file' => 'PLTA SIMAN.jpg', 'alt' => 'PLTA Siman'],
+                    ['file' => 'PLTA SUTAMI.jpg', 'alt' => 'PLTA Sutami'],
                     ['file' => 'PLTA TULUNGAGUNG.png', 'alt' => 'PLTA Tulungagung'],
-                    ['file' => 'PLTA WLINGI.jpg',      'alt' => 'PLTA Wlingi'],
-                    ['file' => 'PLTA WONOREJO.jpg',    'alt' => 'PLTA Wonorejo'],
+                    ['file' => 'PLTA WLINGI.jpg', 'alt' => 'PLTA Wlingi'],
+                    ['file' => 'PLTA WONOREJO.jpg', 'alt' => 'PLTA Wonorejo'],
                 ];
             @endphp
 
@@ -179,19 +177,20 @@
                 <div class="lp-hero-img-wrap lp-slider" id="lpSlider">
                     <div class="lp-slides">
                         @foreach($heroSlides as $i => $s)
-                            <div class="lp-slide {{ $i === 0 ? 'is-active' : '' }} {{ !empty($s['fit']) ? 'lp-slide--' . $s['fit'] : '' }}">
-                                <img src="{{ asset('images/' . rawurlencode($s['file'])) }}"
-                                     alt="{{ $s['alt'] }}"
-                                     class="lp-hero-img"
-                                     loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+                            <div
+                                class="lp-slide {{ $i === 0 ? 'is-active' : '' }} {{ !empty($s['fit']) ? 'lp-slide--' . $s['fit'] : '' }}">
+                                <img src="{{ asset('images/' . rawurlencode($s['file'])) }}" alt="{{ $s['alt'] }}"
+                                    class="lp-hero-img" loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
                             </div>
                         @endforeach
                     </div>
 
                     <div class="lp-hero-img-overlay"></div>
 
-                    <button type="button" class="lp-slider-nav lp-slider-prev" aria-label="Foto sebelumnya">&#10094;</button>
-                    <button type="button" class="lp-slider-nav lp-slider-next" aria-label="Foto berikutnya">&#10095;</button>
+                    <button type="button" class="lp-slider-nav lp-slider-prev"
+                        aria-label="Foto sebelumnya">&#10094;</button>
+                    <button type="button" class="lp-slider-nav lp-slider-next"
+                        aria-label="Foto berikutnya">&#10095;</button>
                     <div class="lp-slider-dots"></div>
                 </div>
             </div>
@@ -333,7 +332,8 @@
                     </div>
                     <h3 class="lp-feature-title">Upload & Pemrosesan Data</h3>
                     <p class="lp-feature-desc">
-                        Pengguna dengan otoritas System Owner (SO) dapat mengunggah file Excel WO yang sudah difilter.
+                        Pengguna dari System Owner (SO) dan Condition Based Maintenance (CBM) dapat mengunggah file
+                        Excel yang sudah ditentukan berdasarkan otoritas masing masing role.
                         Sistem memproses data secara otomatis untuk mengidentifikasi gangguan dan aset terdampak.
                     </p>
                 </div>
@@ -348,8 +348,7 @@
                     </div>
                     <h3 class="lp-feature-title">Monitoring Status Operasional</h3>
                     <p class="lp-feature-desc">
-                        Menampilkan ringkasan kondisi aset atau unit pembangkit berdasarkan tiga kategori status:
-                        <strong>Normal</strong>, <strong>Abnormal</strong>, dan <strong>Not Ready</strong>.
+                        Menampilkan ringkasan kondisi aset atau unit pembangkit.
                         Data bersumber langsung dari database sistem dan dapat diakses tanpa harus login.
                     </p>
                 </div>
@@ -382,17 +381,28 @@
     <!-- ================================================================
      PANDUAN UPLOAD DATA (SO)
      ================================================================ -->
-    <section class="lp-guide lp-section-alt" id="lp-guide" aria-label="Panduan upload data oleh System Owner">
+    <section class="lp-guide lp-section-alt" id="lp-guide" aria-label="Panduan upload data berdasarkan peran pengguna">
         <div class="lp-container">
 
-            <div class="lp-guide-header">
-                <h2 class="lp-section-title lp-reveal lp-reveal-delay-1">Alur Upload Data oleh System Owner</h2>
-                <p class="lp-section-desc lp-reveal lp-reveal-delay-2">
-                    Fitur upload data Work Order hanya dapat dilakukan melalui dashboard DIKKP oleh pengguna dengan
-                    otoritas System Owner (SO).
-                    Panduan berikut menjelaskan alur proses upload berdasarkan alur yang tersedia di sistem.
-                </p>
+            <div class="lp-guide-role-switcher" role="tablist" aria-label="Pilih alur upload berdasarkan peran">
+                <button type="button" class="lp-guide-role-tab active" role="tab" aria-selected="true"
+                    aria-controls="lp-guide-so" data-guide-role="so">
+                    <span class="lp-guide-role-tab-code">SO</span>
+                    <span>
+                        <strong>System Owner</strong>
+                        <small>Alur upload tersedia</small>
+                    </span>
+                </button>
+                <button type="button" class="lp-guide-role-tab" role="tab" aria-selected="false"
+                    aria-controls="lp-guide-cbm" data-guide-role="cbm">
+                    <span class="lp-guide-role-tab-code">CBM</span>
+                    <span>
+                        <strong>CBM</strong>
+                        <small>Fitur sedang dikerjakan</small>
+                    </span>
+                </button>
             </div>
+
 
             {{-- Notice --}}
             <div class="lp-guide-notice lp-reveal lp-reveal-delay-2">
@@ -405,8 +415,7 @@
                 </div>
                 <div>
                     <strong>Proses upload hanya dapat dilakukan melalui Dashboard DIKKP.</strong>
-                    Fitur ini memerlukan autentikasi sebagai <strong>System Owner (SO)</strong> atau
-                    <strong>CBM</strong>.
+                    Fitur ini memerlukan autentikasi sebagai <strong>System Owner (SO)</strong>.
                     Landing page ini bersifat informatif dan tidak menyediakan akses upload langsung.
                 </div>
             </div>
@@ -548,6 +557,49 @@
             </div>
 
         </div>
+
+        <div class="lp-guide-role-panel" id="lp-guide-cbm" role="tabpanel" data-guide-panel="cbm" hidden>
+            <div class="lp-guide-header">
+                <h2 class="lp-section-title">Alur Upload Data oleh CBM</h2>
+                <p class="lp-section-desc">
+                    Panduan upload data untuk pengguna CBM belum tersedia. Fitur ini sedang dalam pengerjaan dan
+                    akan diperbarui setelah alur CBM siap digunakan.
+                </p>
+            </div>
+
+            <div class="lp-guide-notice lp-guide-notice-pending">
+                <div class="lp-guide-notice-icon" aria-hidden="true">⌛</div>
+                <div>
+                    <strong>Fitur sedang dikerjakan.</strong>
+                    Alur upload data Work Order untuk CBM belum tersedia saat ini.
+                </div>
+            </div>
+
+            <div class="lp-guide-steps" role="list" aria-label="Langkah-langkah upload data CBM">
+                @foreach([
+                        'Login ke Dashboard DIKKP',
+                        'Siapkan File Excel Work Order',
+                        'Buka Menu Upload Data WO',
+                        'Periksa Hasil Validasi & Preview',
+                        'Konfirmasi & Import Data',
+                        'Lihat Hasil Import di Dashboard'
+                    ] as $step => $title)
+                    <div class="lp-guide-step" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah {{ $step + 1 }}">{{ $step + 1 }}</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">{{ $title }}</h3>
+                            <p class="lp-guide-step-desc">
+                                Belum tersedia. Fitur sedang dalam pengerjaan dan akan segera hadir untuk pengguna
+                                CBM.
+                            </p>
+                            <span class="lp-guide-step-tag pending">Fitur sedang dikerjakan</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        </div>
     </section>
 
 
@@ -647,7 +699,7 @@
 
                 <div class="lp-flow-role-card" role="listitem">
                     <div class="lp-flow-role-name">
-                        CBM
+                        Condition Based Maintenance
                         <span class="lp-flow-role-badge cbm">CBM</span>
                     </div>
                     <p class="lp-flow-role-desc">Pengguna dengan hak akses pengelolaan yang dikonfigurasi di sistem.</p>
@@ -667,34 +719,46 @@
     <!-- ================================================================
      CALL TO ACTION
      ================================================================ -->
-    <section class="lp-cta" id="lp-cta" aria-label="Ajakan mengakses dashboard DIKKP">
+    <section class="lp-cta" id="lp-cta" aria-label="Kontak pengaduan dan layanan DIKKP">
         <div class="lp-cta-glow" aria-hidden="true"></div>
         <div class="lp-container">
             <div class="lp-cta-inner">
                 <h2 class="lp-cta-title lp-reveal">
-                    Akses Informasi Gangguan<br>Pembangkit dalam Satu Sistem.
+                    Mengalami Gangguan pada Sistem?
                 </h2>
                 <p class="lp-cta-desc lp-reveal lp-reveal-delay-1">
-                    Gunakan SIGAP untuk membantu pemantauan kondisi pembangkit, mengidentifikasi gangguan,
-                    dan memperoleh informasi operasional secara lebih terstruktur.
+                    Sampaikan pengaduan atau hubungi layanan DIKKP melalui kanal kontak berikut agar gangguan
+                    dapat segera ditindaklanjuti oleh tim terkait.
                 </p>
                 <div class="lp-cta-actions lp-reveal lp-reveal-delay-2">
-                    <a href="{{ route('dashboard') }}" class="lp-btn lp-btn-primary lp-btn-lg"
-                        id="lp-cta-dashboard-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                            aria-hidden="true">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                        Buka Dashboard DIKKP
-                    </a>
-                    <button type="button" class="lp-btn lp-btn-secondary lp-btn-lg" data-scroll-to="lp-guide"
-                        id="lp-cta-guide-btn">
-                        Lihat Panduan Upload
-                    </button>
+                    <div class="lp-service-contact">
+                        <strong class="lp-service-contact-title">Layanan 1</strong>
+                        <span class="lp-service-contact-name">Syafira Firdausi N.</span>
+                        <div class="lp-service-contact-item">
+                            <span>WhatsApp:</span>
+                            <a href="https://wa.me/6285755410265" id="lp-cta-service-1-whatsapp" target="_blank"
+                                rel="noopener noreferrer">0857 5541 0265</a>
+                        </div>
+                        <div class="lp-service-contact-item">
+                            <span>LinkedIn:</span>
+                            <a href="https://www.linkedin.com/company/dikkp-layanan-1" id="lp-cta-service-1-linkedin"
+                                target="_blank" rel="noopener noreferrer">linkedin.com/syafirafn</a>
+                        </div>
+                    </div>
+                    <div class="lp-service-contact">
+                        <strong class="lp-service-contact-title">Layanan 2</strong>
+                        <span class="lp-service-contact-name">Bunga Cinta L. A.</span>
+                        <div class="lp-service-contact-item">
+                            <span>WhatsApp:</span>
+                            <a href="https://wa.me/620000000002" id="lp-cta-service-2-whatsapp" target="_blank"
+                                rel="noopener noreferrer">0000 0000 0002</a>
+                        </div>
+                        <div class="lp-service-contact-item">
+                            <span>LinkedIn:</span>
+                            <a href="https://www.linkedin.com/company/dikkp-layanan-2" id="lp-cta-service-2-linkedin"
+                                target="_blank" rel="noopener noreferrer">linkedin.com/company/dikkp-layanan-2</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

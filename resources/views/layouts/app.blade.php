@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SIGAP - Sistem Informasi Monitoring Equipment PLTA">
-    <title>@yield('title', 'Dashboard') — SIGAP </title>
+    <meta name="description" content="DIKKP - Digitalisasi Informasi Kesiapan Keandalan Pembangkit">
+    <title>@yield('title', 'Dashboard') — DIKKP </title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/png" href="{{ asset('images/sigap-logo.png') }}">
     <script>
@@ -260,11 +260,13 @@
                     $logoExists = file_exists($logoPath);
                 @endphp
 
-                @if($logoExists)
-                    <img src="{{ asset('images/sigaplogo-baru.png') }}" alt="SIGAP" class="sidebar-logo">
-                @else
-                    <div class="sidebar-logo-placeholder" aria-label="SIGAP Logo">DIKKP</div>
-                @endif
+                <a href="{{ route('landing') }}" aria-label="Kembali ke halaman landing DIKKP">
+                    @if($logoExists)
+                        <img src="{{ asset('images/sigaplogo-baru.png') }}" alt="DIKKP" class="sidebar-logo">
+                    @else
+                        <div class="sidebar-logo-placeholder" aria-label="DIKKP Logo">DIKKP</div>
+                    @endif
+                </a>
             </div>
 
             {{-- Navigation --}}

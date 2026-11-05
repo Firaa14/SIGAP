@@ -1,5 +1,5 @@
 /* ============================================================
-   SIGAP LANDING PAGE — landing.css
+   DIKKP LANDING PAGE — landing.css
    Desain profesional, modern, minimalis untuk sistem monitoring
    pembangkit listrik. Terpisah dari app.css dashboard.
    ============================================================ */
@@ -954,6 +954,89 @@ a {
     background: var(--color-gray-50);
 }
 
+.lp-guide-role-switcher {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    max-width: 620px;
+    margin: 0 auto 44px;
+    padding: 6px;
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.lp-guide-role-tab {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    background: transparent;
+    color: var(--color-gray-500);
+    cursor: pointer;
+    text-align: left;
+    transition: var(--transition);
+}
+
+.lp-guide-role-tab:hover {
+    background: var(--color-gray-50);
+}
+
+.lp-guide-role-tab.active {
+    background: var(--color-blue-light);
+    border-color: rgba(37, 99, 235, 0.2);
+    color: var(--color-navy);
+}
+
+.lp-guide-role-tab-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--color-gray-100);
+    color: var(--color-gray-500);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.lp-guide-role-tab.active .lp-guide-role-tab-code {
+    background: var(--color-accent);
+    color: var(--color-white);
+}
+
+.lp-guide-role-tab strong,
+.lp-guide-role-tab small {
+    display: block;
+}
+
+.lp-guide-role-tab strong {
+    font-size: 13px;
+}
+
+.lp-guide-role-tab small {
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--color-gray-400);
+}
+
+.lp-guide-role-panel[hidden] {
+    display: none;
+}
+
+.lp-guide-role-panel.active {
+    animation: lp-guide-panel-in 0.3s ease both;
+}
+
+@keyframes lp-guide-panel-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .lp-guide-header {
     max-width: 560px;
     margin-bottom: 56px;
@@ -1059,6 +1142,13 @@ a {
 .lp-guide-step-tag.so    { background: #EDE9FE; color: #5B21B6; }
 .lp-guide-step-tag.info  { background: var(--color-blue-light); color: #1D4ED8; }
 .lp-guide-step-tag.auth  { background: #FEF3C7; color: #92400E; }
+.lp-guide-step-tag.pending { background: #FFF7ED; color: #C2410C; }
+
+.lp-guide-notice-pending {
+    background: #FFF7ED;
+    border-color: #FED7AA;
+    color: #9A3412;
+}
 
 /* ── ACCESS FLOW SECTION ───────────────────────────────────────── */
 .lp-flow {
@@ -1285,8 +1375,56 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 14px;
+    column-gap: 72px;
+    row-gap: 24px;
     flex-wrap: wrap;
+}
+
+.lp-service-contact {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    min-width: 220px;
+}
+
+.lp-service-contact-title {
+    color: var(--color-white);
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    text-align: center;
+}
+
+.lp-service-contact-name {
+    color: rgba(255,255,255,0.78);
+    font-size: 13px;
+    text-align: center;
+}
+
+.lp-service-contact-item {
+    color: rgba(255,255,255,0.78);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.lp-service-contact-item span {
+    color: var(--color-white);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.lp-service-contact-item a {
+    color: var(--color-gold);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+.lp-service-contact-item a:hover {
+    text-decoration: underline;
 }
 
 /* ── FOOTER ────────────────────────────────────────────────────── */

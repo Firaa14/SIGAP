@@ -1,5 +1,5 @@
 /**
- * SIGAP Landing Page — landing.js
+ * DIKKP Landing Page — landing.js
  * ------------------------------------------------------------
  * - Navbar scroll effect
  * - Mobile menu toggle
@@ -58,6 +58,35 @@
     document.querySelectorAll('[data-scroll-to]').forEach(function (el) {
         el.addEventListener('click', function () {
             scrollToSection(el.getAttribute('data-scroll-to'));
+        });
+    });
+
+    /* ── 3a. GUIDE SECTION ORDER ─────────────────────────────── */
+    const flowSection = document.getElementById('lp-flow');
+    const uploadGuideSection = document.getElementById('lp-guide');
+    if (flowSection && uploadGuideSection && flowSection.parentNode === uploadGuideSection.parentNode) {
+        uploadGuideSection.parentNode.insertBefore(flowSection, uploadGuideSection);
+    }
+
+    /* ── 3b. UPLOAD GUIDE ROLE SWITCHER ──────────────────────── */
+    const guideTabs = document.querySelectorAll('[data-guide-role]');
+    const guidePanels = document.querySelectorAll('[data-guide-panel]');
+
+    guideTabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            const role = tab.getAttribute('data-guide-role');
+
+            guideTabs.forEach(function (item) {
+                const isActive = item === tab;
+                item.classList.toggle('active', isActive);
+                item.setAttribute('aria-selected', String(isActive));
+            });
+
+            guidePanels.forEach(function (panel) {
+                const isActive = panel.getAttribute('data-guide-panel') === role;
+                panel.hidden = !isActive;
+                panel.classList.toggle('active', isActive);
+            });
         });
     });
 

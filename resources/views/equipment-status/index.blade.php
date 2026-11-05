@@ -5,7 +5,7 @@
 @section('page-title', 'Status Equipment')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item">SIGAP</li>
+    <li class="breadcrumb-item">DIKKP</li>
     <li class="breadcrumb-item">Status Equipment</li>
 @endsection
 

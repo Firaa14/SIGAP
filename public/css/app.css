@@ -1,5 +1,5 @@
 /* ============================================================
-   SIGAP — Sistem Informasi Monitoring Equipment PLTA
+   DIKKP — Digitalisasi Informasi Kesiapan Keandalan Pembangkit
    CSS Design System — PLN Nusantara Power Corporate Style
    ============================================================ */
 
@@ -195,7 +195,7 @@ body {
     letter-spacing: -0.5px;
 }
 
-/* SIGAP system label below logo */
+/* DIKKP system label below logo */
 .sidebar-system-label {
     display: flex;
     flex-direction: column;

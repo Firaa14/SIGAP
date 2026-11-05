@@ -1,5 +1,5 @@
 /**
- * SIGAP — Peta Sebaran PLTA (UP Brantas)
+ * DIKKP — Peta Sebaran PLTA (UP Brantas)
  * ---------------------------------------------------------------
  * - Basemap satelit (Esri World Imagery, gratis, tanpa API key)
  * - Marker animasi per status: normal / not_ready / abnormal

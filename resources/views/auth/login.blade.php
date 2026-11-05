@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="{{ asset('images/sigap-logo.png') }}">
 
-    <title>Login - SIGAP</title>
+    <title>Login - DIKKP</title>
 
     <script>
         (function () {
@@ -559,12 +559,12 @@
         <div class="login-left">
 
             <h2>
-                SIGAP
+                DIKKP
             </h2>
 
             <p id="login-left-desc">
-                Sistem Informasi Gangguan Andal Pembangkit sebagai sarana monitoring terpadu kesehatan unit dan
-                equipment PLTA untuk mendukung keandalan operasional pembangkitan.
+                Digitalisasi Informasi Kesiapan Keandalan Pembangkit sebagai sarana monitoring terpadu kesehatan unit
+                dan equipment PLTA untuk mendukung keandalan operasional pembangkitan.
             </p>
 
             <div class="info-box">
@@ -587,7 +587,7 @@
             </h1>
 
             <p class="login-subtitle" id="login-subtitle">
-                Silakan masuk ke akun SIGAP Anda
+                Silakan masuk ke akun DIKKP Anda
             </p>
 
             @if ($errors->any())
@@ -702,7 +702,7 @@
             </form>
 
             <div class="footer-text" id="login-footer">
-                © {{ date('Y') }} SIGAP by Intern Universitas Brawijaya.
+                © {{ date('Y') }} DIKKP by Intern Universitas Brawijaya.
             </div>
 
         </div>
@@ -717,7 +717,7 @@
             id: {
                 lang_switch: 'Ganti ke Bahasa Inggris',
                 title: 'Selamat Datang',
-                subtitle: 'Silakan masuk ke akun SIGAP Anda',
+                subtitle: 'Silakan masuk ke akun DIKKP Anda',
                 label_email: 'Email',
                 label_password: 'Password',
                 label_remember: 'Ingat saya',
@@ -725,8 +725,8 @@
                 opt_select_role: 'Pilih Role',
                 btn_submit: 'MASUK',
                 btn_back: 'Kembali ke Dashboard',
-                footer: '© ' + new Date().getFullYear() + ' SIGAP by Intern Universitas Brawijaya.',
-                left_desc: 'Sistem Informasi Gangguan Andal Pembangkit sebagai sarana monitoring terpadu kesehatan unit dan equipment PLTA untuk mendukung keandalan operasional pembangkitan.',
+                footer: '© ' + new Date().getFullYear() + ' DIKKP by Intern Universitas Brawijaya.',
+                left_desc: 'Digitalisasi Informasi Kesiapan Keandalan Pembangkit sebagai sarana monitoring terpadu kesehatan unit dan equipment PLTA untuk mendukung keandalan operasional pembangkitan.',
                 info_title: 'Manajemen Pemeliharaan Aset',
                 info_desc: 'Kelola status operasi, keandalan alat, dan Work Order dalam satu platform terpadu.',
                 placeholder_email: 'Masukkan email',
@@ -739,7 +739,7 @@
             en: {
                 lang_switch: 'Switch to Indonesian',
                 title: 'Welcome',
-                subtitle: 'Please sign in to your SIGAP account',
+                subtitle: 'Please sign in to your DIKKP account',
                 label_email: 'Email',
                 label_password: 'Password',
                 label_remember: 'Remember me',
@@ -747,7 +747,7 @@
                 opt_select_role: 'Select Role',
                 btn_submit: 'SIGN IN',
                 btn_back: 'Back to Dashboard',
-                footer: '© ' + new Date().getFullYear() + ' SIGAP by Intern Universitas Brawijaya.',
+                footer: '© ' + new Date().getFullYear() + ' DIKKP by Intern Universitas Brawijaya.',
                 left_desc: 'Reliable Generator Disruption Information System as an integrated monitoring platform for Hydroelectric Power Plant Units and Equipment health to support operational reliability.',
                 info_title: 'Asset Maintenance Management',
                 info_desc: 'Manage operating status, equipment reliability, and Work Orders in one integrated platform.',

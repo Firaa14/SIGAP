@@ -57,6 +57,7 @@
     }).addTo(map);
 
     let labelsPermanent = false;
+    let statusFilter = 'all';
     const markerRegistry = {}; // slug -> { marker, plta }
 
     function buildIconHtml(status) {
@@ -160,9 +161,32 @@
         if (bounds.length) {
             map.fitBounds(bounds, { padding: [36, 36], maxZoom: 11 });
         }
+
+        applyStatusFilter();
     }
 
     renderMarkers(initialData);
+
+    function applyStatusFilter() {
+        Object.keys(markerRegistry).forEach(function (slug) {
+            const entry = markerRegistry[slug];
+            const visible = statusFilter === 'all' || entry.plta.status === statusFilter;
+
+            if (visible && !map.hasLayer(entry.marker)) {
+                entry.marker.addTo(map);
+            } else if (!visible && map.hasLayer(entry.marker)) {
+                map.removeLayer(entry.marker);
+            }
+        });
+    }
+
+    const statusFilterSelect = document.getElementById('map-status-filter');
+    if (statusFilterSelect) {
+        statusFilterSelect.addEventListener('change', function () {
+            statusFilter = this.value;
+            applyStatusFilter();
+        });
+    }
 
     // ── Toggle: tampilkan semua label / info card secara permanen ────────
     const toggleBtn = document.getElementById('map-toggle-labels');

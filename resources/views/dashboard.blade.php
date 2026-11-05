@@ -89,6 +89,13 @@
                     <span class="map-legend-item"><span class="map-legend-dot abnormal"></span> <span
                             data-i18n="status_abnormal">Abnormal</span></span>
                 </div>
+                <label class="map-filter-label" for="map-status-filter">
+                    <select id="map-status-filter" class="map-status-filter" aria-label="Filter status PLTA">
+                        <option value="all" data-i18n="dash_filter_status">Filter Status</option>
+                        <option value="normal" data-i18n="status_normal">Normal</option>
+                        <option value="abnormal" data-i18n="status_abnormal">Abnormal</option>
+                    </select>
+                </label>
                 <button type="button" class="map-toggle-btn" id="map-toggle-labels" data-i18n="dash_show_labels">Tampilkan
                     Semua Label</button>
             </div>

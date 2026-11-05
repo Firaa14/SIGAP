@@ -1587,6 +1587,7 @@ a {
     :root { --section-padding: 52px 0; --container-px: 20px; }
 
     .lp-stat-grid { grid-template-columns: 1fr 1fr; }
+    .lp-guide-role-switcher { grid-template-columns: 1fr; }
     .lp-features-grid { grid-template-columns: 1fr; }
     .lp-footer-inner { grid-template-columns: 1fr; gap: 28px; }
     .lp-flow-steps { grid-template-columns: 1fr 1fr; }

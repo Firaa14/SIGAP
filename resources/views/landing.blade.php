@@ -403,201 +403,196 @@
                 </button>
             </div>
 
+            <div class="lp-guide-role-panel active" id="lp-guide-so" role="tabpanel" data-guide-panel="so">
 
-            {{-- Notice --}}
-            <div class="lp-guide-notice lp-reveal lp-reveal-delay-2">
-                <div class="lp-guide-notice-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    </svg>
-                </div>
-                <div>
-                    <strong>Proses upload hanya dapat dilakukan melalui Dashboard DIKKP.</strong>
-                    Fitur ini memerlukan autentikasi sebagai <strong>System Owner (SO)</strong>.
-                    Landing page ini bersifat informatif dan tidak menyediakan akses upload langsung.
-                </div>
-            </div>
-
-            {{-- Step by step guide --}}
-            <div class="lp-guide-steps" role="list" aria-label="Langkah-langkah upload data">
-
-                <div class="lp-guide-step lp-reveal" role="listitem">
-                    <div class="lp-guide-step-num" aria-label="Langkah 1">1</div>
-                    <div class="lp-guide-step-content">
-                        <h3 class="lp-guide-step-title">Login ke Dashboard DIKKP</h3>
-                        <p class="lp-guide-step-desc">
-                            Buka dashboard DIKKP melalui tombol "Buka Dashboard DIKKP" di halaman ini.
-                            Sistem akan menampilkan halaman dashboard. Untuk mengakses fitur upload,
-                            klik tombol Login yang tersedia di header dashboard dan masukkan kredensial
-                            akun dengan otoritas System Owner (SO) atau CBM.
-                        </p>
-                        <span class="lp-guide-step-tag auth">🔐 Autentikasi diperlukan</span>
+                {{-- Notice --}}
+                <div class="lp-guide-notice lp-reveal lp-reveal-delay-2">
+                    <div class="lp-guide-notice-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong>Proses upload hanya dapat dilakukan melalui Dashboard DIKKP.</strong>
+                        Fitur ini memerlukan autentikasi sebagai <strong>System Owner (SO)</strong>.
+                        Landing page ini bersifat informatif dan tidak menyediakan akses upload langsung.
                     </div>
                 </div>
 
-                <div class="lp-guide-step lp-reveal lp-reveal-delay-1" role="listitem">
-                    <div class="lp-guide-step-num" aria-label="Langkah 2">2</div>
-                    <div class="lp-guide-step-content">
-                        <h3 class="lp-guide-step-title">Siapkan File Excel Work Order</h3>
-                        <p class="lp-guide-step-desc">
-                            Siapkan file Excel (<code>.xlsx</code> atau <code>.xls</code>) hasil Power Query yang sudah
-                            difilter secara manual.
-                            File harus memiliki kolom wajib: <strong>NO WO, DESCRIPTION, WORKTYPE, STATUS,
-                                ASSETNUM</strong>.
-                            Pastikan file hanya mengandung data WO dengan Worktype yang diizinkan:
-                            <strong>CM, EJ, EV, CP, PAM</strong>. Hapus baris dengan Worktype lain sebelum upload.
-                        </p>
-                        <span class="lp-guide-step-tag info">📄 Format: .xlsx / .xls, maks 20 MB</span>
-                    </div>
-                </div>
+                {{-- Step by step guide --}}
+                <div class="lp-guide-steps" role="list" aria-label="Langkah-langkah upload data">
 
-                <div class="lp-guide-step lp-reveal lp-reveal-delay-2" role="listitem">
-                    <div class="lp-guide-step-num" aria-label="Langkah 3">3</div>
-                    <div class="lp-guide-step-content">
-                        <h3 class="lp-guide-step-title">Buka Menu Upload Data WO</h3>
-                        <p class="lp-guide-step-desc">
-                            Di sidebar dashboard DIKKP, klik menu <strong>"Upload Data WO"</strong>.
-                            Halaman upload akan menampilkan area drop zone untuk memilih atau menyeret file.
-                            Klik <strong>"Pilih File"</strong> atau seret file Excel ke area yang tersedia.
-                            Setelah file dipilih, klik <strong>"Tampilkan Preview"</strong> untuk melanjutkan proses
-                            validasi.
-                        </p>
-                        <span class="lp-guide-step-tag so">👤 Hanya SO & CBM</span>
-                    </div>
-                </div>
-
-                <div class="lp-guide-step lp-reveal lp-reveal-delay-3" role="listitem">
-                    <div class="lp-guide-step-num" aria-label="Langkah 4">4</div>
-                    <div class="lp-guide-step-content">
-                        <h3 class="lp-guide-step-title">Periksa Hasil Validasi & Preview</h3>
-                        <p class="lp-guide-step-desc">
-                            Sistem akan menampilkan ringkasan hasil validasi file, mencakup total baris yang dibaca,
-                            jumlah data valid, data tidak valid, serta distribusi PLTA berdasarkan ASSETNUM.
-                            Periksa tabel preview untuk memastikan data yang akan diimport sudah sesuai.
-                            Jika terdapat baris tidak valid, sistem menampilkan keterangan kesalahannya.
-                        </p>
-                        <span class="lp-guide-step-tag info">✓ Cek sebelum konfirmasi</span>
-                    </div>
-                </div>
-
-                <div class="lp-guide-step lp-reveal lp-reveal-delay-4" role="listitem">
-                    <div class="lp-guide-step-num" aria-label="Langkah 5">5</div>
-                    <div class="lp-guide-step-content">
-                        <h3 class="lp-guide-step-title">Konfirmasi & Import Data</h3>
-                        <p class="lp-guide-step-desc">
-                            Jika hasil validasi sudah sesuai, klik <strong>"Konfirmasi &amp; Import Data"</strong>.
-                            Sistem akan memproses dan mendistribusikan data WO ke seluruh PLTA terkait berdasarkan
-                            kode prefix ASSETNUM. Tunggu hingga proses selesai. <strong>Jangan tutup atau refresh
-                                halaman</strong>
-                            selama proses berlangsung. Status operasional equipment akan diperbarui otomatis setelah
-                            import berhasil.
-                        </p>
-                        <span class="lp-guide-step-tag so">⚡ Status diperbarui otomatis</span>
-                    </div>
-                </div>
-
-                <div class="lp-guide-step lp-reveal lp-reveal-delay-5" role="listitem">
-                    <div class="lp-guide-step-num" aria-label="Langkah 6">6</div>
-                    <div class="lp-guide-step-content">
-                        <h3 class="lp-guide-step-title">Lihat Hasil Import di Dashboard</h3>
-                        <p class="lp-guide-step-desc">
-                            Setelah import berhasil, sistem menampilkan halaman ringkasan hasil import.
-                            Dashboard akan menampilkan statistik terbaru beserta peta distribusi PLTA
-                            yang sudah diperbarui. Data dapat dilihat oleh seluruh pengguna yang mengakses
-                            sistem, termasuk Reviewer tanpa perlu login.
-                        </p>
-                        <span class="lp-guide-step-tag info">📊 Tersedia untuk semua pengguna</span>
-                    </div>
-                </div>
-
-            </div>
-
-            {{-- Rule summary --}}
-            <div style="margin-top:48px;background:var(--color-white);border:1px solid var(--color-gray-200);border-radius:16px;padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:24px;"
-                class="lp-reveal">
-                <div>
-                    <div
-                        style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--color-gray-400);margin-bottom:12px;">
-                        Status WO → Status Operasi</div>
-                    <div style="display:flex;flex-direction:column;gap:8px;">
-                        <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
-                            <span
-                                style="padding:3px 10px;border-radius:6px;background:#FEF3C7;color:#92400E;font-weight:700;font-size:11px;white-space:nowrap;">APPR
-                                / INPRG / PTWCL / PTWR / WPTW</span>
-                            <span style="color:var(--color-gray-500);">→</span>
-                            <span
-                                style="padding:3px 10px;border-radius:6px;background:var(--color-abnormal-bg);color:#B45309;font-weight:700;font-size:11px;">ABNORMAL</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
-                            <span
-                                style="padding:3px 10px;border-radius:6px;background:var(--color-blue-light);color:#1D4ED8;font-weight:700;font-size:11px;white-space:nowrap;">CLOSE
-                                / COMP</span>
-                            <span style="color:var(--color-gray-500);">→</span>
-                            <span
-                                style="padding:3px 10px;border-radius:6px;background:var(--color-normal-bg);color:#065F46;font-weight:700;font-size:11px;">NORMAL</span>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <div
-                        style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--color-gray-400);margin-bottom:12px;">
-                        Worktype yang Diizinkan</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                        @foreach(['CM', 'EJ', 'EV', 'CP', 'PAM'] as $wt)
-                            <span
-                                style="padding:4px 12px;border-radius:7px;background:var(--color-blue-light);color:var(--color-accent);font-weight:700;font-size:12px;">{{ $wt }}</span>
-                        @endforeach
-                    </div>
-                    <div style="margin-top:10px;font-size:12px;color:var(--color-gray-400);">
-                        4 karakter pertama ASSETNUM menentukan PLTA tujuan distribusi data.
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="lp-guide-role-panel" id="lp-guide-cbm" role="tabpanel" data-guide-panel="cbm" hidden>
-            <div class="lp-guide-header">
-                <h2 class="lp-section-title">Alur Upload Data oleh CBM</h2>
-                <p class="lp-section-desc">
-                    Panduan upload data untuk pengguna CBM belum tersedia. Fitur ini sedang dalam pengerjaan dan
-                    akan diperbarui setelah alur CBM siap digunakan.
-                </p>
-            </div>
-
-            <div class="lp-guide-notice lp-guide-notice-pending">
-                <div class="lp-guide-notice-icon" aria-hidden="true">⌛</div>
-                <div>
-                    <strong>Fitur sedang dikerjakan.</strong>
-                    Alur upload data Work Order untuk CBM belum tersedia saat ini.
-                </div>
-            </div>
-
-            <div class="lp-guide-steps" role="list" aria-label="Langkah-langkah upload data CBM">
-                @foreach([
-                        'Login ke Dashboard DIKKP',
-                        'Siapkan File Excel Work Order',
-                        'Buka Menu Upload Data WO',
-                        'Periksa Hasil Validasi & Preview',
-                        'Konfirmasi & Import Data',
-                        'Lihat Hasil Import di Dashboard'
-                    ] as $step => $title)
-                    <div class="lp-guide-step" role="listitem">
-                        <div class="lp-guide-step-num" aria-label="Langkah {{ $step + 1 }}">{{ $step + 1 }}</div>
+                    <div class="lp-guide-step lp-reveal" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 1">1</div>
                         <div class="lp-guide-step-content">
-                            <h3 class="lp-guide-step-title">{{ $title }}</h3>
+                            <h3 class="lp-guide-step-title">Login ke Dashboard DIKKP</h3>
                             <p class="lp-guide-step-desc">
-                                Belum tersedia. Fitur sedang dalam pengerjaan dan akan segera hadir untuk pengguna
-                                CBM.
+                                Buka dashboard DIKKP melalui tombol "Buka Dashboard DIKKP" di halaman ini.
+                                Sistem akan menampilkan halaman dashboard. Untuk mengakses fitur upload,
+                                klik tombol Login yang tersedia di header dashboard dan masukkan kredensial
+                                akun dengan otoritas System Owner (SO) atau CBM.
                             </p>
-                            <span class="lp-guide-step-tag pending">Fitur sedang dikerjakan</span>
+                            <span class="lp-guide-step-tag auth">🔐 Autentikasi diperlukan</span>
                         </div>
                     </div>
-                @endforeach
+
+                    <div class="lp-guide-step lp-reveal lp-reveal-delay-1" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 2">2</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">Siapkan File Excel Work Order</h3>
+                            <p class="lp-guide-step-desc">
+                                Siapkan file Excel (<code>.xlsx</code> atau <code>.xls</code>) hasil Power Query yang
+                                sudah
+                                difilter secara manual.
+                                File harus memiliki kolom wajib: <strong>NO WO, DESCRIPTION, WORKTYPE, STATUS,
+                                    ASSETNUM</strong>.
+                                Pastikan file hanya mengandung data WO dengan Worktype yang diizinkan:
+                                <strong>CM, EJ, EV, CP, PAM</strong>. Hapus baris dengan Worktype lain sebelum upload.
+                            </p>
+                            <span class="lp-guide-step-tag info">📄 Format: .xlsx / .xls, maks 20 MB</span>
+                        </div>
+                    </div>
+
+                    <div class="lp-guide-step lp-reveal lp-reveal-delay-2" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 3">3</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">Buka Menu Upload Data WO</h3>
+                            <p class="lp-guide-step-desc">
+                                Di sidebar dashboard DIKKP, klik menu <strong>"Upload Data WO"</strong>.
+                                Halaman upload akan menampilkan area drop zone untuk memilih atau menyeret file.
+                                Klik <strong>"Pilih File"</strong> atau seret file Excel ke area yang tersedia.
+                                Setelah file dipilih, klik <strong>"Tampilkan Preview"</strong> untuk melanjutkan proses
+                                validasi.
+                            </p>
+                            <span class="lp-guide-step-tag so">👤 Hanya SO & CBM</span>
+                        </div>
+                    </div>
+
+                    <div class="lp-guide-step lp-reveal lp-reveal-delay-3" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 4">4</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">Periksa Hasil Validasi & Preview</h3>
+                            <p class="lp-guide-step-desc">
+                                Sistem akan menampilkan ringkasan hasil validasi file, mencakup total baris yang dibaca,
+                                jumlah data valid, data tidak valid, serta distribusi PLTA berdasarkan ASSETNUM.
+                                Periksa tabel preview untuk memastikan data yang akan diimport sudah sesuai.
+                                Jika terdapat baris tidak valid, sistem menampilkan keterangan kesalahannya.
+                            </p>
+                            <span class="lp-guide-step-tag info">✓ Cek sebelum konfirmasi</span>
+                        </div>
+                    </div>
+
+                    <div class="lp-guide-step lp-reveal lp-reveal-delay-4" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 5">5</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">Konfirmasi & Import Data</h3>
+                            <p class="lp-guide-step-desc">
+                                Jika hasil validasi sudah sesuai, klik <strong>"Konfirmasi &amp; Import Data"</strong>.
+                                Sistem akan memproses dan mendistribusikan data WO ke seluruh PLTA terkait berdasarkan
+                                kode prefix ASSETNUM. Tunggu hingga proses selesai. <strong>Jangan tutup atau refresh
+                                    halaman</strong>
+                                selama proses berlangsung. Status operasional equipment akan diperbarui otomatis setelah
+                                import berhasil.
+                            </p>
+                            <span class="lp-guide-step-tag so">⚡ Status diperbarui otomatis</span>
+                        </div>
+                    </div>
+
+                    <div class="lp-guide-step lp-reveal lp-reveal-delay-5" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 6">6</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">Lihat Hasil Import di Dashboard</h3>
+                            <p class="lp-guide-step-desc">
+                                Setelah import berhasil, sistem menampilkan halaman ringkasan hasil import.
+                                Dashboard akan menampilkan statistik terbaru beserta peta distribusi PLTA
+                                yang sudah diperbarui. Data dapat dilihat oleh seluruh pengguna yang mengakses
+                                sistem, termasuk Reviewer tanpa perlu login.
+                            </p>
+                            <span class="lp-guide-step-tag info">📊 Tersedia untuk semua pengguna</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- Rule summary --}}
+                <div style="margin-top:48px;background:var(--color-white);border:1px solid var(--color-gray-200);border-radius:16px;padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:24px;"
+                    class="lp-reveal">
+                    <div>
+                        <div
+                            style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--color-gray-400);margin-bottom:12px;">
+                            Status WO → Status Operasi</div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
+                                <span
+                                    style="padding:3px 10px;border-radius:6px;background:#FEF3C7;color:#92400E;font-weight:700;font-size:11px;white-space:nowrap;">APPR
+                                    / INPRG / PTWCL / PTWR / WPTW</span>
+                                <span style="color:var(--color-gray-500);">→</span>
+                                <span
+                                    style="padding:3px 10px;border-radius:6px;background:var(--color-abnormal-bg);color:#B45309;font-weight:700;font-size:11px;">ABNORMAL</span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
+                                <span
+                                    style="padding:3px 10px;border-radius:6px;background:var(--color-blue-light);color:#1D4ED8;font-weight:700;font-size:11px;white-space:nowrap;">CLOSE
+                                    / COMP</span>
+                                <span style="color:var(--color-gray-500);">→</span>
+                                <span
+                                    style="padding:3px 10px;border-radius:6px;background:var(--color-normal-bg);color:#065F46;font-weight:700;font-size:11px;">NORMAL</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div
+                            style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--color-gray-400);margin-bottom:12px;">
+                            Worktype yang Diizinkan</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                            @foreach(['CM', 'EJ', 'EV', 'CP', 'PAM'] as $wt)
+                                <span
+                                    style="padding:4px 12px;border-radius:7px;background:var(--color-blue-light);color:var(--color-accent);font-weight:700;font-size:12px;">{{ $wt }}</span>
+                            @endforeach
+                        </div>
+                        <div style="margin-top:10px;font-size:12px;color:var(--color-gray-400);">
+                            4 karakter pertama ASSETNUM menentukan PLTA tujuan distribusi data.
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        </div>
+
+            <div class="lp-guide-role-panel" id="lp-guide-cbm" role="tabpanel" data-guide-panel="cbm" hidden>
+
+                <div class="lp-guide-notice lp-guide-notice-pending">
+                    <div class="lp-guide-notice-icon" aria-hidden="true">⌛</div>
+                    <div>
+                        <strong>Fitur sedang dikerjakan.</strong>
+                        Alur upload data Work Order untuk CBM belum tersedia saat ini.
+                    </div>
+                </div>
+
+                <div class="lp-guide-steps" role="list" aria-label="Langkah-langkah upload data CBM">
+                    @foreach([
+                            'Login ke Dashboard DIKKP',
+                            'Siapkan File Excel Work Order',
+                            'Buka Menu Upload Data WO',
+                            'Periksa Hasil Validasi & Preview',
+                            'Konfirmasi & Import Data',
+                            'Lihat Hasil Import di Dashboard'
+                        ] as $step => $title)
+                        <div class="lp-guide-step" role="listitem">
+                            <div class="lp-guide-step-num" aria-label="Langkah {{ $step + 1 }}">{{ $step + 1 }}</div>
+                            <div class="lp-guide-step-content">
+                                <h3 class="lp-guide-step-title">{{ $title }}</h3>
+                                <p class="lp-guide-step-desc">
+                                    Belum tersedia. Fitur sedang dalam pengerjaan dan akan segera hadir untuk pengguna
+                                    CBM.
+                                </p>
+                                <span class="lp-guide-step-tag pending">Fitur sedang dikerjakan</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
 
         </div>
     </section>

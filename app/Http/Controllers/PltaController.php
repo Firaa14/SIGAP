@@ -53,7 +53,8 @@ class PltaController extends Controller
         $canEditStatus = session('login_role') === 'SO';
         $isCbm = session('login_role') === 'CBM';
         $isPublicView = ! auth()->check();
-        $cbmEquipments = ($isCbm || $isPublicView)
+        $isReadOnlyView = ! $canEditStatus;
+        $cbmEquipments = ($isCbm || $isReadOnlyView)
             ? $cbmService->forEquipment($pltaModel?->equipments ?? collect())
             : collect();
         $statusSummary = $isCbm
@@ -77,6 +78,7 @@ class PltaController extends Controller
             'canEditStatus',
             'isCbm',
             'isPublicView',
+            'isReadOnlyView',
             'cbmEquipments',
             'cbmStatusLegend'
         ));

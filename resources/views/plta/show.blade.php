@@ -176,11 +176,13 @@
                             <th data-i18n="plta_th_equipment">Equipment</th>
                             <th data-i18n="plta_th_kks">KKS</th>
                             <th data-i18n="plta_th_assetnum">ASSETNUM</th>
-                            <th data-i18n="plta_th_op_status">Operating Status</th>
-                            <th data-i18n="plta_th_notes">Deskripsi</th>
-                            <th data-i18n="plta_th_report_date">Tanggal Report</th>
-                            <th data-i18n="plta_th_duration">Durasi</th>
-                            @if($isPublicView)
+                            <th data-i18n="plta_th_op_status">Status Operasi</th>
+                            @if(!$isReadOnlyView)
+                                <th data-i18n="plta_th_notes">Deskripsi</th>
+                                <th data-i18n="plta_th_report_date">Tanggal Report</th>
+                                <th data-i18n="plta_th_duration">Durasi</th>
+                            @endif
+                            @if($isReadOnlyView)
                                 <th>Action</th>
                             @endif
                         </tr>
@@ -234,44 +236,58 @@
                                             aria-label="Status: {{ $eq['status_operasi'] }}. Login required to change it.">{{ $eq['status_operasi'] }}</span>
                                     @endif
                                 </td>
-                                <td class="keterangan-cell">
-                                    @if(count($eq['keterangan']) > 0)
+                                @if(!$isReadOnlyView)
+                                    <td class="keterangan-cell">
                                         @foreach($eq['keterangan'] as $wo)
                                             <div class="keterangan-wo">{{ $wo['no_wo'] }}</div>
                                             <div class="keterangan-desc">{{ $wo['description'] }}</div>
                                             <span class="keterangan-status">{{ $wo['status'] }}</span>
                                         @endforeach
-                                    @else
-                                        <div style="font-size:12px; color:var(--text-muted); font-style:italic;">
-                                            —
-                                        </div>
-                                    @endif
-                                </td>
-                                <td style="font-size:12.5px; white-space:nowrap;">
-                                    {{ $eq['report_date'] }}
-                                </td>
-                                <td style="font-size:12.5px; white-space:nowrap;">
-                                    {{ $eq['durasi_hari'] }}
-                                </td>
-                                @if($isPublicView)
+                                    </td>
+                                    <td style="font-size:12.5px; white-space:nowrap;">
+                                        {{ $eq['report_date'] }}
+                                    </td>
+                                    <td style="font-size:12.5px; white-space:nowrap;">
+                                        {{ $eq['durasi_hari'] }}
+                                    </td>
+                                @endif
+                                @if($isReadOnlyView)
                                     @php
                                         $cbmEq = $cbmEquipments->firstWhere('assetnum', $eq['assetnum']);
+                                        $cbmMeta = $cbmEq ? [
+                                            'thermograph' => $cbmStatusLegend['thermograph'][$cbmEq['thermograph']] ?? null,
+                                            'vibrasi' => $cbmStatusLegend['vibrasi'][$cbmEq['vibrasi']] ?? null,
+                                            'oil_analysis' => $cbmStatusLegend['oil_analysis'][$cbmEq['oil_analysis']] ?? null,
+                                            'dga' => $cbmStatusLegend['dga'][$cbmEq['dga']] ?? null,
+                                        ] : [];
                                     @endphp
-                                    <td>
-                                        <button type="button" class="btn btn-secondary btn-sm equipment-detail-btn"
+                                    <td class="equipment-detail-action">
+                                        <button type="button" class="equipment-detail-btn"
+                                            aria-label="Lihat detail {{ $eq['equipment'] }}"
+                                            title="Lihat detail {{ $eq['equipment'] }}"
                                             data-assetnum="{{ $eq['assetnum'] }}"
                                             data-equipment="{{ $eq['equipment'] }}"
                                             data-status="{{ $eq['status_operasi'] }}"
-                                            data-description="{{ $eq['keterangan'][0]['description'] ?? '—' }}"
                                             data-report-date="{{ $eq['report_date'] }}"
                                             data-duration="{{ $eq['durasi_hari'] }}"
+                                            data-so-status-class="{{ $statusSelectClass }}"
+                                            data-work-orders="{{ base64_encode(json_encode($eq['keterangan'], JSON_UNESCAPED_UNICODE)) }}"
                                             data-thermograph="{{ $cbmEq['thermograph'] ?? 'SOON' }}"
+                                            data-thermograph-color="{{ $cbmMeta['thermograph']['color'] ?? '#64748B' }}"
+                                            data-thermograph-label="{{ $cbmMeta['thermograph']['label'] ?? 'Belum tersedia' }}"
                                             data-vibrasi="{{ $cbmEq['vibrasi'] ?? 'SOON' }}"
+                                            data-vibrasi-color="{{ $cbmMeta['vibrasi']['color'] ?? '#64748B' }}"
+                                            data-vibrasi-label="{{ $cbmMeta['vibrasi']['label'] ?? 'Belum tersedia' }}"
                                             data-oil-analysis="{{ $cbmEq['oil_analysis'] ?? 'SOON' }}"
+                                            data-oil-analysis-color="{{ $cbmMeta['oil_analysis']['color'] ?? '#64748B' }}"
+                                            data-oil-analysis-label="{{ $cbmMeta['oil_analysis']['label'] ?? 'Belum tersedia' }}"
                                             data-mca="{{ $cbmEq['mca'] ?? 'SOON' }}"
                                             data-pd="{{ $cbmEq['pd'] ?? 'SOON' }}"
-                                            data-dga="{{ $cbmEq['dga'] ?? 'SOON' }}">
-                                            Detail
+                                            data-dga="{{ $cbmEq['dga'] ?? 'SOON' }}"
+                                            data-dga-color="{{ $cbmMeta['dga']['color'] ?? '#64748B' }}"
+                                            data-dga-label="{{ $cbmMeta['dga']['label'] ?? 'Belum tersedia' }}">
+                                            <span class="equipment-detail-btn-icon" aria-hidden="true">↗</span>
+                                            <span>Lihat detail</span>
                                         </button>
                                     </td>
                                 @endif
@@ -302,25 +318,40 @@
     </div>
     @endif
 
-    @if($isPublicView)
+    @if($isReadOnlyView)
         <div id="equipment-detail-modal" class="equipment-detail-modal" hidden>
             <div class="equipment-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="equipment-detail-title">
                 <button type="button" class="equipment-detail-close" aria-label="Tutup detail">&times;</button>
-                <h2 id="equipment-detail-title">Detail Equipment</h2>
-                <div class="equipment-detail-grid">
-                    <div><span>Equipment</span><strong data-detail="equipment">—</strong></div>
-                    <div><span>ASSETNUM</span><strong data-detail="assetnum">—</strong></div>
-                    <div><span>Status Operasi</span><strong data-detail="status">—</strong></div>
-                    <div><span>Deskripsi</span><strong data-detail="description">—</strong></div>
-                    <div><span>Tanggal Report</span><strong data-detail="report-date">—</strong></div>
-                    <div><span>Durasi</span><strong data-detail="duration">—</strong></div>
-                    <div><span>Thermograph</span><strong data-detail="thermograph">—</strong></div>
-                    <div><span>Vibrasi</span><strong data-detail="vibrasi">—</strong></div>
-                    <div><span>Oil Analysis</span><strong data-detail="oil-analysis">—</strong></div>
-                    <div><span>MCA</span><strong data-detail="mca">—</strong></div>
-                    <div><span>PD</span><strong data-detail="pd">—</strong></div>
-                    <div><span>DGA</span><strong data-detail="dga">—</strong></div>
-                </div>
+                <span class="equipment-detail-eyebrow">DETAIL EQUIPMENT</span>
+                <h2 id="equipment-detail-title" data-detail="assetnum">—</h2>
+                <p class="equipment-detail-name" data-detail="equipment">—</p>
+
+                <section class="equipment-detail-section">
+                    <h3>Data SO</h3>
+                    <div class="equipment-detail-grid">
+                        <div>
+                            <span>Status Operasi</span>
+                            <strong class="detail-status-badge" data-detail="status">—</strong>
+                        </div>
+                        <div><span>Tanggal Report</span><strong data-detail="report-date">—</strong></div>
+                        <div><span>Durasi</span><strong data-detail="duration">—</strong></div>
+                    </div>
+                    <div class="equipment-work-orders" data-detail-work-orders>
+                        <span class="equipment-detail-empty">Tidak ada data WO.</span>
+                    </div>
+                </section>
+
+                <section class="equipment-detail-section">
+                    <h3>Data CBM</h3>
+                    <div class="equipment-detail-grid">
+                        <div><span>Thermograph</span><strong class="detail-cbm-badge" data-detail="thermograph">—</strong></div>
+                        <div><span>Vibrasi</span><strong class="detail-cbm-badge" data-detail="vibrasi">—</strong></div>
+                        <div><span>Oil Analysis</span><strong class="detail-cbm-badge" data-detail="oil-analysis">—</strong></div>
+                        <div><span>MCA</span><strong class="detail-cbm-badge detail-soon" data-detail="mca">—</strong></div>
+                        <div><span>PD</span><strong class="detail-cbm-badge detail-soon" data-detail="pd">—</strong></div>
+                        <div><span>DGA</span><strong class="detail-cbm-badge" data-detail="dga">—</strong></div>
+                    </div>
+                </section>
             </div>
         </div>
     @endif
@@ -394,12 +425,27 @@
             overflow-y: auto;
             padding: 28px;
             border-radius: 16px;
-            background: var(--bg-primary);
+            background: #FFFFFF !important;
+            opacity: 1 !important;
             box-shadow: 0 20px 60px rgba(15, 23, 42, 0.28);
         }
 
+        .equipment-detail-eyebrow {
+            color: var(--color-accent);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .12em;
+        }
+
+        .equipment-detail-name {
+            margin: -12px 0 22px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
         .equipment-detail-dialog h2 {
-            margin: 0 0 20px;
+            margin: 6px 0 16px;
             color: var(--text-primary);
         }
 
@@ -427,6 +473,8 @@
             padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
+            background: #F7F9FC !important;
+            opacity: 1 !important;
         }
 
         .equipment-detail-grid span {
@@ -439,8 +487,150 @@
             font-size: 13px;
         }
 
+        .equipment-detail-section {
+            margin-top: 20px;
+        }
+
+        .equipment-detail-section h3 {
+            margin: 0 0 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .detail-status-badge,
+        .detail-cbm-badge {
+            display: inline-flex;
+            width: fit-content;
+            align-items: center;
+            border: 1px solid currentColor;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 11px !important;
+        }
+
+        .detail-status-badge.normal-select {
+            background: var(--status-normal-bg);
+            color: var(--status-normal-text);
+        }
+
+        .detail-status-badge.abnormal-select {
+            background: var(--status-abnormal-bg);
+            color: var(--status-abnormal-text);
+        }
+
+        .detail-status-badge.notready-select {
+            background: var(--status-notready-bg);
+            color: var(--status-notready-text);
+        }
+
+        .equipment-work-orders {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .equipment-work-order {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--color-accent);
+            border-radius: 8px;
+            background: var(--bg-surface-2);
+        }
+
+        .equipment-work-order-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--color-accent);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .equipment-work-order-description {
+            margin-top: 6px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .equipment-work-order-type {
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .equipment-detail-empty {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .equipment-detail-action {
+            width: 1%;
+            min-width: 128px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .equipment-detail-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 34px;
+            padding: 8px 12px;
+            border: 1px solid #B9D7F5;
+            border-radius: 8px;
+            background: #F1F7FE;
+            color: #0052A8;
+            box-shadow: 0 1px 2px rgba(0, 59, 123, 0.08);
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color .18s ease, border-color .18s ease,
+                box-shadow .18s ease, color .18s ease, transform .18s ease;
+        }
+
+        .equipment-detail-btn-icon {
+            display: inline-grid;
+            width: 17px;
+            height: 17px;
+            place-items: center;
+            border-radius: 5px;
+            background: #DCEEFF;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .equipment-detail-btn:hover {
+            border-color: #0066CC;
+            background: #0066CC;
+            color: #FFFFFF;
+            box-shadow: 0 4px 10px rgba(0, 102, 204, 0.22);
+            transform: translateY(-1px);
+        }
+
+        .equipment-detail-btn:hover .equipment-detail-btn-icon {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .equipment-detail-btn:focus-visible {
+            outline: 3px solid rgba(0, 102, 204, 0.24);
+            outline-offset: 2px;
+        }
+
+        .equipment-detail-btn:active {
+            box-shadow: 0 1px 3px rgba(0, 59, 123, 0.14);
+            transform: translateY(0);
+        }
+
         @media (max-width: 600px) {
             .equipment-detail-grid { grid-template-columns: 1fr; }
+            .equipment-detail-action { min-width: 112px; }
+            .equipment-detail-btn { padding: 8px 9px; }
         }
 
         /* Read-only status badge untuk Guest/Reviewer */
@@ -655,12 +845,80 @@
 
             document.querySelectorAll('.equipment-detail-btn').forEach(function (button) {
                 button.addEventListener('click', function () {
-                    Object.keys(this.dataset).forEach(function (key) {
+                    const setDetail = function (key, value) {
                         const target = modal.querySelector('[data-detail="' + key.replace(/[A-Z]/g, function (letter) {
                             return '-' + letter.toLowerCase();
                         }) + '"]');
-                        if (target) { target.textContent = button.dataset[key] || '—'; }
+                        if (target) { target.textContent = value || '—'; }
+                    };
+
+                    setDetail('assetnum', button.dataset.assetnum);
+                    setDetail('equipment', button.dataset.equipment);
+                    setDetail('status', button.dataset.status);
+                    setDetail('reportDate', button.dataset.reportDate);
+                    setDetail('duration', button.dataset.duration);
+
+                    const statusBadge = modal.querySelector('[data-detail="status"]');
+                    statusBadge.classList.remove('normal-select', 'abnormal-select', 'notready-select');
+                    statusBadge.classList.add(button.dataset.soStatusClass || 'notready-select');
+
+                    ['thermograph', 'vibrasi', 'oilAnalysis', 'mca', 'pd', 'dga'].forEach(function (key) {
+                        setDetail(key, button.dataset[key]);
+                        const badge = modal.querySelector('[data-detail="' + key.replace(/[A-Z]/g, function (letter) {
+                            return '-' + letter.toLowerCase();
+                        }) + '"]');
+                        if (!badge) { return; }
+                        badge.classList.remove('detail-soon');
+                        badge.style.color = button.dataset[key + 'Color'] || '#64748B';
+                        badge.style.backgroundColor = (button.dataset[key + 'Color'] || '#64748B') + '1A';
+                        badge.title = button.dataset[key + 'Label'] || 'Belum tersedia';
+                        if ((button.dataset[key] || '') === 'SOON') {
+                            badge.classList.add('detail-soon');
+                            badge.style.color = '#64748B';
+                            badge.style.backgroundColor = '#F1F5F9';
+                        }
                     });
+
+                    const workOrders = modal.querySelector('[data-detail-work-orders]');
+                    workOrders.textContent = '';
+                    let orders = [];
+                    try {
+                        const binary = atob(button.dataset.workOrders || '');
+                        const bytes = Array.prototype.map.call(binary, function (char) {
+                            return '%' + ('00' + char.charCodeAt(0).toString(16)).slice(-2);
+                        }).join('');
+                        orders = JSON.parse(decodeURIComponent(bytes));
+                    } catch (error) {
+                        orders = [];
+                    }
+
+                    if (!orders.length) {
+                        const empty = document.createElement('span');
+                        empty.className = 'equipment-detail-empty';
+                        empty.textContent = 'Tidak ada data WO.';
+                        workOrders.appendChild(empty);
+                    } else {
+                        orders.forEach(function (order) {
+                            const card = document.createElement('article');
+                            card.className = 'equipment-work-order';
+                            const head = document.createElement('div');
+                            head.className = 'equipment-work-order-head';
+                            const number = document.createElement('span');
+                            number.textContent = order.no_wo || '-';
+                            const type = document.createElement('span');
+                            type.textContent = order.status || '—';
+                            head.append(number, type);
+                            const description = document.createElement('div');
+                            description.className = 'equipment-work-order-description';
+                            description.textContent = order.description || '—';
+                            const typeLabel = document.createElement('div');
+                            typeLabel.className = 'equipment-work-order-type';
+                            typeLabel.textContent = 'Tipe: ' + (order.status || '—');
+                            card.append(head, description, typeLabel);
+                            workOrders.appendChild(card);
+                        });
+                    }
+
                     modal.hidden = false;
                     document.body.style.overflow = 'hidden';
                 });

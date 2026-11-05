@@ -13,6 +13,10 @@ class EquipmentController extends Controller
 {
     public function create(): View
     {
+        if (session('login_role') === 'CBM') {
+            return view('equipment.cbm');
+        }
+
         $pltas = Plta::query()
             ->orderBy('nama_plta')
             ->get(['id', 'nama_plta']);
@@ -22,6 +26,8 @@ class EquipmentController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        abort_if(session('login_role') === 'CBM', 403, 'Fitur Insert Equipment belum tersedia untuk CBM.');
+
         $validated = $request->validate([
             'plta_id' => ['required', 'integer', 'exists:pltas,id'],
             'unit' => ['required', 'string', 'max:50'],
@@ -47,9 +53,9 @@ class EquipmentController extends Controller
      */
     public function updateStatus(Request $request, string $assetnum): JsonResponse
     {
-        if (! in_array(session('login_role'), ['SO', 'CBM'], true)) {
+        if (session('login_role') !== 'SO') {
             return response()->json([
-                'error' => 'Akses ditolak. Hanya SO atau CBM yang dapat mengubah Status Operasi.',
+                'error' => 'Akses ditolak. Fitur ini hanya tersedia untuk SO.',
             ], 403);
         }
 

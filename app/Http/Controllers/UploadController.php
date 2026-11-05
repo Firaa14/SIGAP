@@ -16,6 +16,10 @@ class UploadController extends Controller
     {
         $pltaList = DashboardController::pltaList();
 
+        if (session('login_role') === 'CBM') {
+            return view('upload.cbm', compact('pltaList'));
+        }
+
         return view('upload.index', [
             'pltaList' => $pltaList,
             'showPreview' => false,
@@ -25,6 +29,10 @@ class UploadController extends Controller
 
     public function preview(Request $request, ExcelUploadService $service): View|RedirectResponse
     {
+        if (session('login_role') === 'CBM') {
+            return redirect()->route('upload.index');
+        }
+
         $pltaList = DashboardController::pltaList();
 
         $request->validate([
@@ -124,6 +132,10 @@ class UploadController extends Controller
 
     public function commit(Request $request, ExcelUploadService $service): RedirectResponse
     {
+        if (session('login_role') === 'CBM') {
+            return redirect()->route('upload.index');
+        }
+
         $validRows = session('upload_valid_rows');
         $filename = session('upload_filename');
         $totalRows = session('upload_total_rows');

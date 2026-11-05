@@ -6,6 +6,7 @@ use App\Models\Equipment;
 use App\Models\EquipmentWo;
 use App\Models\Plta;
 use App\Models\UploadHistory;
+use App\Services\CbmEquipmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
@@ -41,13 +42,24 @@ class DashboardController extends Controller
     public static function pltaMapData(): array
     {
         $pltas = Plta::query()->orderBy('id')->with('equipments.wos')->get();
+        $isCbm = session('login_role') === 'CBM';
+        $cbmService = $isCbm ? new CbmEquipmentService() : null;
 
-        return $pltas->map(function (Plta $plta): array {
+        return $pltas->map(function (Plta $plta) use ($isCbm, $cbmService): array {
             $equipments = $plta->equipments;
+            $cbmEquipments = $isCbm && $cbmService
+                ? $cbmService->forEquipment($equipments)
+                : collect();
 
-            $normal = $equipments->filter(fn(Equipment $e) => $e->status_operasi === 'Normal')->count();
-            $abnormal = $equipments->filter(fn(Equipment $e) => $e->status_operasi === 'Abnormal')->count();
-            $notReady = $equipments->filter(fn(Equipment $e) => $e->status_operasi === 'Not Ready')->count();
+            $normal = $isCbm
+                ? $cbmEquipments->where('status', 'Normal')->count()
+                : $equipments->filter(fn(Equipment $e) => $e->status_operasi === 'Normal')->count();
+            $abnormal = $isCbm
+                ? $cbmEquipments->where('status', 'Abnormal')->count()
+                : $equipments->filter(fn(Equipment $e) => $e->status_operasi === 'Abnormal')->count();
+            $notReady = $isCbm
+                ? $cbmEquipments->where('status', 'Not Ready')->count()
+                : $equipments->filter(fn(Equipment $e) => $e->status_operasi === 'Not Ready')->count();
 
             $overallStatus = match (true) {
                 $abnormal > 0 => 'abnormal',
@@ -78,16 +90,20 @@ class DashboardController extends Controller
     {
         $pltaList = self::pltaList();
         $mapData = self::pltaMapData();
+        $isCbm = session('login_role') === 'CBM';
 
         // ── Stats dari DB ─────────────────────────────────────────────────────
-        $totalEquipment = Equipment::count();
+        $totalEquipment = $isCbm ? array_sum(array_column($mapData, 'total_equipment')) : Equipment::count();
 
         // Hitung status operasi: ambil semua equipment dengan relasi wos
-        $allEquipments = Equipment::with('wos')->get();
+        $allEquipments = $isCbm ? collect() : Equipment::with('wos')->get();
 
-        $normal = $allEquipments->filter(fn(Equipment $e) => $e->status_operasi === 'Normal')->count();
-        $abnormal = $allEquipments->filter(fn(Equipment $e) => $e->status_operasi === 'Abnormal')->count();
-        $notReady = $allEquipments->filter(fn(Equipment $e) => $e->status_operasi === 'Not Ready')->count();
+        $normal = $isCbm ? array_sum(array_column($mapData, 'normal'))
+            : $allEquipments->filter(fn(Equipment $e) => $e->status_operasi === 'Normal')->count();
+        $abnormal = $isCbm ? array_sum(array_column($mapData, 'abnormal'))
+            : $allEquipments->filter(fn(Equipment $e) => $e->status_operasi === 'Abnormal')->count();
+        $notReady = $isCbm ? array_sum(array_column($mapData, 'not_ready'))
+            : $allEquipments->filter(fn(Equipment $e) => $e->status_operasi === 'Not Ready')->count();
 
         $stats = [
             'total_plta' => count($pltaList),
@@ -98,7 +114,7 @@ class DashboardController extends Controller
         ];
 
         // ── Recent Activity dari DB (10 WO terbaru berdasarkan uploaded_at) ───
-        $recentWos = EquipmentWo::with(['equipment.plta'])
+        $recentWos = $isCbm ? collect() : EquipmentWo::with(['equipment.plta'])
             ->whereNotNull('uploaded_at')
             ->orderByDesc('uploaded_at')
             ->limit(10)
@@ -123,7 +139,7 @@ class DashboardController extends Controller
         })->all();
 
         // ── Upload terakhir ───────────────────────────────────────────────────
-        $lastUpload = UploadHistory::with('user')
+        $lastUpload = $isCbm ? null : UploadHistory::with('user')
             ->orderByDesc('uploaded_at')
             ->first();
 

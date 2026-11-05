@@ -84,6 +84,74 @@
     {{-- ======================================================
     TABEL EQUIPMENT
     ====================================================== --}}
+    @if($isCbm)
+        <div class="card" id="cbm-equipment-table-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <span class="card-title-icon">⚙</span>
+                    <span>Data Pengujian CBM — {{ $currentPlta['name'] }}</span>
+                </div>
+                <div class="card-actions">
+                    <span style="font-size:11px;color:var(--text-muted);">
+                        {{ $cbmEquipments->count() }} equipment ditampilkan
+                    </span>
+                </div>
+            </div>
+
+            @if($cbmEquipments->isNotEmpty())
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Unit</th>
+                                <th>System</th>
+                                <th>Equipment</th>
+                                <th>KKS</th>
+                                <th>ASSETNUM</th>
+                                <th>Thermograph</th>
+                                <th>Vibrasi</th>
+                                <th>Oil Analysis</th>
+                                <th>MCA</th>
+                                <th>PD</th>
+                                <th>DGA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($cbmEquipments as $index => $eq)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $eq['unit'] }}</td>
+                                    <td>{{ $eq['system'] }}</td>
+                                    <td>{{ $eq['equipment'] }}</td>
+                                    <td>{{ $eq['kks'] }}</td>
+                                    <td>{{ $eq['assetnum'] }}</td>
+                                    @foreach(['thermograph', 'vibrasi', 'oil_analysis', 'mca', 'pd', 'dga'] as $parameter)
+                                        <td>
+                                            @php
+                                                $statusMeta = $cbmStatusLegend[$parameter][$eq[$parameter]] ?? null;
+                                            @endphp
+                                            <span class="cbm-status-badge cbm-status-{{ strtolower($eq[$parameter]) }}"
+                                                @if($statusMeta) style="background:{{ $statusMeta['color'] }}22;color:{{ $statusMeta['color'] }};" @endif
+                                                title="{{ $statusMeta['label'] ?? 'Belum tersedia' }}">
+                                                {{ $eq[$parameter] }}
+                                            </span>
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚙</div>
+                    <div class="empty-state-title">Belum ada data equipment</div>
+                    <div class="empty-state-text">Data pengujian CBM untuk {{ $currentPlta['name'] }} belum tersedia.</div>
+                </div>
+            @endif
+        </div>
+    @else
     <div class="card" id="equipment-table-card">
         <div class="card-header">
             <div class="card-title">
@@ -112,6 +180,9 @@
                             <th data-i18n="plta_th_notes">Deskripsi</th>
                             <th data-i18n="plta_th_report_date">Tanggal Report</th>
                             <th data-i18n="plta_th_duration">Durasi</th>
+                            @if($isPublicView)
+                                <th>Action</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody id="equipment-tbody">
@@ -182,6 +253,28 @@
                                 <td style="font-size:12.5px; white-space:nowrap;">
                                     {{ $eq['durasi_hari'] }}
                                 </td>
+                                @if($isPublicView)
+                                    @php
+                                        $cbmEq = $cbmEquipments->firstWhere('assetnum', $eq['assetnum']);
+                                    @endphp
+                                    <td>
+                                        <button type="button" class="btn btn-secondary btn-sm equipment-detail-btn"
+                                            data-assetnum="{{ $eq['assetnum'] }}"
+                                            data-equipment="{{ $eq['equipment'] }}"
+                                            data-status="{{ $eq['status_operasi'] }}"
+                                            data-description="{{ $eq['keterangan'][0]['description'] ?? '—' }}"
+                                            data-report-date="{{ $eq['report_date'] }}"
+                                            data-duration="{{ $eq['durasi_hari'] }}"
+                                            data-thermograph="{{ $cbmEq['thermograph'] ?? 'SOON' }}"
+                                            data-vibrasi="{{ $cbmEq['vibrasi'] ?? 'SOON' }}"
+                                            data-oil-analysis="{{ $cbmEq['oil_analysis'] ?? 'SOON' }}"
+                                            data-mca="{{ $cbmEq['mca'] ?? 'SOON' }}"
+                                            data-pd="{{ $cbmEq['pd'] ?? 'SOON' }}"
+                                            data-dga="{{ $cbmEq['dga'] ?? 'SOON' }}">
+                                            Detail
+                                        </button>
+                                    </td>
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>
@@ -207,6 +300,30 @@
             </div>
         @endif
     </div>
+    @endif
+
+    @if($isPublicView)
+        <div id="equipment-detail-modal" class="equipment-detail-modal" hidden>
+            <div class="equipment-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="equipment-detail-title">
+                <button type="button" class="equipment-detail-close" aria-label="Tutup detail">&times;</button>
+                <h2 id="equipment-detail-title">Detail Equipment</h2>
+                <div class="equipment-detail-grid">
+                    <div><span>Equipment</span><strong data-detail="equipment">—</strong></div>
+                    <div><span>ASSETNUM</span><strong data-detail="assetnum">—</strong></div>
+                    <div><span>Status Operasi</span><strong data-detail="status">—</strong></div>
+                    <div><span>Deskripsi</span><strong data-detail="description">—</strong></div>
+                    <div><span>Tanggal Report</span><strong data-detail="report-date">—</strong></div>
+                    <div><span>Durasi</span><strong data-detail="duration">—</strong></div>
+                    <div><span>Thermograph</span><strong data-detail="thermograph">—</strong></div>
+                    <div><span>Vibrasi</span><strong data-detail="vibrasi">—</strong></div>
+                    <div><span>Oil Analysis</span><strong data-detail="oil-analysis">—</strong></div>
+                    <div><span>MCA</span><strong data-detail="mca">—</strong></div>
+                    <div><span>PD</span><strong data-detail="pd">—</strong></div>
+                    <div><span>DGA</span><strong data-detail="dga">—</strong></div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- Navigasi antar PLTA --}}
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; flex-wrap:wrap; gap:8px;">
@@ -237,6 +354,95 @@
 
 @section('scripts')
     <style>
+        .cbm-status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 42px;
+            padding: 3px 7px;
+            border-radius: 6px;
+            background: var(--color-blue-light);
+            color: var(--color-accent);
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .cbm-status-soon {
+            background: #F1F5F9;
+            color: #64748B;
+        }
+
+        .equipment-detail-modal[hidden] {
+            display: none;
+        }
+
+        .equipment-detail-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.58);
+        }
+
+        .equipment-detail-dialog {
+            position: relative;
+            width: min(720px, 100%);
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px;
+            border-radius: 16px;
+            background: var(--bg-primary);
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.28);
+        }
+
+        .equipment-detail-dialog h2 {
+            margin: 0 0 20px;
+            color: var(--text-primary);
+        }
+
+        .equipment-detail-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            border: 0;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 26px;
+            cursor: pointer;
+        }
+
+        .equipment-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .equipment-detail-grid div {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .equipment-detail-grid span {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .equipment-detail-grid strong {
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .equipment-detail-grid { grid-template-columns: 1fr; }
+        }
+
         /* Read-only status badge untuk Guest/Reviewer */
         .status-select-readonly {
             display: inline-flex;
@@ -433,6 +639,40 @@
             if (!backdrop) { return; }
             // Span read-only sudah punya data-requires-auth="true" sehingga
             // akan otomatis di-intercept oleh listener global di app.blade.php.
+        })();
+
+        // ============================================================
+        // PUBLIC EQUIPMENT DETAIL
+        // ============================================================
+        (function () {
+            const modal = document.getElementById('equipment-detail-modal');
+            if (!modal) { return; }
+
+            const close = function () {
+                modal.hidden = true;
+                document.body.style.overflow = '';
+            };
+
+            document.querySelectorAll('.equipment-detail-btn').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    Object.keys(this.dataset).forEach(function (key) {
+                        const target = modal.querySelector('[data-detail="' + key.replace(/[A-Z]/g, function (letter) {
+                            return '-' + letter.toLowerCase();
+                        }) + '"]');
+                        if (target) { target.textContent = button.dataset[key] || '—'; }
+                    });
+                    modal.hidden = false;
+                    document.body.style.overflow = 'hidden';
+                });
+            });
+
+            modal.querySelector('.equipment-detail-close').addEventListener('click', close);
+            modal.addEventListener('click', function (event) {
+                if (event.target === modal) { close(); }
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && !modal.hidden) { close(); }
+            });
         })();
     </script>
 @endsection

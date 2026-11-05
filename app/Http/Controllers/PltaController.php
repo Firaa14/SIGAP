@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Equipment;
 use App\Models\Plta;
+use App\Services\CbmEquipmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class PltaController extends Controller
 {
-    public function show(string $slug): View|RedirectResponse
+    public function show(string $slug, CbmEquipmentService $cbmService): View|RedirectResponse
     {
         $pltaList = DashboardController::pltaList();
 
@@ -49,14 +50,35 @@ class PltaController extends Controller
                 ])->all()
             : [];
 
-        $statusSummary = [
-            'normal' => collect($equipments)->where('status_operasi', 'Normal')->count(),
-            'abnormal' => collect($equipments)->where('status_operasi', 'Abnormal')->count(),
-            'not_ready' => collect($equipments)->where('status_operasi', 'Not Ready')->count(),
-        ];
+        $canEditStatus = session('login_role') === 'SO';
+        $isCbm = session('login_role') === 'CBM';
+        $isPublicView = ! auth()->check();
+        $cbmEquipments = ($isCbm || $isPublicView)
+            ? $cbmService->forEquipment($pltaModel?->equipments ?? collect())
+            : collect();
+        $statusSummary = $isCbm
+            ? [
+                'normal' => $cbmEquipments->where('status', 'Normal')->count(),
+                'abnormal' => $cbmEquipments->where('status', 'Abnormal')->count(),
+                'not_ready' => $cbmEquipments->where('status', 'Not Ready')->count(),
+            ]
+            : [
+                'normal' => collect($equipments)->where('status_operasi', 'Normal')->count(),
+                'abnormal' => collect($equipments)->where('status_operasi', 'Abnormal')->count(),
+                'not_ready' => collect($equipments)->where('status_operasi', 'Not Ready')->count(),
+            ];
+        $cbmStatusLegend = $cbmService->statusLegend();
 
-        $canEditStatus = in_array(session('login_role'), ['SO', 'CBM'], true);
-
-        return view('plta.show', compact('currentPlta', 'pltaList', 'equipments', 'statusSummary', 'canEditStatus'));
+        return view('plta.show', compact(
+            'currentPlta',
+            'pltaList',
+            'equipments',
+            'statusSummary',
+            'canEditStatus',
+            'isCbm',
+            'isPublicView',
+            'cbmEquipments',
+            'cbmStatusLegend'
+        ));
     }
 }

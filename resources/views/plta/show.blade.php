@@ -125,6 +125,14 @@
     TABEL EQUIPMENT
     ====================================================== --}}
     @if($isCbm)
+        @php
+            // Parameter CBM yang sudah pernah diupload (minimal 1 data di database).
+            // Parameter yang belum pernah diupload -> "SOON".
+            // Parameter yang sudah diupload tapi equipment ini tidak punya data -> "Not Measured".
+            $uploadedParameters = \Illuminate\Support\Facades\Schema::hasTable('cbm_measurements')
+                ? \Illuminate\Support\Facades\DB::table('cbm_measurements')->distinct()->pluck('parameter')->all()
+                : [];
+        @endphp
         <div class="card" id="cbm-equipment-table-card">
             <div class="card-header">
                 <div class="card-title">
@@ -178,12 +186,14 @@
                                         <td>
                                             @php
                                                 $statusMeta = $cbmStatusLegend[$parameter][$eq[$parameter]] ?? null;
-                                                $isNotMeasured = $eq[$parameter] === 'SOON';
+                                                $isSoon = $eq[$parameter] === 'SOON';
+                                                // Sudah pernah diupload tapi equipment ini tidak ada datanya -> Not Measured
+                                                $soonText = in_array($parameter, $uploadedParameters, true) ? 'Not Measured' : 'SOON';
                                             @endphp
                                             <span class="cbm-status-badge cbm-status-{{ strtolower($eq[$parameter]) }}"
                                                 @if($statusMeta) style="background:{{ $statusMeta['color'] }}22;color:{{ $statusMeta['color'] }};" @endif
-                                                title="{{ $statusMeta['label'] ?? 'Not Measured' }}">
-                                                {{ $isNotMeasured ? 'Not Measured' : $eq[$parameter] }}
+                                                title="{{ $statusMeta['label'] ?? $soonText }}">
+                                                {{ $isSoon ? $soonText : $eq[$parameter] }}
                                             </span>
                                         </td>
                                     @endforeach

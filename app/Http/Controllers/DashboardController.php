@@ -15,6 +15,9 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    /** Lama (menit) tab parameter CBM tampil setelah upload. */
+    private const CBM_TAB_WINDOW_MINUTES = 10;
+
     /**
      * Daftar 13 PLTA dengan kode prefix ASSETNUM.
      *
@@ -115,6 +118,27 @@ class DashboardController extends Controller
     }
 
     /**
+     * Khusus peran CBM: parameter yang baru saja diupload
+     * (dalam CBM_TAB_WINDOW_MINUTES menit terakhir).
+     * Dipakai untuk menampilkan tab sementara di tabel aktivitas.
+     *
+     * @return array<int, string>
+     */
+    private static function cbmRecentUploadedParameters(): array
+    {
+        if (! Schema::hasTable('cbm_measurements')) {
+            return [];
+        }
+
+        return DB::table('cbm_measurements')
+            ->where('updated_at', '>=', now()->subMinutes(self::CBM_TAB_WINDOW_MINUTES))
+            ->distinct()
+            ->pluck('parameter')
+            ->map(fn($p): string => (string) $p)
+            ->all();
+    }
+
+    /**
      * Khusus peran CBM: data uji untuk tabel aktivitas.
      * - Tanpa filter  : 10 upload terbaru dari semua parameter.
      * - Dengan filter : status terakhir tiap equipment pada parameter itu (maks. 500).
@@ -196,6 +220,9 @@ class DashboardController extends Controller
         // Kartu per parameter CBM (null untuk peran selain CBM).
         $cbmParameterStats = $isCbm ? self::cbmParameterStats() : null;
 
+        // Parameter yang baru saja diupload (untuk tab sementara; kosong untuk peran selain CBM).
+        $cbmRecentUploads = $isCbm ? self::cbmRecentUploadedParameters() : [];
+
         // Parameter yang dipilih lewat kartu (hanya peran CBM, hanya nilai yang dikenal).
         $selectedParameter = null;
         if ($isCbm) {
@@ -250,6 +277,7 @@ class DashboardController extends Controller
             'mapData',
             'stats',
             'cbmParameterStats',
+            'cbmRecentUploads',
             'cbmActivity',
             'selectedParameter',
             'recentActivity',

@@ -51,6 +51,7 @@
     .cbm-up .alert-bad { background:#fee2e2; color:#991b1b; padding:12px 16px; border-radius:10px; }
     .cbm-up .scroll { max-height:380px; overflow:auto; }
     .cbm-up .hide { display:none; }
+    .cbm-up .opt { color:var(--c-mute); font-size:12px; }
 </style>
 
 <div class="cbm-up">
@@ -67,16 +68,17 @@
         <ul>
             <li>Upload dilakukan <b>satu parameter per file</b>: Thermograph, Vibrasi, Oil Analysis, MCA, PD, atau DGA.</li>
             <li>Pilih parameter yang sesuai dengan file. Parameter otomatis dipilih dari nama file, tetapi tetap periksa kembali.</li>
-            <li>Kolom wajib: <b>ASSETNUM</b> dan <b>STATUS</b>. Tanggal uji otomatis memakai tanggal upload.</li>
-            <li>STATUS harus memakai kode milik parameter yang dipilih (lihat panel di sebelah kanan).</li>
-            <li>ASSETNUM harus sudah terdaftar di master equipment.</li>
+            <li>Gunakan file resume bulanan apa adanya. Yang dibaca: <b>PLTA</b>, <b>Equipment</b>, <b>No. Equip.</b>, dan hasil akhir (<b>Status Terakhir</b> / Status Akhir / Resume).</li>
+            <li><b>ASSETNUM tidak perlu ada di file</b>. Sistem mencarinya otomatis dari master equipment. Tanggal uji otomatis memakai tanggal upload.</li>
+            <li>Baris yang belum punya hasil uji (status kosong) dilewati dan tidak dihitung sebagai error.</li>
         </ul>
     </div>
 
     <div class="warn">
         <b>Perhatian</b><br>
         Data CBM disimpan sebagai <b>riwayat</b>, nilai lama tidak ditimpa. Tabel CBM menampilkan hasil uji terbaru per
-        parameter. Equipment tanpa data tampil <b>SOON</b>. 
+        parameter. Parameter yang belum pernah diupload tampil <b>SOON</b>. Setelah diupload, equipment yang tidak punya
+        datanya tampil <b>Not Measured</b>.
     </div>
 
     <div class="grid2">
@@ -132,8 +134,9 @@
 
                 <div class="rule-t"><span class="dot" style="background:#f59e0b"></span> Aturan Penyimpanan</div>
                 <div class="rule">
-                    ASSETNUM + parameter yang diupload pada <b>hari yang sama</b> akan <b>diperbarui</b>. Upload pada hari
+                    Equipment + parameter yang diupload pada <b>hari yang sama</b> akan <b>diperbarui</b>. Upload pada hari
                     berbeda ditambahkan sebagai <b>riwayat baru</b>. Tabel CBM mengambil data paling baru.
+                    Jika satu equipment punya beberapa baris/item uji, yang disimpan adalah <b>status terparah</b>.
                 </div>
             </div>
         </div>
@@ -145,8 +148,11 @@
         <table>
             <thead><tr><th>NAMA KOLOM</th><th>DESKRIPSI</th><th style="text-align:right">WAJIB</th></tr></thead>
             <tbody>
-                <tr><td class="mono">ASSETNUM</td><td>Identifier equipment sesuai master (contoh: BSGR000001)</td><td style="text-align:right;color:#4ade80">✓</td></tr>
-                <tr><td class="mono">STATUS</td><td>Kode status sesuai parameter yang dipilih</td><td style="text-align:right;color:#4ade80">✓</td></tr>
+                <tr><td class="mono">PLTA</td><td>Kode PLTA (contoh: SGR, STM, TLG)</td><td style="text-align:right;color:#4ade80">✓</td></tr>
+                <tr><td class="mono">EQUIPMENT</td><td>Nama equipment sesuai file resume (contoh: Turbin #1)</td><td style="text-align:right;color:#4ade80">✓</td></tr>
+                <tr><td class="mono">STATUS TERAKHIR</td><td>Hasil akhir pengujian (kode sesuai parameter). Nama kolom bisa juga Status Akhir atau Resume</td><td style="text-align:right;color:#4ade80">✓</td></tr>
+                <tr><td class="mono">NO. EQUIP.</td><td>Kode equipment (contoh: H101). Membantu mencocokkan ke master equipment</td><td style="text-align:right" class="opt">opsional</td></tr>
+                <tr><td class="mono">ASSETNUM</td><td>Jika ada, dipakai langsung. Jika tidak ada, dicari otomatis dari master equipment</td><td style="text-align:right" class="opt">opsional</td></tr>
             </tbody>
         </table>
     </div>
@@ -173,10 +179,16 @@
                 @if (count($preview['errors']))
                     <div class="scroll" style="margin-bottom:16px">
                         <table class="errtbl">
-                            <thead><tr><th>BARIS</th><th>ASSETNUM</th><th>ALASAN</th></tr></thead>
+                            <thead><tr><th>BARIS</th><th>PLTA</th><th>EQUIPMENT</th><th>ASSETNUM</th><th>ALASAN</th></tr></thead>
                             <tbody>
                                 @foreach ($preview['errors'] as $err)
-                                    <tr><td>{{ $err['row'] }}</td><td>{{ $err['assetnum'] }}</td><td>{{ $err['reason'] }}</td></tr>
+                                    <tr>
+                                        <td>{{ $err['row'] }}</td>
+                                        <td>{{ $err['plta'] ?? '—' }}</td>
+                                        <td>{{ $err['equipment'] ?? '—' }}</td>
+                                        <td>{{ $err['assetnum'] ?? '—' }}</td>
+                                        <td>{{ $err['reason'] }}</td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
@@ -186,12 +198,17 @@
                 @if (count($preview['valid']))
                     <div class="scroll">
                         <table>
-                            <thead><tr><th>ASSETNUM</th><th>STATUS</th></tr></thead>
+                            <thead><tr><th>ASSETNUM</th><th>PLTA</th><th>EQUIPMENT (DI FILE)</th><th>HASIL AKHIR</th></tr></thead>
                             <tbody>
                                 @foreach (array_slice($preview['valid'], 0, 100) as $row)
                                     <tr>
                                         <td class="mono">{{ $row['assetnum'] }}</td>
-                                        <td><span class="badge" style="background:{{ $meta[$row['status_code']]['color'] ?? '#64748b' }}">{{ $row['status_code'] }}</span></td>
+                                        <td>{{ ($row['plta'] ?? '') !== '' ? $row['plta'] : '—' }}</td>
+                                        <td>{{ ($row['equipment'] ?? '') !== '' ? $row['equipment'] : '—' }}</td>
+                                        <td>
+                                            <span class="badge" style="background:{{ $meta[$row['status_code']]['color'] ?? '#64748b' }}">{{ $row['status_code'] }}</span>
+                                            {{ $meta[$row['status_code']]['label'] ?? '' }}
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -237,7 +254,8 @@
 
     // Tebak parameter dari nama file (key, label, atau alias).
     const aliases = { irt: 'thermo', infrared: 'thermo', thermography: 'thermo', thermograph: 'thermo',
-                      vibration: 'vibra', vibrasi: 'vibra', oil: 'oil', mca: 'mca', 'partial discharge': 'pd', dga: 'dga' };
+                      vibration: 'vibra', vibrasi: 'vibra', oil: 'oil', mca: 'mca', mcsa: 'mca',
+                      'partial discharge': 'pd', pd: 'pd', dga: 'dga' };
     const guessTab = name => {
         const n = name.toLowerCase();
         const match = needle => tabs.find(t => (t.dataset.key + ' ' + t.textContent).toLowerCase().includes(needle));

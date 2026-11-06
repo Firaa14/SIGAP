@@ -201,19 +201,20 @@
             </div>
 
             @php
-                // Tab hanya untuk parameter yang sudah pernah diupload (jumlah data > 0).
-                $uploadedParams = collect($cbmParameterStats)->filter(fn ($p) => $p['total'] > 0);
+                // Tab parameter hanya muncul sesaat setelah upload.
+                // Tab yang sedang dipilih tetap ditampilkan agar tidak hilang saat dibuka.
+                $recentParams = collect($cbmParameterStats)
+                    ->filter(fn ($p) => in_array($p['key'], $cbmRecentUploads ?? [], true)
+                        || ($selectedParameter ?? null) === $p['key']);
             @endphp
-            @if ($uploadedParams->isNotEmpty())
-                <div class="cbm-tabs">
-                    <a href="{{ route('dashboard') }}#recent-activity-card"
-                        class="cbm-tab {{ empty($selectedParameter) ? 'active' : '' }}">Semua</a>
-                    @foreach ($uploadedParams as $param)
-                        <a href="{{ route('dashboard', ['parameter' => $param['key']]) }}#recent-activity-card"
-                            class="cbm-tab {{ ($selectedParameter ?? null) === $param['key'] ? 'active' : '' }}">{{ $param['label'] }}</a>
-                    @endforeach
-                </div>
-            @endif
+            <div class="cbm-tabs">
+                <a href="{{ route('dashboard') }}#recent-activity-card"
+                    class="cbm-tab {{ empty($selectedParameter) ? 'active' : '' }}">Semua</a>
+                @foreach ($recentParams as $param)
+                    <a href="{{ route('dashboard', ['parameter' => $param['key']]) }}#recent-activity-card"
+                        class="cbm-tab {{ ($selectedParameter ?? null) === $param['key'] ? 'active' : '' }}">{{ $param['label'] }}</a>
+                @endforeach
+            </div>
 
             <div class="table-wrapper">
                 @if (count($cbmActivity) > 0)

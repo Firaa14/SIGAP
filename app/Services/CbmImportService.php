@@ -10,17 +10,45 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class CbmImportService
 {
-    /** Nama header yang dikenali (huruf besar, spasi dirapikan). */
+    /** Format lama (template aplikasi): kolom ASSETNUM + STATUS. Tetap didukung. */
     private const ASSET_HEADERS = ['ASSETNUM', 'ASSET NUM', 'ASSET', 'NO ASSET', 'KODE ASSET'];
     private const STATUS_HEADERS = ['STATUS', 'STATUS TERAKHIR'];
+
+    /** Kata yang diabaikan saat mencocokkan nama equipment. */
+    private const STOPWORDS = ['UNIT', 'NO', 'THE', 'DAN'];
+
+    /** Penyeragaman istilah antara file Excel dan master equipment. */
+    private const SYNONYMS = [
+        'TURBIN' => 'TURBINE',
+        'GEN' => 'GENERATOR',
+        'TRAFO' => 'TRANSFORMER',
+        'TRF' => 'TRANSFORMER',
+        'GOV' => 'GOVERNOR',
+        'BRG' => 'BEARING',
+        'VIBRATION' => 'VIB',
+        'VIBRASI' => 'VIB',
+    ];
+
+    /** Kata yang bobotnya kecil saat mencocokkan (sering tidak ada di master). */
+    private const LOW_WEIGHT = ['VIB', 'X', 'Y', 'Z'];
+
+    /** Skor minimum agar sebuah equipment dianggap cocok. */
+    private const MATCH_THRESHOLD = 0.6;
 
     public function __construct(private CbmEquipmentService $cbm)
     {
     }
 
     /**
-     * Baca file Excel/CSV. Semua sheet yang punya header ASSETNUM/Asset dan STATUS/Status Terakhir
-     * dibaca. Jika satu ASSETNUM muncul di banyak baris/sheet, status terparah yang dipakai
+     * Baca file Excel/CSV.
+     *
+     * Dua format didukung:
+     *  1. Format lama  : header ASSETNUM + STATUS (ASSETNUM dipakai langsung).
+     *  2. Format resume: header PLTA + EQUIPMENT + (No. Equip.) + Status Terakhir / Status Akhir /
+     *     Resume / Status. ASSETNUM dicari otomatis di master equipment dari kode PLTA,
+     *     nama equipment, dan No. Equip.
+     *
+     * Jika satu ASSETNUM muncul di banyak baris, status terparah yang dipakai
      * (urutan keparahan = urutan kode di legenda parameter, dari ringan ke berat).
      * Tanggal uji = tanggal upload.
      *
@@ -37,45 +65,63 @@ class CbmImportService
         $reader->setReadDataOnly(true);
         $spreadsheet = $reader->load($path);
 
-        $best = [];      // assetnum => ['rank' => int, 'status' => string, 'where' => string]
-        $invalid = [];   // assetnum|status => ['assetnum' => , 'where' => , 'status' => ]
+        $sheets = $spreadsheet->getAllSheets();
+
+        // Jika ada sheet berjudul "Resume ...", hanya sheet itu yang dibaca pada format resume
+        // (sheet lain biasanya riwayat/detail per PLTA yang bisa menimpa hasil terbaru).
+        $hasResumeSheet = false;
+        foreach ($sheets as $sheet) {
+            if (str_contains(strtoupper($sheet->getTitle()), 'RESUME')) {
+                $hasResumeSheet = true;
+                break;
+            }
+        }
+
+        $entries = [];
         $headerFound = false;
 
-        foreach ($spreadsheet->getAllSheets() as $sheet) {
+        foreach ($sheets as $sheet) {
             $rows = $sheet->toArray(null, false, false, false);
+            $title = $sheet->getTitle();
 
-            [$headerIdx, $colAsset, $colStatus] = $this->findHeader($rows);
-            if ($headerIdx === null) {
-                continue;
-            }
-            $headerFound = true;
+            // 1. Format lama (ASSETNUM + STATUS)
+            [$legacyIdx, $colAsset, $colStatus] = $this->findLegacyHeader($rows);
+            if ($legacyIdx !== null) {
+                $headerFound = true;
 
-            foreach (array_slice($rows, $headerIdx + 1, null, true) as $i => $row) {
-                $assetnum = strtoupper(trim((string) ($row[$colAsset] ?? '')));
-                $status = strtoupper(trim((string) ($row[$colStatus] ?? '')));
+                foreach (array_slice($rows, $legacyIdx + 1, null, true) as $i => $row) {
+                    $assetnum = strtoupper(trim((string) ($row[$colAsset] ?? '')));
+                    $status = strtoupper(trim((string) ($row[$colStatus] ?? '')));
 
-                // Baris tanpa asset atau tanpa status = tidak ada data uji, dilewati.
-                if ($assetnum === '' || $status === '') {
-                    continue;
-                }
+                    if ($assetnum === '' || $status === '') {
+                        continue;
+                    }
 
-                $where = $sheet->getTitle().' baris '.($i + 1);
-                $rank = array_search($status, $allowed, true);
-
-                if ($rank === false) {
-                    $invalid[$assetnum.'|'.$status] ??= [
+                    $entries[] = [
+                        'where' => $title.' baris '.($i + 1),
                         'assetnum' => $assetnum,
-                        'where' => $where,
+                        'plta' => '',
+                        'name' => '',
+                        'noeq' => '',
                         'status' => $status,
                     ];
-
-                    continue;
                 }
 
-                if (! isset($best[$assetnum]) || $rank > $best[$assetnum]['rank']) {
-                    $best[$assetnum] = ['rank' => $rank, 'status' => $status, 'where' => $where];
-                }
+                continue;
             }
+
+            // 2. Format resume (PLTA + EQUIPMENT + Status Terakhir)
+            if ($hasResumeSheet && ! str_contains(strtoupper($title), 'RESUME')) {
+                continue;
+            }
+
+            $header = $this->findResumeHeader($rows);
+            if ($header === null) {
+                continue;
+            }
+
+            $headerFound = true;
+            $this->collectResumeRows($rows, $header, $title, $parameter, $entries);
         }
 
         if (! $headerFound) {
@@ -83,74 +129,451 @@ class CbmImportService
                 'valid' => [],
                 'errors' => [[
                     'row' => '-',
+                    'plta' => '-',
+                    'equipment' => '-',
                     'assetnum' => '-',
-                    'reason' => 'Header tidak ditemukan. Dibutuhkan kolom ASSETNUM (atau Asset) dan STATUS (atau Status Terakhir).',
+                    'reason' => 'Header tidak ditemukan. Dibutuhkan kolom PLTA, EQUIPMENT, dan Status Terakhir '
+                        .'(atau Status Akhir / Resume), atau kolom ASSETNUM dan STATUS.',
                 ]],
             ];
         }
 
-        $known = Equipment::query()->pluck('assetnum')->map(fn ($a) => strtoupper($a))->flip();
+        [$index, $known] = $this->equipmentIndex();
         $date = now()->toDateString();
 
-        $valid = [];
+        $best = [];       // assetnum => ['rank','status','where','plta','name']
         $errors = [];
+        $seenErrors = [];
+        $matchCache = [];
 
-        foreach ($best as $assetnum => $info) {
-            if (! isset($known[$assetnum])) {
-                $errors[] = [
-                    'row' => $info['where'],
-                    'assetnum' => $assetnum,
-                    'reason' => 'ASSETNUM tidak terdaftar di master equipment',
-                ];
+        $pushError = function (string $key, array $error) use (&$errors, &$seenErrors): void {
+            if (isset($seenErrors[$key])) {
+                return;
+            }
+            $seenErrors[$key] = true;
+            $errors[] = $error;
+        };
+
+        foreach ($entries as $e) {
+            $rank = array_search($e['status'], $allowed, true);
+
+            if ($rank === false) {
+                $pushError('status|'.$e['plta'].'|'.$e['name'].'|'.$e['assetnum'].'|'.$e['status'], [
+                    'row' => $e['where'],
+                    'plta' => $e['plta'] !== '' ? $e['plta'] : '—',
+                    'equipment' => $e['name'] !== '' ? $e['name'] : '—',
+                    'assetnum' => $e['assetnum'] ?? '—',
+                    'reason' => 'Status "'.$e['status'].'" tidak valid (boleh: '.implode('/', $allowed).')',
+                ]);
 
                 continue;
             }
 
+            if ($e['assetnum'] !== null) {
+                // Format lama: ASSETNUM langsung dari file.
+                $assetnum = $e['assetnum'];
+
+                if (! isset($known[$assetnum])) {
+                    $pushError('unknown|'.$assetnum, [
+                        'row' => $e['where'],
+                        'plta' => '—',
+                        'equipment' => '—',
+                        'assetnum' => $assetnum,
+                        'reason' => 'ASSETNUM tidak terdaftar di master equipment',
+                    ]);
+
+                    continue;
+                }
+            } else {
+                // Format resume: cari ASSETNUM di master.
+                $key = $e['plta'].'|'.$e['name'].'|'.$e['noeq'];
+
+                if (! array_key_exists($key, $matchCache)) {
+                    $matchCache[$key] = $this->matchEquipment($index, $e['plta'], $e['name'], $e['noeq']);
+                }
+
+                $match = $matchCache[$key];
+
+                if ($match['error'] !== null) {
+                    $pushError('match|'.$key, [
+                        'row' => $e['where'],
+                        'plta' => $e['plta'],
+                        'equipment' => $e['name'].($e['noeq'] !== '' ? ' ('.$e['noeq'].')' : ''),
+                        'assetnum' => $match['hint'] ?? '—',
+                        'reason' => $match['error'],
+                    ]);
+
+                    continue;
+                }
+
+                $assetnum = $match['assetnum'];
+            }
+
+            if (! isset($best[$assetnum]) || $rank > $best[$assetnum]['rank']) {
+                $best[$assetnum] = [
+                    'rank' => $rank,
+                    'status' => $e['status'],
+                    'where' => $e['where'],
+                    'plta' => $e['plta'],
+                    'name' => $e['name'],
+                ];
+            }
+        }
+
+        $valid = [];
+
+        foreach ($best as $assetnum => $info) {
             $valid[] = [
                 'row' => $info['where'],
-                'assetnum' => $assetnum,
+                'assetnum' => (string) $assetnum,
                 'status_code' => $info['status'],
                 'measured_at' => $date,
                 'keterangan' => null,
-            ];
-        }
-
-        foreach ($invalid as $item) {
-            // Asset yang sudah punya status valid dari baris lain tidak perlu dilaporkan.
-            if (isset($best[$item['assetnum']])) {
-                continue;
-            }
-
-            $errors[] = [
-                'row' => $item['where'],
-                'assetnum' => $item['assetnum'],
-                'reason' => 'STATUS "'.$item['status'].'" tidak valid (boleh: '.implode('/', $allowed).')',
+                'plta' => $info['plta'],
+                'equipment' => $info['name'],
             ];
         }
 
         if ($valid === [] && $errors === []) {
             $errors[] = [
                 'row' => '-',
+                'plta' => '-',
+                'equipment' => '-',
                 'assetnum' => '-',
-                'reason' => 'Tidak ada baris yang memiliki ASSETNUM dan STATUS terisi.',
+                'reason' => 'Tidak ada baris yang memiliki equipment dan status terisi.',
             ];
         }
 
         return ['valid' => $valid, 'errors' => $errors];
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Membaca format resume
+    // ─────────────────────────────────────────────────────────────────────────
+
     /**
-     * Cari baris header di 20 baris pertama sebuah sheet.
+     * Cari baris header format resume di 20 baris pertama sebuah sheet.
      *
-     * @return array{0: ?int, 1: int|false, 2: int|false}
+     * @return array{row: int, plta: int, equip: int, noeq: int|null, status: int}|null
      */
-    private function findHeader(array $rows): array
+    private function findResumeHeader(array $rows): ?array
     {
         foreach (array_slice($rows, 0, 20, true) as $i => $row) {
-            $header = array_map(
-                fn ($h) => strtoupper(trim(preg_replace('/\s+/', ' ', (string) $h))),
-                $row
-            );
+            $cells = array_map(fn ($h) => $this->normalize($h), $row);
+
+            $plta = array_search('PLTA', $cells, true);
+            if ($plta === false) {
+                continue;
+            }
+
+            $status = $this->statusColumn($cells);
+            if ($status === null) {
+                continue;
+            }
+
+            $equip = null;
+            $noeq = null;
+
+            foreach ($cells as $idx => $name) {
+                if ($equip === null && str_starts_with($name, 'EQUIPMENT')) {
+                    $equip = $idx;
+                }
+                if ($noeq === null && (str_starts_with($name, 'NO. EQUIP') || str_starts_with($name, 'NO EQUIP'))) {
+                    $noeq = $idx;
+                }
+            }
+
+            if ($equip === null) {
+                continue;
+            }
+
+            return [
+                'row' => (int) $i,
+                'plta' => (int) $plta,
+                'equip' => (int) $equip,
+                'noeq' => $noeq !== null ? (int) $noeq : null,
+                'status' => $status,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Kolom hasil akhir. Urutan prioritas: "Status Terakhir", "Status Akhir", "Resume", "Status".
+     *
+     * @param  array<int, string>  $cells
+     */
+    private function statusColumn(array $cells): ?int
+    {
+        $rules = [
+            fn (string $n): bool => str_starts_with($n, 'STATUS TERAKHIR'),
+            fn (string $n): bool => str_starts_with($n, 'STATUS AKHIR'),
+            fn (string $n): bool => $n === 'RESUME',
+            fn (string $n): bool => $n === 'STATUS',
+        ];
+
+        foreach ($rules as $rule) {
+            foreach ($cells as $idx => $name) {
+                if ($rule($name)) {
+                    return (int) $idx;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Kumpulkan baris data format resume.
+     * - Baris pemisah ("PLTA SENGGURUH") dan baris tanpa kode PLTA dilewati.
+     * - Nama equipment yang kosong (baris lanjutan item uji) diisi dari baris di atasnya.
+     * - Baris tanpa status dilewati (belum ada hasil uji).
+     */
+    private function collectResumeRows(array $rows, array $h, string $sheetTitle, string $parameter, array &$entries): void
+    {
+        $lastPlta = '';
+        $lastName = '';
+        $lastNo = '';
+
+        for ($i = $h['row'] + 1, $n = count($rows); $i < $n; $i++) {
+            $row = $rows[$i];
+
+            $plta = $this->pltaCode(trim((string) ($row[$h['plta']] ?? '')));
+
+            if ($plta === '') {
+                $lastPlta = $lastName = $lastNo = '';
+
+                continue;
+            }
+
+            $name = trim((string) ($row[$h['equip']] ?? ''));
+            $noeq = $h['noeq'] !== null ? trim((string) ($row[$h['noeq']] ?? '')) : '';
+
+            // Baris pemisah per PLTA.
+            if (str_starts_with(strtoupper($name), 'PLTA ')) {
+                $lastPlta = $lastName = $lastNo = '';
+
+                continue;
+            }
+
+            // PD: kolom EQUIPMENT berisi nomor unit generator (1, 2, ...).
+            if ($parameter === 'pd' && $name !== '' && preg_match('/^\d+(\.0+)?$/', $name)) {
+                $name = 'GENERATOR UNIT '.(int) $name;
+            }
+
+            if ($name === '' && $lastPlta === $plta) {
+                $name = $lastName;
+                $noeq = $noeq !== '' ? $noeq : $lastNo;
+            } elseif ($name !== '') {
+                $lastPlta = $plta;
+                $lastName = $name;
+                $lastNo = $noeq;
+            }
+
+            $status = strtoupper(trim((string) ($row[$h['status']] ?? '')));
+
+            if ($status === '' || $status === '-' || $name === '') {
+                continue;
+            }
+
+            $entries[] = [
+                'where' => $sheetTitle.' baris '.($i + 1),
+                'assetnum' => null,
+                'plta' => $plta,
+                'name' => $name,
+                'noeq' => $noeq,
+                'status' => $status,
+            ];
+        }
+    }
+
+    /** "SGR (E)" → "SGR". Nilai non-huruf dianggap bukan kode PLTA. */
+    private function pltaCode(string $raw): string
+    {
+        return preg_match('/^[A-Z]{2,4}/', strtoupper($raw), $m) ? $m[0] : '';
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Mencocokkan equipment Excel dengan master equipment
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Index master equipment per kode PLTA (3 huruf setelah "B" pada ASSETNUM, misal BSGR… → SGR).
+     *
+     * @return array{0: array<string, array<int, array<string, mixed>>>, 1: array<string, true>}
+     */
+    private function equipmentIndex(): array
+    {
+        $index = [];
+        $known = [];
+
+        foreach (Equipment::query()->get(['assetnum', 'unit', 'system', 'equipment', 'kks']) as $eq) {
+            $asset = strtoupper((string) $eq->assetnum);
+            if ($asset === '') {
+                continue;
+            }
+
+            $known[$asset] = true;
+
+            $code = (str_starts_with($asset, 'B') && strlen($asset) >= 4) ? substr($asset, 1, 3) : '';
+
+            $text = trim(($eq->equipment ?? '').' '.($eq->system ?? '').' '.($eq->unit ?? '').' '.($eq->kks ?? ''));
+
+            $index[$code][] = [
+                'assetnum' => $asset,
+                'label' => trim((string) ($eq->equipment ?? '')),
+                'set' => array_fill_keys(array_map('strval', array_keys($this->tokens($text))), true),
+                'kks' => $this->compact((string) ($eq->kks ?? '')),
+            ];
+        }
+
+        return [$index, $known];
+    }
+
+    /**
+     * @param  array<string, array<int, array<string, mixed>>>  $index
+     * @return array{assetnum: ?string, error: ?string, hint: ?string}
+     */
+    private function matchEquipment(array $index, string $plta, string $name, string $noeq): array
+    {
+        $candidates = $index[$plta] ?? [];
+
+        if ($candidates === []) {
+            return [
+                'assetnum' => null,
+                'hint' => '—',
+                'error' => 'Tidak ada equipment di master untuk kode PLTA "'.$plta.'" (ASSETNUM diawali B'.$plta.').',
+            ];
+        }
+
+        $query = $this->tokens($name);
+        $noeqKey = $this->compact($noeq);
+
+        $scored = [];
+        foreach ($candidates as $c) {
+            $scored[] = [$this->score($query, $c['set'], $noeqKey, $c['kks']), $c];
+        }
+
+        usort($scored, fn (array $a, array $b): int => $b[0] <=> $a[0]);
+
+        $topScore = $scored[0][0];
+        $closest = $scored[0][1];
+
+        if ($topScore < self::MATCH_THRESHOLD) {
+            return [
+                'assetnum' => null,
+                'hint' => $closest['assetnum'].'?',
+                'error' => 'Tidak ada padanan di master equipment. Terdekat: '
+                    .$closest['assetnum'].' ('.$closest['label'].').',
+            ];
+        }
+
+        $tied = array_values(array_filter($scored, fn (array $s): bool => $s[0] >= $topScore - 0.0001));
+
+        if (count($tied) > 1) {
+            $list = array_map(fn (array $s): string => $s[1]['assetnum'].' ('.$s[1]['label'].')', array_slice($tied, 0, 3));
+
+            return [
+                'assetnum' => null,
+                'hint' => '—',
+                'error' => 'Cocok ke lebih dari satu equipment: '.implode(', ', $list).'.',
+            ];
+        }
+
+        return ['assetnum' => $closest['assetnum'], 'error' => null, 'hint' => null];
+    }
+
+    /**
+     * @param  array<string, float>  $query
+     * @param  array<string, true>  $candidate
+     */
+    private function score(array $query, array $candidate, string $noeqKey, string $kksKey): float
+    {
+        $total = 0.0;
+        $hit = 0.0;
+        $digitMissing = false;
+
+        foreach ($query as $token => $weight) {
+            $token = (string) $token;
+            $total += $weight;
+
+            if (isset($candidate[$token])) {
+                $hit += $weight;
+            } elseif (ctype_digit($token)) {
+                $digitMissing = true;
+            }
+        }
+
+        if ($total <= 0) {
+            return 0.0;
+        }
+
+        $score = $hit / $total;
+
+        // Nomor unit/pompa (1, 2, 11, …) harus cocok.
+        if ($digitMissing) {
+            $score *= 0.4;
+        }
+
+        // No. Equip. (H101, K108, …) yang sama dengan KKS / muncul di master memperkuat kecocokan.
+        if ($noeqKey !== '' && ($kksKey === $noeqKey || isset($candidate[$noeqKey]))) {
+            $score += 0.5;
+        }
+
+        return $score;
+    }
+
+    /**
+     * Pecah nama equipment menjadi kata berbobot.
+     *
+     * @return array<string, float>
+     */
+    private function tokens(string $text): array
+    {
+        $text = strtoupper(str_replace('#', ' ', $text));
+        $text = (string) preg_replace('/[^A-Z0-9]+/', ' ', $text);
+
+        $out = [];
+
+        foreach (preg_split('/\s+/', trim($text)) ?: [] as $word) {
+            if ($word === '') {
+                continue;
+            }
+
+            $word = self::SYNONYMS[$word] ?? $word;
+
+            if (in_array($word, self::STOPWORDS, true)) {
+                continue;
+            }
+
+            $out[$word] = match (true) {
+                ctype_digit($word) => 1.5,
+                in_array($word, self::LOW_WEIGHT, true) => 0.25,
+                default => 1.0,
+            };
+        }
+
+        return $out;
+    }
+
+    /** Huruf besar tanpa spasi/tanda baca (untuk membandingkan KKS / No. Equip.). */
+    private function compact(string $value): string
+    {
+        return (string) preg_replace('/[^A-Z0-9]+/', '', strtoupper($value));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Format lama (ASSETNUM + STATUS)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @return array{0: ?int, 1: int|false, 2: int|false}
+     */
+    private function findLegacyHeader(array $rows): array
+    {
+        foreach (array_slice($rows, 0, 20, true) as $i => $row) {
+            $header = array_map(fn ($h) => $this->normalize($h), $row);
 
             $a = false;
             $s = false;
@@ -171,6 +594,15 @@ class CbmImportService
 
         return [null, false, false];
     }
+
+    private function normalize(mixed $value): string
+    {
+        return strtoupper(trim((string) preg_replace('/\s+/', ' ', (string) $value)));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Simpan & template
+    // ─────────────────────────────────────────────────────────────────────────
 
     /**
      * Simpan baris valid. Baris dengan assetnum+parameter+tanggal yang sama diperbarui.
@@ -211,7 +643,7 @@ class CbmImportService
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Data');
-        $sheet->fromArray(['ASSETNUM', 'STATUS'], null, 'A1');
+        $sheet->fromArray(['ASSETNUM', 'STATUS', 'EQUIPMENT'], null, 'A1');
 
         $query = Equipment::query()->orderBy('assetnum');
         if ($pltaId) {
@@ -219,8 +651,9 @@ class CbmImportService
         }
 
         $r = 2;
-        foreach ($query->get(['assetnum']) as $eq) {
+        foreach ($query->get(['assetnum', 'equipment']) as $eq) {
             $sheet->setCellValue("A{$r}", $eq->assetnum);
+            $sheet->setCellValue("C{$r}", $eq->equipment);
             $r++;
         }
 
@@ -234,7 +667,7 @@ class CbmImportService
             $r++;
         }
 
-        foreach (['A', 'B'] as $c) {
+        foreach (['A', 'B', 'C'] as $c) {
             $sheet->getColumnDimension($c)->setAutoSize(true);
         }
         $spreadsheet->setActiveSheetIndex(0);

@@ -281,13 +281,28 @@
                     <span class="nav-label" data-i18n="nav_dashboard">Dashboard</span>
                 </a>
 
-                <a href="{{ route('upload.index') }}"
-                    class="sidebar-nav-item {{ request()->routeIs('upload.*') ? 'active' : '' }}"
-                    id="nav-upload"
-                    @guest data-requires-auth="true" data-feature-id="Upload Data WO" data-feature="Upload Data WO" @endguest>
-                    <span class="nav-icon">↑</span>
-                    <span class="nav-label" data-i18n="nav_upload_wo">Upload Data WO</span>
-                </a>
+                @php
+                    $isCbm = auth()->check()
+                        && strtoupper((string) session('login_role', auth()->user()->name)) === 'CBM';
+                @endphp
+
+                @if ($isCbm)
+                    {{-- Peran CBM: menuju halaman Upload Data CBM --}}
+                    <a href="{{ route('cbm.upload.index') }}"
+                        class="sidebar-nav-item {{ request()->routeIs('cbm.upload.*') ? 'active' : '' }}"
+                        id="nav-upload-cbm">
+                        <span class="nav-icon">↑</span>
+                        <span class="nav-label" data-i18n="nav_upload_cbm">Upload Data CBM</span>
+                    </a>
+                @else
+                    <a href="{{ route('upload.index') }}"
+                        class="sidebar-nav-item {{ request()->routeIs('upload.*') ? 'active' : '' }}"
+                        id="nav-upload"
+                        @guest data-requires-auth="true" data-feature-id="Upload Data WO" data-feature="Upload Data WO" @endguest>
+                        <span class="nav-icon">↑</span>
+                        <span class="nav-label" data-i18n="nav_upload_wo">Upload Data WO</span>
+                    </a>
+                @endif
 
                 <a href="{{ route('equipment.create') }}"
                     class="sidebar-nav-item {{ request()->routeIs('equipment.*') ? 'active' : '' }}"
@@ -483,6 +498,7 @@
                 nav_menu: 'Menu',
                 nav_dashboard: 'Dashboard',
                 nav_upload_wo: 'Upload Data WO',
+                nav_upload_cbm: 'Upload Data CBM',
                 nav_insert_equipment: 'Insert Equipment',
                 nav_data_plta: 'Data PLTA',
                 sidebar_ui_prototype: 'UI Prototype',
@@ -697,6 +713,7 @@
                 nav_menu: 'Menu',
                 nav_dashboard: 'Dashboard',
                 nav_upload_wo: 'Upload WO Data',
+                nav_upload_cbm: 'Upload CBM Data',
                 nav_insert_equipment: 'Insert Equipment',
                 nav_data_plta: 'PLTA Data',
                 sidebar_ui_prototype: 'UI Prototype',

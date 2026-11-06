@@ -10,6 +10,18 @@
     <li class="breadcrumb-item">{{ $currentPlta['name'] }}</li>
 @endsection
 
+@push('styles')
+<style>
+    /* Chip ringkasan status CBM (hanya tampil di role CBM) */
+    .cbm-chip-n  { background:#14B8A622; color:#0D9488; border-color:#14B8A655; }
+    .cbm-chip-l  { background:#22C55E22; color:#16A34A; border-color:#22C55E55; }
+    .cbm-chip-m  { background:#EAB30822; color:#CA8A04; border-color:#EAB30855; }
+    .cbm-chip-h  { background:#8B5CF622; color:#7C3AED; border-color:#8B5CF655; }
+    .cbm-chip-c  { background:#EF444422; color:#DC2626; border-color:#EF444455; }
+    .cbm-chip-nm { background:#64748B22; color:#64748B; border-color:#64748B55; }
+</style>
+@endpush
+
 @section('content')
 
     {{-- ======================================================
@@ -31,18 +43,37 @@
     STATUS SUMMARY
     ====================================================== --}}
     <div class="plta-summary-bar" id="plta-status-summary">
-        <div class="summary-chip normal">
-            <span class="summary-chip-count">{{ $statusSummary['normal'] }}</span>
-            <span data-i18n="status_normal">Normal</span>
-        </div>
-        <div class="summary-chip abnormal">
-            <span class="summary-chip-count">{{ $statusSummary['abnormal'] }}</span>
-            <span data-i18n="status_abnormal">Abnormal</span>
-        </div>
-        <div class="summary-chip not-ready">
-            <span class="summary-chip-count">{{ $statusSummary['not_ready'] }}</span>
-            <span data-i18n="status_not_ready">Not Ready</span>
-        </div>
+        @if($isCbm)
+            @php
+                $cbmChips = [
+                    'N'  => ['label' => 'Normal',       'class' => 'cbm-chip-n'],
+                    'L'  => ['label' => 'Low',          'class' => 'cbm-chip-l'],
+                    'M'  => ['label' => 'Medium',       'class' => 'cbm-chip-m'],
+                    'H'  => ['label' => 'High',         'class' => 'cbm-chip-h'],
+                    'C'  => ['label' => 'Critical',     'class' => 'cbm-chip-c'],
+                    'NM' => ['label' => 'Not Measured', 'class' => 'cbm-chip-nm'],
+                ];
+            @endphp
+            @foreach($cbmChips as $code => $chip)
+                <div class="summary-chip cbm-chip {{ $chip['class'] }}">
+                    <span class="summary-chip-count">{{ $statusSummary[$code] }}</span>
+                    {{ $code === 'NM' ? $chip['label'] : $code . ' - ' . $chip['label'] }}
+                </div>
+            @endforeach
+        @else
+            <div class="summary-chip normal">
+                <span class="summary-chip-count">{{ $statusSummary['normal'] }}</span>
+                <span data-i18n="status_normal">Normal</span>
+            </div>
+            <div class="summary-chip abnormal">
+                <span class="summary-chip-count">{{ $statusSummary['abnormal'] }}</span>
+                <span data-i18n="status_abnormal">Abnormal</span>
+            </div>
+            <div class="summary-chip not-ready">
+                <span class="summary-chip-count">{{ $statusSummary['not_ready'] }}</span>
+                <span data-i18n="status_not_ready">Not Ready</span>
+            </div>
+        @endif
     </div>
 
     {{-- ======================================================
@@ -69,9 +100,18 @@
             <span class="filter-label" data-i18n="plta_status_label">Status:</span>
             <select class="form-control select-sm" id="filter-status">
                 <option value="" data-i18n="plta_all_status">Semua Status</option>
-                <option value="Normal" data-i18n="status_normal">Normal</option>
-                <option value="Abnormal" data-i18n="status_abnormal">Abnormal</option>
-                <option value="Not Ready" data-i18n="status_not_ready">Not Ready</option>
+                @if($isCbm)
+                    <option value="N">N - Normal</option>
+                    <option value="L">L - Low</option>
+                    <option value="M">M - Medium</option>
+                    <option value="H">H - High</option>
+                    <option value="C">C - Critical</option>
+                    <option value="NM">Not Measured</option>
+                @else
+                    <option value="Normal" data-i18n="status_normal">Normal</option>
+                    <option value="Abnormal" data-i18n="status_abnormal">Abnormal</option>
+                    <option value="Not Ready" data-i18n="status_not_ready">Not Ready</option>
+                @endif
             </select>
         </div>
         <div style="margin-left:auto;">
@@ -92,7 +132,7 @@
                     <span>Data Pengujian CBM — {{ $currentPlta['name'] }}</span>
                 </div>
                 <div class="card-actions">
-                    <span style="font-size:11px;color:var(--text-muted);">
+                    <span id="equipment-count-label" style="font-size:11px;color:var(--text-muted);">
                         {{ $cbmEquipments->count() }} equipment ditampilkan
                     </span>
                 </div>
@@ -119,7 +159,15 @@
                         </thead>
                         <tbody>
                             @foreach($cbmEquipments as $index => $eq)
-                                <tr>
+                                @php
+                                    $thermo = in_array($eq['thermograph'], ['N', 'L', 'M', 'H', 'C'], true)
+                                        ? $eq['thermograph']
+                                        : 'NM';
+                                @endphp
+                                <tr class="equipment-row"
+                                    data-unit="{{ $eq['unit'] }}"
+                                    data-status="{{ $thermo }}"
+                                    data-search="{{ strtolower($eq['equipment'] . ' ' . $eq['kks'] . ' ' . $eq['assetnum'] . ' ' . $eq['unit'] . ' ' . $eq['system']) }}">
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $eq['unit'] }}</td>
                                     <td>{{ $eq['system'] }}</td>
@@ -130,11 +178,12 @@
                                         <td>
                                             @php
                                                 $statusMeta = $cbmStatusLegend[$parameter][$eq[$parameter]] ?? null;
+                                                $isNotMeasured = $eq[$parameter] === 'SOON';
                                             @endphp
                                             <span class="cbm-status-badge cbm-status-{{ strtolower($eq[$parameter]) }}"
                                                 @if($statusMeta) style="background:{{ $statusMeta['color'] }}22;color:{{ $statusMeta['color'] }};" @endif
-                                                title="{{ $statusMeta['label'] ?? 'Belum tersedia' }}">
-                                                {{ $eq[$parameter] }}
+                                                title="{{ $statusMeta['label'] ?? 'Not Measured' }}">
+                                                {{ $isNotMeasured ? 'Not Measured' : $eq[$parameter] }}
                                             </span>
                                         </td>
                                     @endforeach
@@ -150,6 +199,13 @@
                     <div class="empty-state-text">Data pengujian CBM untuk {{ $currentPlta['name'] }} belum tersedia.</div>
                 </div>
             @endif
+
+            {{-- Empty state saat filter kosong (CBM) --}}
+            <div id="no-results" class="empty-state" style="display:none;">
+                <div class="empty-state-icon">○</div>
+                <div class="empty-state-title" data-i18n="plta_no_data_title">Tidak ada data yang cocok</div>
+                <div class="empty-state-text" data-i18n="plta_no_data_text">Coba ubah kata kunci pencarian atau filter.</div>
+            </div>
         </div>
     @else
     <div class="card" id="equipment-table-card">

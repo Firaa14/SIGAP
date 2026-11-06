@@ -25,12 +25,63 @@
             text-decoration: none;
             color: inherit;
         }
+
+        /* ===== Khusus peran CBM ===== */
+        .cbm-param-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .cbm-param-grid .stat-card.is-active {
+            outline: 2px solid var(--color-accent, #4A9EFF);
+        }
+
+        @media (max-width: 1400px) {
+            .cbm-param-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 700px) {
+            .cbm-param-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        .cbm-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 14px 20px 0;
+        }
+
+        .cbm-tab {
+            display: inline-block;
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border-color, #ddd);
+            color: var(--text-muted);
+            font-size: 12.5px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background .15s ease, color .15s ease;
+        }
+
+        .cbm-tab:hover {
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .cbm-tab.active {
+            background: var(--color-accent, #4A9EFF);
+            border-color: var(--color-accent, #4A9EFF);
+            color: #fff;
+        }
     </style>
 @endpush
 
 @section('content')
 
-    <div class="stats-grid" id="stats-overview">
+    <div class="stats-grid" id="stats-overview"
+        @if (! empty($cbmParameterStats)) style="grid-template-columns:repeat(2,minmax(0,1fr));" @endif>
 
         <div class="stat-card">
             <div class="stat-icon blue">⚡</div>
@@ -48,31 +99,54 @@
             </div>
         </div>
 
-        <a href="{{ route('status.index', ['status' => 'normal']) }}" class="stat-card">
-            <div class="stat-icon green">✓</div>
-            <div class="stat-body">
-                <div class="stat-value" data-stat="normal">{{ $stats['normal'] }}</div>
-                <div class="stat-label" data-i18n="dash_status_normal">Status Normal</div>
-            </div>
-        </a>
+        @if (empty($cbmParameterStats))
 
-        <a href="{{ route('status.index', ['status' => 'abnormal']) }}" class="stat-card">
-            <div class="stat-icon amber">!</div>
-            <div class="stat-body">
-                <div class="stat-value" data-stat="abnormal">{{ $stats['abnormal'] }}</div>
-                <div class="stat-label" data-i18n="dash_status_abnormal">Status Abnormal</div>
-            </div>
-        </a>
+            <a href="{{ route('status.index', ['status' => 'normal']) }}" class="stat-card">
+                <div class="stat-icon green">✓</div>
+                <div class="stat-body">
+                    <div class="stat-value" data-stat="normal">{{ $stats['normal'] }}</div>
+                    <div class="stat-label" data-i18n="dash_status_normal">Status Normal</div>
+                </div>
+            </a>
 
-        <div class="stat-card">
-            <div class="stat-icon red">⏸</div>
-            <div class="stat-body">
-                <div class="stat-value" data-stat="not_ready">{{ $stats['not_ready'] }}</div>
-                <div class="stat-label" data-i18n="dash_status_not_ready">Not Ready</div>
+            <a href="{{ route('status.index', ['status' => 'abnormal']) }}" class="stat-card">
+                <div class="stat-icon amber">!</div>
+                <div class="stat-body">
+                    <div class="stat-value" data-stat="abnormal">{{ $stats['abnormal'] }}</div>
+                    <div class="stat-label" data-i18n="dash_status_abnormal">Status Abnormal</div>
+                </div>
+            </a>
+
+            <div class="stat-card">
+                <div class="stat-icon red">⏸</div>
+                <div class="stat-body">
+                    <div class="stat-value" data-stat="not_ready">{{ $stats['not_ready'] }}</div>
+                    <div class="stat-label" data-i18n="dash_status_not_ready">Not Ready</div>
+                </div>
             </div>
-        </div>
+
+        @endif
 
     </div>
+
+    @if (! empty($cbmParameterStats))
+        {{-- Peran CBM: satu baris kartu parameter, bisa diklik --}}
+        @php
+            $cbmIconPalette = ['green', 'blue', 'amber', 'purple', 'red', 'blue'];
+        @endphp
+        <div class="cbm-param-grid" id="cbm-param-cards">
+            @foreach ($cbmParameterStats as $i => $param)
+                <a href="{{ route('dashboard', ['parameter' => $param['key']]) }}#recent-activity-card"
+                    class="stat-card {{ ($selectedParameter ?? null) === $param['key'] ? 'is-active' : '' }}">
+                    <div class="stat-icon {{ $cbmIconPalette[$i % count($cbmIconPalette)] }}">◉</div>
+                    <div class="stat-body">
+                        <div class="stat-value" data-cbm-param="{{ $param['key'] }}">{{ $param['total'] }}</div>
+                        <div class="stat-label">{{ $param['label'] }}</div>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+    @endif
 
     <div class="card map-card" id="plta-map-card">
         <div class="card-header">
@@ -106,6 +180,88 @@
         </div>
     </div>
 
+    @if (isset($cbmActivity) && $cbmActivity !== null)
+        {{-- Peran CBM: aktivitas upload data CBM --}}
+        <div class="card" id="recent-activity-card" style="margin-top:16px;">
+            <div class="card-header">
+                <div class="card-title">
+                    <span class="card-title-icon">◷</span>
+                    <span>
+                        @if (! empty($selectedParameter))
+                            Data {{ $cbmParameterStats[array_search($selectedParameter, array_column($cbmParameterStats, 'key'))]['label'] ?? $selectedParameter }}
+                            ({{ count($cbmActivity) }})
+                        @else
+                            Aktivitas Status Terbaru
+                        @endif
+                    </span>
+                </div>
+                <div class="card-actions">
+                    <span style="font-size:11px; color:var(--text-muted)">Update: {{ date('d M Y') }}</span>
+                </div>
+            </div>
+
+            @php
+                // Tab hanya untuk parameter yang sudah pernah diupload (jumlah data > 0).
+                $uploadedParams = collect($cbmParameterStats)->filter(fn ($p) => $p['total'] > 0);
+            @endphp
+            @if ($uploadedParams->isNotEmpty())
+                <div class="cbm-tabs">
+                    <a href="{{ route('dashboard') }}#recent-activity-card"
+                        class="cbm-tab {{ empty($selectedParameter) ? 'active' : '' }}">Semua</a>
+                    @foreach ($uploadedParams as $param)
+                        <a href="{{ route('dashboard', ['parameter' => $param['key']]) }}#recent-activity-card"
+                            class="cbm-tab {{ ($selectedParameter ?? null) === $param['key'] ? 'active' : '' }}">{{ $param['label'] }}</a>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="table-wrapper">
+                @if (count($cbmActivity) > 0)
+                    <table class="activity-table">
+                        <thead>
+                            <tr>
+                                <th>Waktu Upload</th>
+                                <th>PLTA</th>
+                                <th>ASSETNUM</th>
+                                <th>Parameter</th>
+                                <th>Status</th>
+                                <th>Tanggal Uji</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($cbmActivity as $row)
+                                <tr>
+                                    <td><span class="activity-time">{{ $row['time'] }}</span></td>
+                                    <td style="font-size:12.5px; font-weight:500;">{{ $row['plta'] }}</td>
+                                    <td><span class="activity-assetnum">{{ $row['assetnum'] }}</span></td>
+                                    <td style="font-size:12.5px;">{{ $row['parameter'] }}</td>
+                                    <td>
+                                        <span class="status-badge"
+                                            style="background:{{ $row['color'] }}; color:#fff;"
+                                            title="{{ $row['label'] }}">{{ $row['code'] }}</span>
+                                        <span style="font-size:12px; margin-left:6px;">{{ $row['label'] }}</span>
+                                    </td>
+                                    <td style="font-size:12.5px;">{{ $row['measured_at'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <div class="empty-state" style="padding:32px 0;">
+                        <div class="empty-state-icon">◷</div>
+                        <div class="empty-state-title">Belum ada data</div>
+                        <div class="empty-state-text">
+                            @if (! empty($selectedParameter))
+                                Belum ada data uji untuk parameter ini.
+                            @else
+                                Upload file Excel CBM untuk melihat aktivitas terbaru.
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @else
     <div class="card" id="recent-activity-card" style="margin-top:16px;">
         <div class="card-header">
             <div class="card-title">
@@ -167,6 +323,7 @@
             @endif
         </div>
     </div>
+    @endif
 
 @endsection
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CbmUploadController; // <-- BARU
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\EquipmentStatusController;
@@ -69,6 +70,15 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/upload/result/{history}', [UploadController::class, 'result'])
         ->name('upload.result');
+
+    // UPLOAD CBM <-- BARU
+    Route::prefix('cbm/upload')->name('cbm.upload.')->group(function () {
+        Route::get('/', [CbmUploadController::class, 'index'])->name('index');
+        Route::get('/template/{parameter}', [CbmUploadController::class, 'template'])->name('template');
+        Route::post('/preview', [CbmUploadController::class, 'preview'])->name('preview');
+        Route::post('/confirm', [CbmUploadController::class, 'confirm'])->name('confirm');
+        Route::post('/cancel', [CbmUploadController::class, 'cancel'])->name('cancel');
+    });
 
     // EQUIPMENT
     Route::get('/equipment/create', [EquipmentController::class, 'create'])

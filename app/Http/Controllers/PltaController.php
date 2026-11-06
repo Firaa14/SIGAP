@@ -57,11 +57,20 @@ class PltaController extends Controller
         $cbmEquipments = ($isCbm || $isReadOnlyView)
             ? $cbmService->forEquipment($pltaModel?->equipments ?? collect())
             : collect();
+
+        // Kode status CBM yang valid (selain ini dihitung sebagai Not Measured)
+        $cbmCodes = ['N', 'L', 'M', 'H', 'C'];
+
         $statusSummary = $isCbm
             ? [
-                'normal' => $cbmEquipments->where('status', 'Normal')->count(),
-                'abnormal' => $cbmEquipments->where('status', 'Abnormal')->count(),
-                'not_ready' => $cbmEquipments->where('status', 'Not Ready')->count(),
+                'N'  => $cbmEquipments->where('thermograph', 'N')->count(),
+                'L'  => $cbmEquipments->where('thermograph', 'L')->count(),
+                'M'  => $cbmEquipments->where('thermograph', 'M')->count(),
+                'H'  => $cbmEquipments->where('thermograph', 'H')->count(),
+                'C'  => $cbmEquipments->where('thermograph', 'C')->count(),
+                'NM' => $cbmEquipments
+                    ->filter(fn ($e) => ! in_array($e['thermograph'] ?? null, $cbmCodes, true))
+                    ->count(),
             ]
             : [
                 'normal' => collect($equipments)->where('status_operasi', 'Normal')->count(),

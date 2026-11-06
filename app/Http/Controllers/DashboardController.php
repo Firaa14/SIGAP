@@ -8,6 +8,9 @@ use App\Models\Plta;
 use App\Models\UploadHistory;
 use App\Services\CbmEquipmentService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -86,7 +89,84 @@ class DashboardController extends Controller
         })->all();
     }
 
-    public function index(): View
+    /**
+     * Khusus peran CBM: jumlah equipment yang sudah punya data uji per parameter
+     * (Thermograph, Vibrasi, Oil Analysis, MCA, PD, DGA).
+     *
+     * @return array<int, array{key: string, label: string, total: int}>
+     */
+    private static function cbmParameterStats(): array
+    {
+        $counts = Schema::hasTable('cbm_measurements')
+            ? DB::table('cbm_measurements')
+                ->select('parameter', DB::raw('COUNT(DISTINCT assetnum) as total'))
+                ->groupBy('parameter')
+                ->pluck('total', 'parameter')
+            : collect();
+
+        return collect(CbmEquipmentService::PARAMETERS)
+            ->map(fn($label, $key): array => [
+                'key' => (string) $key,
+                'label' => $label,
+                'total' => (int) ($counts[$key] ?? 0),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Khusus peran CBM: data uji untuk tabel aktivitas.
+     * - Tanpa filter  : 10 upload terbaru dari semua parameter.
+     * - Dengan filter : status terakhir tiap equipment pada parameter itu (maks. 500).
+     *
+     * @return array<int, array<string, string>>
+     */
+    private static function cbmActivity(?string $filter): array
+    {
+        if (! Schema::hasTable('cbm_measurements')) {
+            return [];
+        }
+
+        if ($filter !== null) {
+            $rows = DB::table('cbm_measurements')
+                ->where('parameter', $filter)
+                ->orderByDesc('measured_at')
+                ->orderByDesc('updated_at')
+                ->get()
+                ->unique('assetnum')
+                ->take(500)
+                ->values();
+        } else {
+            $rows = DB::table('cbm_measurements')
+                ->orderByDesc('updated_at')
+                ->limit(10)
+                ->get();
+        }
+
+        $equipments = Equipment::with('plta')
+            ->whereIn('assetnum', $rows->pluck('assetnum')->all())
+            ->get()
+            ->keyBy('assetnum');
+
+        $legend = (new CbmEquipmentService())->statusLegend();
+
+        return $rows->map(function ($r) use ($equipments, $legend): array {
+            $meta = $legend[$r->parameter][$r->status_code] ?? null;
+
+            return [
+                'time' => \Carbon\Carbon::parse($r->updated_at)->format('d M Y H:i'),
+                'plta' => $equipments->get($r->assetnum)?->plta?->nama_plta ?? '—',
+                'assetnum' => $r->assetnum,
+                'parameter' => CbmEquipmentService::PARAMETERS[$r->parameter] ?? $r->parameter,
+                'code' => $r->status_code,
+                'label' => $meta['label'] ?? '',
+                'color' => $meta['color'] ?? '#64748b',
+                'measured_at' => \Carbon\Carbon::parse($r->measured_at)->format('d M Y'),
+            ];
+        })->all();
+    }
+
+    public function index(Request $request): View
     {
         $pltaList = self::pltaList();
         $mapData = self::pltaMapData();
@@ -112,6 +192,17 @@ class DashboardController extends Controller
             'abnormal' => $abnormal,
             'not_ready' => $notReady,
         ];
+
+        // Kartu per parameter CBM (null untuk peran selain CBM).
+        $cbmParameterStats = $isCbm ? self::cbmParameterStats() : null;
+
+        // Parameter yang dipilih lewat kartu (hanya peran CBM, hanya nilai yang dikenal).
+        $selectedParameter = null;
+        if ($isCbm) {
+            $requested = (string) $request->query('parameter', '');
+            $selectedParameter = array_key_exists($requested, CbmEquipmentService::PARAMETERS) ? $requested : null;
+        }
+        $cbmActivity = $isCbm ? self::cbmActivity($selectedParameter) : null;
 
         // ── Recent Activity dari DB (10 WO terbaru berdasarkan uploaded_at) ───
         $recentWos = $isCbm ? collect() : EquipmentWo::with(['equipment.plta'])
@@ -158,6 +249,9 @@ class DashboardController extends Controller
             'pltaList',
             'mapData',
             'stats',
+            'cbmParameterStats',
+            'cbmActivity',
+            'selectedParameter',
             'recentActivity',
             'lastUpload',
             'pltaDistribution',

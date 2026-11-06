@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('kode_prefix', 10)->unique(); // 4-char prefix ASSETNUM, e.g. BSGR
             $table->string('slug', 100)->unique();       // URL slug, e.g. sengguruh
             $table->string('location', 150)->nullable();
-            $table->string('capacity', 20)->nullable();
+            $table->string('capacity', 50)->nullable();
             $table->timestamps();
         });
     }

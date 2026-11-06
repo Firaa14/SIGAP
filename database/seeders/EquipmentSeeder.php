@@ -4454,7 +4454,6 @@ class EquipmentSeeder extends Seeder
                 ['unit' => 'PLTA NGEBEL UNIT 1', 'system' => 'TA BNBL UNIT HALAMAN PLTA', 'equipment' => 'TA-01-HALAMAN PLTA NGEBEL', 'kks' => 'BNBLTA001UZC10UB001', 'assetnum' => 'BNBL010171'],
                 ['unit' => 'PLTA NGEBEL UNIT 1', 'system' => 'TA BNBL UNIT HALAMAN PLTA', 'equipment' => 'TA-00-UNIT JEMBATAN', 'kks' => 'BNBLTA001UZC10UC001', 'assetnum' => 'BNBL010172'],
             ],
-            ],
         ];
     }
 

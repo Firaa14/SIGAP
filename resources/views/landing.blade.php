@@ -311,7 +311,7 @@
         <div class="lp-container">
 
             <div class="lp-features-header">
-                <h2 class="lp-section-title lp-reveal lp-reveal-delay-1">Kemampuan Sistem DIKKP</h2>
+                <h2 class="lp-section-title lp-reveal lp-reveal-delay-1">Keunggulan Sistem DIKKP</h2>
                 <p class="lp-section-desc lp-reveal lp-reveal-delay-2" style="margin:0 auto;">
                     Rangkaian fitur terintegrasi yang dirancang untuk mendukung pemantauan dan analisis gangguan
                     pembangkit secara efektif.

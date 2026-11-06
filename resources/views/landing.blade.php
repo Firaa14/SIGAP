@@ -737,7 +737,7 @@
                         <div class="lp-service-contact-item">
                             <span>LinkedIn:</span>
                             <a href="https://www.linkedin.com/company/dikkp-layanan-1" id="lp-cta-service-1-linkedin"
-                                target="_blank" rel="noopener noreferrer">linkedin.com/syafirafn</a>
+                                target="_blank" rel="noopener noreferrer">linkedin.com/company/syafirafn</a>
                         </div>
                     </div>
                     <div class="lp-service-contact">

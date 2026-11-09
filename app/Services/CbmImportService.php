@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Equipment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -155,6 +156,8 @@ class CbmImportService
         };
 
         foreach ($entries as $e) {
+            $label = '';
+            $note = null;
             $rank = array_search($e['status'], $allowed, true);
 
             if ($rank === false) {
@@ -207,6 +210,8 @@ class CbmImportService
                 }
 
                 $assetnum = $match['assetnum'];
+                $label = (string) $match['label'];
+                $note = $match['note'];
             }
 
             if (! isset($best[$assetnum]) || $rank > $best[$assetnum]['rank']) {
@@ -216,6 +221,8 @@ class CbmImportService
                     'where' => $e['where'],
                     'plta' => $e['plta'],
                     'name' => $e['name'],
+                    'master' => $label,
+                    'note' => $note,
                 ];
             }
         }
@@ -231,6 +238,8 @@ class CbmImportService
                 'keterangan' => null,
                 'plta' => $info['plta'],
                 'equipment' => $info['name'],
+                'master' => $info['master'],
+                'note' => $info['note'],
             ];
         }
 
@@ -401,6 +410,10 @@ class CbmImportService
     /**
      * Index master equipment per kode PLTA (3 huruf setelah "B" pada ASSETNUM, misal BSGR… → SGR).
      *
+     * Nama master berbentuk "TA-01-RUNNER TURBINE UNIT 1": awalan "TA-01-" dibuang dan nomor unit (01)
+     * dijadikan kata tersendiri. Kolom System/Unit tidak dipakai karena berisi kata umum yang sama
+     * untuk puluhan equipment.
+     *
      * @return array{0: array<string, array<int, array<string, mixed>>>, 1: array<string, true>}
      */
     private function equipmentIndex(): array
@@ -408,7 +421,11 @@ class CbmImportService
         $index = [];
         $known = [];
 
-        foreach (Equipment::query()->get(['assetnum', 'unit', 'system', 'equipment', 'kks']) as $eq) {
+        // Kolom cbm_alias (nama di file Excel) opsional: dipakai bila migrasinya sudah dijalankan.
+        $hasAlias = Schema::hasColumn((new Equipment())->getTable(), 'cbm_alias');
+        $columns = $hasAlias ? ['assetnum', 'equipment', 'kks', 'cbm_alias'] : ['assetnum', 'equipment', 'kks'];
+
+        foreach (Equipment::query()->orderBy('assetnum')->get($columns) as $eq) {
             $asset = strtoupper((string) $eq->assetnum);
             if ($asset === '') {
                 continue;
@@ -418,13 +435,39 @@ class CbmImportService
 
             $code = (str_starts_with($asset, 'B') && strlen($asset) >= 4) ? substr($asset, 1, 3) : '';
 
-            $text = trim(($eq->equipment ?? '').' '.($eq->system ?? '').' '.($eq->unit ?? '').' '.($eq->kks ?? ''));
+            $label = trim((string) ($eq->equipment ?? ''));
+            $base = strtoupper($label);
+            $unitToken = '';
+
+            if (preg_match('/^[A-Z]{1,3}\s*-\s*(\d{1,2})\s*-\s*(.*)$/', $base, $m)) {
+                $unitToken = (string) ((int) $m[1]);
+                $base = $m[2];
+            }
+
+            $tokens = $this->tokens($base);
+            if ($unitToken !== '' && ! isset($tokens[$unitToken])) {
+                $tokens[$unitToken] = 1.5;
+            }
+
+            $weight = array_sum($tokens);
+
+            $aliases = [];
+            if ($hasAlias && trim((string) $eq->cbm_alias) !== '') {
+                foreach (explode(',', (string) $eq->cbm_alias) as $alias) {
+                    $key = $this->compact($alias);
+                    if ($key !== '') {
+                        $aliases[$key] = true;
+                    }
+                }
+            }
 
             $index[$code][] = [
                 'assetnum' => $asset,
-                'label' => trim((string) ($eq->equipment ?? '')),
-                'set' => array_fill_keys(array_map('strval', array_keys($this->tokens($text))), true),
+                'label' => $label,
+                'set' => $tokens,
+                'weight' => $weight > 0 ? (float) $weight : 1.0,
                 'kks' => $this->compact((string) ($eq->kks ?? '')),
+                'aliases' => $aliases,
             ];
         }
 
@@ -433,62 +476,95 @@ class CbmImportService
 
     /**
      * @param  array<string, array<int, array<string, mixed>>>  $index
-     * @return array{assetnum: ?string, error: ?string, hint: ?string}
+     * @return array{assetnum: ?string, label: ?string, note: ?string, error: ?string, hint: ?string}
      */
     private function matchEquipment(array $index, string $plta, string $name, string $noeq): array
     {
+        $fail = fn (string $error, string $hint = '—'): array => [
+            'assetnum' => null, 'label' => null, 'note' => null, 'error' => $error, 'hint' => $hint,
+        ];
+
         $candidates = $index[$plta] ?? [];
 
         if ($candidates === []) {
+            return $fail('Tidak ada equipment di master untuk kode PLTA "'.$plta.'" (ASSETNUM diawali B'.$plta.').');
+        }
+
+        // 1. Alias yang diisi di master equipment (nama di file Excel) dicocokkan lebih dulu, tanpa tebakan.
+        $aliasKeys = array_values(array_unique(array_filter([
+            $this->compact($name),
+            $this->compact($name.' '.$noeq),
+        ])));
+
+        $byAlias = [];
+        foreach ($candidates as $c) {
+            foreach ($aliasKeys as $key) {
+                if (isset($c['aliases'][$key])) {
+                    $byAlias[] = $c;
+                    break;
+                }
+            }
+        }
+
+        if ($byAlias !== []) {
             return [
-                'assetnum' => null,
-                'hint' => '—',
-                'error' => 'Tidak ada equipment di master untuk kode PLTA "'.$plta.'" (ASSETNUM diawali B'.$plta.').',
+                'assetnum' => $byAlias[0]['assetnum'],
+                'label' => $byAlias[0]['label'],
+                'note' => count($byAlias) > 1
+                    ? 'alias yang sama dipakai '.count($byAlias).' equipment, dipilih yang pertama'
+                    : null,
+                'error' => null,
+                'hint' => null,
             ];
         }
 
+        // 2. Tidak ada alias: cocokkan berdasarkan kemiripan nama.
         $query = $this->tokens($name);
         $noeqKey = $this->compact($noeq);
 
         $scored = [];
         foreach ($candidates as $c) {
-            $scored[] = [$this->score($query, $c['set'], $noeqKey, $c['kks']), $c];
+            $scored[] = [$this->score($query, $c, $noeqKey), $c];
         }
 
-        usort($scored, fn (array $a, array $b): int => $b[0] <=> $a[0]);
+        // Skor tertinggi lebih dulu; jika sama, ASSETNUM terkecil (urutan master).
+        usort($scored, fn (array $a, array $b): int => [$b[0], $a[1]['assetnum']] <=> [$a[0], $b[1]['assetnum']]);
 
         $topScore = $scored[0][0];
-        $closest = $scored[0][1];
+        $best = $scored[0][1];
 
         if ($topScore < self::MATCH_THRESHOLD) {
-            return [
-                'assetnum' => null,
-                'hint' => $closest['assetnum'].'?',
-                'error' => 'Tidak ada padanan di master equipment. Terdekat: '
-                    .$closest['assetnum'].' ('.$closest['label'].').',
-            ];
+            return $fail(
+                'Tidak ada padanan di master equipment. Terdekat: '.$best['assetnum'].' ('.$best['label'].').',
+                $best['assetnum'].'?'
+            );
         }
 
-        $tied = array_values(array_filter($scored, fn (array $s): bool => $s[0] >= $topScore - 0.0001));
+        $tied = array_filter($scored, fn (array $s): bool => $s[0] >= $topScore - 0.0001);
+        $note = count($tied) > 1
+            ? 'dipilih otomatis dari '.count($tied).' kandidat yang sama kuat'
+            : null;
 
-        if (count($tied) > 1) {
-            $list = array_map(fn (array $s): string => $s[1]['assetnum'].' ('.$s[1]['label'].')', array_slice($tied, 0, 3));
-
-            return [
-                'assetnum' => null,
-                'hint' => '—',
-                'error' => 'Cocok ke lebih dari satu equipment: '.implode(', ', $list).'.',
-            ];
-        }
-
-        return ['assetnum' => $closest['assetnum'], 'error' => null, 'hint' => null];
+        return [
+            'assetnum' => $best['assetnum'],
+            'label' => $best['label'],
+            'note' => $note,
+            'error' => null,
+            'hint' => null,
+        ];
     }
 
     /**
+     * Skor kecocokan 0..±1,5.
+     * - recall   : seberapa banyak kata di nama Excel ditemukan di nama master (berbobot).
+     * - presisi  : seberapa "sederhana" nama master; nama master yang sama persis lebih diutamakan
+     *              daripada komponen yang namanya lebih panjang.
+     * - No. Equip. yang sama dengan KKS/kata di nama master memberi bonus.
+     *
      * @param  array<string, float>  $query
-     * @param  array<string, true>  $candidate
+     * @param  array<string, mixed>  $candidate
      */
-    private function score(array $query, array $candidate, string $noeqKey, string $kksKey): float
+    private function score(array $query, array $candidate, string $noeqKey): float
     {
         $total = 0.0;
         $hit = 0.0;
@@ -498,7 +574,7 @@ class CbmImportService
             $token = (string) $token;
             $total += $weight;
 
-            if (isset($candidate[$token])) {
+            if (isset($candidate['set'][$token])) {
                 $hit += $weight;
             } elseif (ctype_digit($token)) {
                 $digitMissing = true;
@@ -509,15 +585,17 @@ class CbmImportService
             return 0.0;
         }
 
-        $score = $hit / $total;
+        $recall = $hit / $total;
+        $precision = $hit / $candidate['weight'];
+
+        $score = $recall * (0.7 + 0.3 * $precision);
 
         // Nomor unit/pompa (1, 2, 11, …) harus cocok.
         if ($digitMissing) {
             $score *= 0.4;
         }
 
-        // No. Equip. (H101, K108, …) yang sama dengan KKS / muncul di master memperkuat kecocokan.
-        if ($noeqKey !== '' && ($kksKey === $noeqKey || isset($candidate[$noeqKey]))) {
+        if ($noeqKey !== '' && ($candidate['kks'] === $noeqKey || isset($candidate['set'][$noeqKey]))) {
             $score += 0.5;
         }
 
@@ -525,7 +603,7 @@ class CbmImportService
     }
 
     /**
-     * Pecah nama equipment menjadi kata berbobot.
+     * Pecah nama equipment menjadi kata berbobot. Angka "01" disamakan dengan "1".
      *
      * @return array<string, float>
      */
@@ -539,6 +617,10 @@ class CbmImportService
         foreach (preg_split('/\s+/', trim($text)) ?: [] as $word) {
             if ($word === '') {
                 continue;
+            }
+
+            if (ctype_digit($word)) {
+                $word = (string) ((int) $word);
             }
 
             $word = self::SYNONYMS[$word] ?? $word;

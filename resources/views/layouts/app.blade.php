@@ -304,12 +304,12 @@
                     </a>
                 @endif
 
-                <a href="{{ route('equipment.create') }}"
-                    class="sidebar-nav-item {{ request()->routeIs('equipment.*') ? 'active' : '' }}"
+                <a href="{{ route('cbm.asset.create') }}"
+                    class="sidebar-nav-item {{ request()->routeIs('cbm.asset.*') ? 'active' : '' }}"
                     id="nav-equipment-create"
                     @guest data-requires-auth="true" data-feature-id="Insert Equipment" data-feature="Insert Equipment" @endguest>
                     <span class="nav-icon">＋</span>
-                    <span class="nav-label" data-i18n="nav_insert_equipment">Insert Equipment</span>
+                    <span class="nav-label" data-i18n="nav_insert_equipment">Insert Asset CBM</span>
                 </a>
 
                 <hr class="sidebar-divider">
@@ -477,12 +477,12 @@
             <div class="auth-modal-title" id="guide-title" data-i18n="guide_title">Cara Penggunaan</div>
 
             <div class="guide-tabs">
-                <button type="button" class="guide-tab active" data-guide-tab="upload" data-i18n="guide_tab_upload">Upload Power Query</button>
-                <button type="button" class="guide-tab" data-guide-tab="insert" data-i18n="guide_tab_insert">Insert Equipment</button>
+                <button type="button" class="guide-tab active" data-guide-tab="upload" data-i18n="{{ $isCbm ? 'guide_tab_upload_cbm' : 'guide_tab_upload' }}">{{ $isCbm ? 'Upload Data CBM' : 'Upload Power Query' }}</button>
+                <button type="button" class="guide-tab" data-guide-tab="insert" data-i18n="guide_tab_insert">Insert Asset CBM</button>
             </div>
 
             <div class="guide-body">
-                <div class="guide-pane active" id="guide-pane-upload" data-i18n="guide_upload_html"></div>
+                <div class="guide-pane active" id="guide-pane-upload" data-i18n="{{ $isCbm ? 'guide_upload_cbm_html' : 'guide_upload_html' }}"></div>
                 <div class="guide-pane" id="guide-pane-insert" data-i18n="guide_insert_html"></div>
             </div>
         </div>
@@ -499,7 +499,7 @@
                 nav_dashboard: 'Dashboard',
                 nav_upload_wo: 'Upload Data WO',
                 nav_upload_cbm: 'Upload Data CBM',
-                nav_insert_equipment: 'Insert Equipment',
+                nav_insert_equipment: 'Insert Asset CBM',
                 nav_data_plta: 'Data PLTA',
                 sidebar_ui_prototype: 'UI Prototype',
                 aria_main_navigation: 'Navigasi Utama',
@@ -686,7 +686,18 @@
                 // Guide
                 guide_title: 'Cara Penggunaan',
                 guide_tab_upload: 'Upload Power Query',
-                guide_tab_insert: 'Insert Equipment',
+                guide_tab_upload_cbm: 'Upload Data CBM',
+                guide_upload_cbm_html: `
+                    <ol>
+                        <li>Login dulu sebagai CBM.</li>
+                        <li>Siapkan file Excel hasil pengujian (.xlsx atau .xls), satu file untuk satu parameter, misalnya Vibrasi.</li>
+                        <li>Pastikan nama equipment di file Excel sama dengan nama equipment yang sudah terdaftar.</li>
+                        <li>Buka menu Upload Data CBM, pilih file, lalu klik Tampilkan Preview.</li>
+                        <li>Cek hasil preview. Baris yang gagal atau diberi catatan "dipilih otomatis" perlu dicek dulu.</li>
+                        <li>Kalau sudah sesuai, klik Konfirmasi &amp; Import Data, lalu tunggu sampai selesai dan jangan refresh halaman.</li>
+                    </ol>
+                    <p>Hasil upload langsung tampil di tabel tiap PLTA. Equipment yang tidak ada di file tampil "Not Measured".</p>`,
+                guide_tab_insert: 'Insert Asset CBM',
                 guide_upload_html: `
                     <ol>
                         <li>Login dulu sebagai SO atau CBM.</li>
@@ -698,14 +709,15 @@
                     </ol>
                     <p>Status equipment ditentukan otomatis dari status WO. APPR, INPRG, PTWCL, PTWR, dan WPTW jadi Abnormal. CLOSE dan COMP jadi Normal.</p>`,
                 guide_insert_html: `
-                    <p style="margin-bottom:8px;">Dipakai untuk menambah unit atau equipment baru.</p>
                     <ol>
-                        <li>Login sebagai SO atau CBM, lalu buka menu Insert Equipment.</li>
-                        <li>Pilih PLTA.</li>
-                        <li>Isi Unit, System, Equipment, KKS, dan ASSETNUM.</li>
-                        <li>Klik Simpan Equipment.</li>
+                        <li>Login dulu sebagai CBM.</li>
+                        <li>Buka menu Insert Asset CBM, lalu pilih PLTA dan unit (pilih dari daftar atau ketik unit baru).</li>
+                        <li>Isi System dan Equipment. </li>
+                        <li>ASSETNUM terisi otomatis dari PLTA, unit, dan nomor urut. Ubah jika perlu.</li>
+                        <li>Isi Nama di file Excel kalau namanya berbeda dengan nama equipment (pisahkan dengan koma), lalu centang Parameter yang berlaku.</li>
+                        <li>Klik Simpan asset.</li>
                     </ol>
-                    <p>4 karakter pertama ASSETNUM adalah kode PLTA, jadi pastikan sesuai dengan PLTA yang dipilih.</p>`,
+                    <p>Insert hanya dipakai untuk menambah asset baru. Kalau asset sudah terdaftar, langsung saja Upload. 4 karakter pertama ASSETNUM adalah kode PLTA, jadi pastikan sesuai dengan PLTA yang dipilih. Parameter yang tidak dicentang tampil "-" di tabel PLTA.</p>`,
             },
 
             en: {
@@ -714,7 +726,7 @@
                 nav_dashboard: 'Dashboard',
                 nav_upload_wo: 'Upload WO Data',
                 nav_upload_cbm: 'Upload CBM Data',
-                nav_insert_equipment: 'Insert Equipment',
+                nav_insert_equipment: 'Insert Asset CBM',
                 nav_data_plta: 'PLTA Data',
                 sidebar_ui_prototype: 'UI Prototype',
                 aria_main_navigation: 'Main Navigation',
@@ -900,7 +912,18 @@
                 // Guide
                 guide_title: 'How to Use',
                 guide_tab_upload: 'Upload Power Query',
-                guide_tab_insert: 'Insert Equipment',
+                guide_tab_upload_cbm: 'Upload CBM Data',
+                guide_upload_cbm_html: `
+                    <ol>
+                        <li>Log in first as CBM.</li>
+                        <li>Prepare the test result Excel file (.xlsx or .xls), one file per parameter, for example Vibration.</li>
+                        <li>Make sure the equipment names in the Excel file match the registered equipment names.</li>
+                        <li>Open Upload CBM Data, choose the file, then click Show Preview.</li>
+                        <li>Check the preview. Rows that failed or are marked "auto-selected" need to be checked first.</li>
+                        <li>If everything looks right, click Confirm &amp; Import Data, then wait until it finishes and don't refresh the page.</li>
+                    </ol>
+                    <p>The results show up in each PLTA table right away. Equipment missing from the file shows "Not Measured".</p>`,
+                guide_tab_insert: 'Insert Asset CBM',
                 guide_upload_html: `
                     <ol>
                         <li>Log in first as SO or CBM.</li>
@@ -912,14 +935,15 @@
                     </ol>
                     <p>Equipment status is set automatically from the WO status. APPR, INPRG, PTWCL, PTWR, and WPTW become Abnormal. CLOSE and COMP become Normal.</p>`,
                 guide_insert_html: `
-                    <p style="margin-bottom:8px;">Use this to add a new unit or equipment.</p>
                     <ol>
-                        <li>Log in as SO or CBM, then open Insert Equipment.</li>
-                        <li>Select the PLTA.</li>
-                        <li>Fill in Unit, System, Equipment, KKS, and ASSETNUM.</li>
-                        <li>Click Save Equipment.</li>
+                        <li>Log in first as CBM.</li>
+                        <li>Open Insert Asset CBM, then select the PLTA and unit (pick from the list or type a new one).</li>
+                        <li>Fill in System and Equipment. KKS can be left empty.</li>
+                        <li>ASSETNUM is filled in automatically from the PLTA, unit, and sequence number. Change it if needed.</li>
+                        <li>Fill in the name used in the Excel file if it differs from the equipment name (separate with commas), then tick the applicable Parameters.</li>
+                        <li>Click Save asset.</li>
                     </ol>
-                    <p>The first 4 characters of ASSETNUM are the PLTA code, so make sure it matches the selected PLTA.</p>`,
+                    <p>Insert is only for adding a new asset. If the asset is already registered, go straight to Upload. The first 4 characters of ASSETNUM are the PLTA code, so make sure it matches the selected PLTA. Unticked parameters show "-" in the PLTA table.</p>`,
             },
         };
 

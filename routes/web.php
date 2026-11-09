@@ -9,6 +9,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PltaController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CbmAssetController;
 
 // ================================
 // LANDING PAGE (halaman awal publik)
@@ -89,4 +90,13 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/equipment/{assetnum}/status', [EquipmentController::class, 'updateStatus'])
         ->name('equipment.update-status');
+
+    // ASSET CBM (khusus peran CBM)
+    Route::prefix('cbm/asset')->name('cbm.asset.')->group(function () {
+    Route::get('/', [CbmAssetController::class, 'create'])->name('create');
+    Route::post('/', [CbmAssetController::class, 'store'])->name('store');
+    Route::get('/next', [CbmAssetController::class, 'next'])->name('next');
+    Route::get('/equipments', [CbmAssetController::class, 'equipments'])->name('equipments');
+    Route::post('/alias', [CbmAssetController::class, 'updateAlias'])->name('alias');
+});
 });

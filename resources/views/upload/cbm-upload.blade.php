@@ -106,7 +106,6 @@
                     <div class="detect" id="detect"></div>
 
                     <div class="actions">
-                        <a id="tplLink" class="btn btn-ghost" href="#">⬇ Unduh Template</a>
                         <button type="button" class="btn btn-cancel" id="reset">✕ Batalkan</button>
                         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>⬆ Tampilkan Preview</button>
                     </div>
@@ -198,13 +197,19 @@
                 @if (count($preview['valid']))
                     <div class="scroll">
                         <table>
-                            <thead><tr><th>ASSETNUM</th><th>PLTA</th><th>EQUIPMENT (DI FILE)</th><th>HASIL AKHIR</th></tr></thead>
+                            <thead><tr><th>ASSETNUM</th><th>PLTA</th><th>EQUIPMENT (DI FILE)</th><th>EQUIPMENT (MASTER)</th><th>HASIL AKHIR</th></tr></thead>
                             <tbody>
                                 @foreach (array_slice($preview['valid'], 0, 100) as $row)
                                     <tr>
                                         <td class="mono">{{ $row['assetnum'] }}</td>
                                         <td>{{ ($row['plta'] ?? '') !== '' ? $row['plta'] : '—' }}</td>
                                         <td>{{ ($row['equipment'] ?? '') !== '' ? $row['equipment'] : '—' }}</td>
+                                        <td>
+                                            {{ ($row['master'] ?? '') !== '' ? $row['master'] : '—' }}
+                                            @if (! empty($row['note']))
+                                                <div class="opt">⚠ {{ $row['note'] }}</div>
+                                            @endif
+                                        </td>
                                         <td>
                                             <span class="badge" style="background:{{ $meta[$row['status_code']]['color'] ?? '#64748b' }}">{{ $row['status_code'] }}</span>
                                             {{ $meta[$row['status_code']]['label'] ?? '' }}
@@ -234,12 +239,10 @@
 
 <script>
 (() => {
-    const tplBase = @json(url('/cbm/upload/template'));
     const param = document.getElementById('parameter');
     const file = document.getElementById('file');
     const drop = document.getElementById('drop');
     const submitBtn = document.getElementById('submitBtn');
-    const tplLink = document.getElementById('tplLink');
     const detect = document.getElementById('detect');
     const tabs = [...document.querySelectorAll('#tabs .tab')];
 
@@ -247,7 +250,6 @@
         param.value = key;
         tabs.forEach(t => t.classList.toggle('active', t.dataset.key === key));
         document.querySelectorAll('.rule-panel').forEach(p => p.classList.toggle('hide', p.dataset.panel !== key));
-        tplLink.href = tplBase + '/' + key;
     };
     tabs.forEach(t => t.addEventListener('click', () => { detect.textContent = ''; selectParam(t.dataset.key); }));
     selectParam(param.value);

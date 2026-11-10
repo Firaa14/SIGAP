@@ -810,8 +810,8 @@
                         <span class="lp-service-contact-name">Bunga Cinta L. A.</span>
                         <div class="lp-service-contact-item">
                             <span>WhatsApp:</span>
-                            <a href="https://wa.me/62856552290851" id="lp-cta-service-2-whatsapp" target="_blank"
-                                rel="noopener noreferrer">0856 5522 90851</a>
+                            <a href="https://wa.me/6285655290851" id="lp-cta-service-2-whatsapp" target="_blank"
+                                rel="noopener noreferrer">0856 5529 0851</a>
                         </div>
                         <div class="lp-service-contact-item">
                             <span>LinkedIn:</span>

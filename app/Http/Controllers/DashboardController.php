@@ -98,7 +98,7 @@ class DashboardController extends Controller
      *
      * @return array<int, array{key: string, label: string, total: int}>
      */
-    private static function cbmParameterStats(): array
+    public static function cbmParameterStats(): array
     {
         $counts = Schema::hasTable('cbm_measurements')
             ? DB::table('cbm_measurements')

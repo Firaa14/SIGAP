@@ -16,6 +16,44 @@
 
     {{-- Landing Page CSS --}}
     <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
+
+    {{-- Tambahan: kartu hasil uji CBM --}}
+    <style>
+        .lp-cbm-block {
+            margin-top: 28px;
+        }
+
+        .lp-cbm-title {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--color-gray-400, #94a3b8);
+            margin-bottom: 12px;
+        }
+
+        .lp-stat-grid--cbm {
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+        }
+
+        .lp-cbm-caption {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--color-gray-400, #94a3b8);
+        }
+
+        @media (max-width: 1100px) {
+            .lp-stat-grid--cbm {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .lp-stat-grid--cbm {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -271,6 +309,33 @@
                     </div>
 
                 </div>
+
+                {{-- Hasil uji CBM per parameter --}}
+                @if(!empty($cbmParameterStats))
+                    @php
+                        $cbmCardColors = ['green', 'blue', 'amber', 'purple', 'red', 'blue'];
+                    @endphp
+                    <div class="lp-cbm-block lp-reveal lp-reveal-delay-3">
+                        <div class="lp-cbm-title">Hasil Uji CBM</div>
+                        <div class="lp-stat-grid lp-stat-grid--cbm" role="list"
+                            aria-label="Jumlah equipment yang sudah diuji per parameter CBM">
+                            @foreach($cbmParameterStats as $i => $param)
+                                <div class="lp-stat-card lp-stat-card--{{ $cbmCardColors[$i % count($cbmCardColors)] }}"
+                                    role="listitem">
+                                    <div class="lp-stat-icon" aria-hidden="true">◉</div>
+                                    <div class="lp-stat-body">
+                                        <div class="lp-stat-value" id="lp-cbm-{{ $param['key'] }}"
+                                            data-lp-cbm="{{ $param['key'] }}">{{ $param['total'] }}</div>
+                                        <div class="lp-stat-label">{{ $param['label'] }}</div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        @if($cbmUpdatedAt)
+                           
+                        @endif
+                    </div>
+                @endif
 
                 <div class="lp-update-info lp-reveal lp-reveal-delay-5" aria-live="polite">
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -745,8 +810,8 @@
                         <span class="lp-service-contact-name">Bunga Cinta L. A.</span>
                         <div class="lp-service-contact-item">
                             <span>WhatsApp:</span>
-                            <a href="https://wa.me/620000000002" id="lp-cta-service-2-whatsapp" target="_blank"
-                                rel="noopener noreferrer">0000 0000 0002</a>
+                            <a href="https://wa.me/62856552290851" id="lp-cta-service-2-whatsapp" target="_blank"
+                                rel="noopener noreferrer">0856 5522 90851</a>
                         </div>
                         <div class="lp-service-contact-item">
                             <span>LinkedIn:</span>
@@ -780,6 +845,33 @@
 
     {{-- Landing Page JS --}}
     <script src="{{ asset('js/landing.js') }}"></script>
+
+    {{-- Refresh angka kartu CBM secara berkala (tidak mengubah kartu SO) --}}
+    <script>
+        (function () {
+            const url = window.SIGAP_LANDING_STATS_URL;
+            if (!url || !document.querySelector('[data-lp-cbm]')) { return; }
+
+            const refresh = async function () {
+                try {
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    if (!res.ok) { return; }
+                    const data = await res.json();
+                    const cbm = data.cbm || {};
+
+                    document.querySelectorAll('[data-lp-cbm]').forEach(function (el) {
+                        const key = el.getAttribute('data-lp-cbm');
+                        if (cbm[key] !== undefined) { el.textContent = cbm[key]; }
+                    });
+
+                    const updated = document.getElementById('lp-cbm-updated');
+                    if (updated && data.cbm_updated_at) { updated.textContent = data.cbm_updated_at; }
+                } catch (e) { /* abaikan, angka lama tetap tampil */ }
+            };
+
+            setInterval(refresh, 60000);
+        })();
+    </script>
 
 </body>
 

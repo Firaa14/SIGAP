@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Equipment;
 use App\Models\UploadHistory;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class LandingController extends Controller
@@ -42,11 +45,17 @@ class LandingController extends Controller
 
         $hasData = $totalEquipment > 0;
 
+        // ── Hasil uji CBM per parameter (Thermograph, Vibrasi, Oil Analysis, MCA, PD, DGA) ──
+        $cbmParameterStats = DashboardController::cbmParameterStats();
+        $cbmUpdatedAt = self::cbmUpdatedAt();
+
         return view('landing', compact(
             'stats',
             'mapData',
             'lastUpdatedAt',
             'hasData',
+            'cbmParameterStats',
+            'cbmUpdatedAt',
         ));
     }
 
@@ -68,11 +77,28 @@ class LandingController extends Controller
 
         $lastUpload = UploadHistory::orderByDesc('uploaded_at')->first();
 
+        // Jumlah equipment yang sudah diuji per parameter CBM: ['thermograph' => 394, ...]
+        $cbm = collect(DashboardController::cbmParameterStats())->pluck('total', 'key')->all();
+
         return response()->json([
             'stats'      => $stats,
             'plta'       => $mapData,
             'updated_at' => now()->translatedFormat('D, d M Y H:i:s'),
             'last_upload' => $lastUpload?->uploaded_at?->translatedFormat('D, d M Y H:i') ?? null,
+            'cbm'        => $cbm,
+            'cbm_updated_at' => self::cbmUpdatedAt(),
         ]);
+    }
+
+    /** Waktu data CBM terakhir diperbarui (null bila belum ada data CBM). */
+    private static function cbmUpdatedAt(): ?string
+    {
+        if (! Schema::hasTable('cbm_measurements')) {
+            return null;
+        }
+
+        $at = DB::table('cbm_measurements')->max('updated_at');
+
+        return $at ? Carbon::parse($at)->translatedFormat('D, d M Y H:i') : null;
     }
 }

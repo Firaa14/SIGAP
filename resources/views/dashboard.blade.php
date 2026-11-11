@@ -191,12 +191,14 @@
                             Data {{ $cbmParameterStats[array_search($selectedParameter, array_column($cbmParameterStats, 'key'))]['label'] ?? $selectedParameter }}
                             ({{ count($cbmActivity) }})
                         @else
-                            Aktivitas Status Terbaru
+                            <span data-i18n="dash_activity_title">Aktivitas Status Terbaru</span>
                         @endif
                     </span>
                 </div>
                 <div class="card-actions">
-                    <span style="font-size:11px; color:var(--text-muted)">Update: {{ date('d M Y') }}</span>
+                    <span style="font-size:11px; color:var(--text-muted)">
+                        <span data-i18n="dash_update">Update:</span> {{ date('d M Y') }}
+                    </span>
                 </div>
             </div>
 
@@ -209,7 +211,7 @@
             @endphp
             <div class="cbm-tabs">
                 <a href="{{ route('dashboard') }}#recent-activity-card"
-                    class="cbm-tab {{ empty($selectedParameter) ? 'active' : '' }}">Semua</a>
+                    class="cbm-tab {{ empty($selectedParameter) ? 'active' : '' }}" data-i18n="dash_filter_all">Semua</a>
                 @foreach ($recentParams as $param)
                     <a href="{{ route('dashboard', ['parameter' => $param['key']]) }}#recent-activity-card"
                         class="cbm-tab {{ ($selectedParameter ?? null) === $param['key'] ? 'active' : '' }}">{{ $param['label'] }}</a>
@@ -221,12 +223,12 @@
                     <table class="activity-table">
                         <thead>
                             <tr>
-                                <th>Waktu Upload</th>
+                                <th data-i18n="dash_th_upload_time">Waktu Upload</th>
                                 <th>PLTA</th>
                                 <th>ASSETNUM</th>
                                 <th>Parameter</th>
                                 <th>Status</th>
-                                <th>Tanggal Uji</th>
+                                <th data-i18n="dash_cbm_th_test_date">Tanggal Uji</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -250,12 +252,12 @@
                 @else
                     <div class="empty-state" style="padding:32px 0;">
                         <div class="empty-state-icon">◷</div>
-                        <div class="empty-state-title">Belum ada data</div>
+                        <div class="empty-state-title" data-i18n="dash_cbm_empty_title">Belum ada data</div>
                         <div class="empty-state-text">
                             @if (! empty($selectedParameter))
-                                Belum ada data uji untuk parameter ini.
+                                <span data-i18n="dash_cbm_empty_param">Belum ada data uji untuk parameter ini.</span>
                             @else
-                                Upload file Excel CBM untuk melihat aktivitas terbaru.
+                                <span data-i18n="dash_cbm_empty_all">Upload file Excel CBM untuk melihat aktivitas terbaru.</span>
                             @endif
                         </div>
                     </div>
@@ -335,6 +337,33 @@
         window.SIGAP_MAP_DATA_URL = @json(route('dashboard.map-data'));
     </script>
     <script src="{{ asset('js/dashboard-map.js') }}"></script>
+
+    <script>
+        // Terjemahan khusus dashboard CBM.
+        // Kunci ditambahkan ke kamus layout (window.SIGAP_I18N), lalu bahasa diterapkan ulang.
+        (function () {
+            if (!window.SIGAP_I18N) { return; }
+
+            Object.assign(window.SIGAP_I18N.id, {
+                dash_cbm_th_test_date: 'Tanggal Uji',
+                dash_cbm_empty_title: 'Belum ada data',
+                dash_cbm_empty_param: 'Belum ada data uji untuk parameter ini.',
+                dash_cbm_empty_all: 'Upload file Excel CBM untuk melihat aktivitas terbaru.'
+            });
+
+            Object.assign(window.SIGAP_I18N.en, {
+                dash_cbm_th_test_date: 'Test Date',
+                dash_cbm_empty_title: 'No data yet',
+                dash_cbm_empty_param: 'There is no test data for this parameter yet.',
+                dash_cbm_empty_all: 'Upload a CBM Excel file to see the latest activity.'
+            });
+
+            if (typeof window.SIGAP_APPLY_LANG === 'function') {
+                window.SIGAP_APPLY_LANG(localStorage.getItem('sigap-lang') === 'en' ? 'en' : 'id');
+            }
+        })();
+    </script>
+
     <script>
         // Sync map toggle button label on lang change
         (function () {

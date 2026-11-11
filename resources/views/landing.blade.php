@@ -332,7 +332,9 @@
                             @endforeach
                         </div>
                         @if($cbmUpdatedAt)
-                           
+                            <div class="lp-cbm-caption">
+                                Data CBM diperbarui: <span id="lp-cbm-updated">{{ $cbmUpdatedAt }}</span>
+                            </div>
                         @endif
                     </div>
                 @endif
@@ -463,7 +465,7 @@
                     <span class="lp-guide-role-tab-code">CBM</span>
                     <span>
                         <strong>CBM</strong>
-                        <small>Fitur sedang dikerjakan</small>
+                        <small>Alur upload tersedia</small>
                     </span>
                 </button>
             </div>
@@ -627,36 +629,143 @@
 
             <div class="lp-guide-role-panel" id="lp-guide-cbm" role="tabpanel" data-guide-panel="cbm" hidden>
 
-                <div class="lp-guide-notice lp-guide-notice-pending">
-                    <div class="lp-guide-notice-icon" aria-hidden="true">⌛</div>
+                {{-- Notice --}}
+                <div class="lp-guide-notice">
+                    <div class="lp-guide-notice-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
                     <div>
-                        <strong>Fitur sedang dikerjakan.</strong>
-                        Alur upload data Work Order untuk CBM belum tersedia saat ini.
+                        <strong>Upload hasil uji CBM hanya dapat dilakukan melalui Dashboard DIKKP.</strong>
+                        Fitur ini memerlukan autentikasi sebagai <strong>Condition Based Maintenance (CBM)</strong>.
+                        Upload dilakukan <strong>satu parameter per file</strong> memakai file resume bulanan apa adanya.
                     </div>
                 </div>
 
+                {{-- Step by step guide --}}
                 <div class="lp-guide-steps" role="list" aria-label="Langkah-langkah upload data CBM">
-                    @foreach([
-                            'Login ke Dashboard DIKKP',
-                            'Siapkan File Excel Work Order',
-                            'Buka Menu Upload Data WO',
-                            'Periksa Hasil Validasi & Preview',
-                            'Konfirmasi & Import Data',
-                            'Lihat Hasil Import di Dashboard'
-                        ] as $step => $title)
-                        <div class="lp-guide-step" role="listitem">
-                            <div class="lp-guide-step-num" aria-label="Langkah {{ $step + 1 }}">{{ $step + 1 }}</div>
-                            <div class="lp-guide-step-content">
-                                <h3 class="lp-guide-step-title">{{ $title }}</h3>
-                                <p class="lp-guide-step-desc">
-                                    Belum tersedia. Fitur sedang dalam pengerjaan dan akan segera hadir untuk pengguna
-                                    CBM.
-                                </p>
-                                <span class="lp-guide-step-tag pending">Fitur sedang dikerjakan</span>
-                            </div>
+
+                    <div class="lp-guide-step" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 1">1</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">Login ke Dashboard DIKKP</h3>
+                            <p class="lp-guide-step-desc">
+                                Buka dashboard DIKKP melalui tombol "Buka Dashboard DIKKP" di halaman ini, lalu klik
+                                tombol Login di header dashboard dan masukkan kredensial akun dengan otoritas CBM.
+                                Setelah login, sidebar menampilkan menu <strong>Upload Data CBM</strong> dan
+                                <strong>Insert Asset</strong>.
+                            </p>
+                            <span class="lp-guide-step-tag auth">🔐 Autentikasi diperlukan</span>
                         </div>
-                    @endforeach
+                    </div>
+
+                    <div class="lp-guide-step" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 2">2</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">Siapkan File Resume Hasil Uji</h3>
+                            <p class="lp-guide-step-desc">
+                                Siapkan file Excel (<code>.xlsx</code>, <code>.xls</code>, atau <code>.csv</code>)
+                                resume bulanan untuk <strong>satu parameter</strong>: Thermograph, Vibrasi, Oil Analysis,
+                                MCA, PD, atau DGA. Gunakan file apa adanya, tidak perlu menambah kolom ASSETNUM.
+                                Kolom yang dibaca: <strong>PLTA, Equipment, No. Equip.</strong>, dan hasil akhir
+                                (<strong>Status Terakhir</strong> / Status Akhir / Resume).
+                            </p>
+                            <span class="lp-guide-step-tag info">📄 Satu parameter per file</span>
+                        </div>
+                    </div>
+
+                    <div class="lp-guide-step" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 3">3</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">Buka Menu Upload Data CBM</h3>
+                            <p class="lp-guide-step-desc">
+                                Di sidebar dashboard DIKKP, klik menu <strong>"Upload Data CBM"</strong>. Pilih tab
+                                parameter yang sesuai dengan file (otomatis terpilih dari nama file, tetapi tetap
+                                periksa kembali). Klik <strong>"Pilih File"</strong> atau seret file ke area yang
+                                tersedia, lalu klik <strong>"Tampilkan Preview"</strong>.
+                            </p>
+                            <span class="lp-guide-step-tag so">👤 Hanya CBM</span>
+                        </div>
+                    </div>
+
+                    <div class="lp-guide-step" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 4">4</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">Periksa Hasil Validasi & Preview</h3>
+                            <p class="lp-guide-step-desc">
+                                Sistem mencari ASSETNUM secara otomatis dari kode PLTA, nama equipment, dan No. Equip.,
+                                lalu menampilkan jumlah baris valid, baris gagal, dan sebaran kode status. Kolom
+                                <strong>Equipment (Master)</strong> menunjukkan equipment yang dicocokkan untuk tiap
+                                baris. Baris yang gagal atau ambigu diberi keterangan, dan baris tanpa hasil uji
+                                dilewati.
+                            </p>
+                            <span class="lp-guide-step-tag info">✓ Cek sebelum menyimpan</span>
+                        </div>
+                    </div>
+
+                    <div class="lp-guide-step" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 5">5</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">Simpan Data</h3>
+                            <p class="lp-guide-step-desc">
+                                Jika hasil preview sudah sesuai, klik <strong>"Simpan Baris Valid"</strong>. Data
+                                disimpan sebagai riwayat: upload pada hari yang sama memperbarui data, sedangkan upload
+                                pada hari berbeda ditambahkan sebagai riwayat baru. Bila satu equipment punya beberapa
+                                item uji, status terparah yang disimpan.
+                            </p>
+                            <span class="lp-guide-step-tag so">⚡ Riwayat tersimpan otomatis</span>
+                        </div>
+                    </div>
+
+                    <div class="lp-guide-step" role="listitem">
+                        <div class="lp-guide-step-num" aria-label="Langkah 6">6</div>
+                        <div class="lp-guide-step-content">
+                            <h3 class="lp-guide-step-title">Lihat Hasil di Dashboard</h3>
+                            <p class="lp-guide-step-desc">
+                                Dashboard menampilkan jumlah equipment yang sudah diuji per parameter dan aktivitas
+                                upload terbaru. Di halaman tiap PLTA, status terbaru tampil per parameter. Parameter yang
+                                belum pernah diupload tampil <strong>SOON</strong>, sedangkan equipment yang tidak
+                                memiliki data pada parameter yang sudah diupload tampil
+                                <strong>Not Measured</strong>.
+                            </p>
+                            <span class="lp-guide-step-tag info">📊 Tersedia untuk semua pengguna</span>
+                        </div>
+                    </div>
+
                 </div>
+
+                {{-- Kode status per parameter --}}
+                @php
+                    $cbmLegend = [
+                        'Thermograph' => [['N', '#0F766E'], ['L', '#16A34A'], ['M', '#EAB308'], ['H', '#7C3AED'], ['C', '#DC2626']],
+                        'Vibrasi' => [['A', '#16A34A'], ['B', '#EAB308'], ['C', '#F97316'], ['D', '#DC2626']],
+                        'Oil Analysis' => [['N', '#16A34A'], ['LA', '#0F766E'], ['HA', '#EAB308'], ['LF', '#7C3AED'], ['HF', '#DC2626']],
+                        'MCA' => [['H', '#16A34A'], ['K', '#EAB308'], ['O', '#F97316'], ['M', '#DC2626']],
+                        'PD' => [['N', '#16A34A'], ['L', '#0F766E'], ['H', '#7C3AED'], ['C', '#EAB308'], ['D', '#DC2626']],
+                        'DGA' => [['N', '#16A34A'], ['C', '#0F766E'], ['A', '#EAB308'], ['D', '#DC2626']],
+                    ];
+                @endphp
+                <div
+                    style="margin-top:48px;background:var(--color-white);border:1px solid var(--color-gray-200);border-radius:16px;padding:28px;">
+                    <div
+                        style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--color-gray-400);margin-bottom:14px;">
+                        Kode Status Hasil Uji per Parameter</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 24px;">
+                        @foreach($cbmLegend as $parameterName => $codes)
+                            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;">
+                                <span style="min-width:96px;font-weight:600;color:var(--color-gray-500);">{{ $parameterName }}</span>
+                                @foreach($codes as [$code, $color])
+                                    <span
+                                        style="padding:3px 10px;border-radius:6px;background:{{ $color }};color:#fff;font-weight:700;font-size:11px;">{{ $code }}</span>
+                                @endforeach
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
             </div>
 
         </div>
@@ -762,11 +871,16 @@
                         Condition Based Maintenance
                         <span class="lp-flow-role-badge cbm">CBM</span>
                     </div>
-                    <p class="lp-flow-role-desc">Pengguna dengan hak akses pengelolaan yang dikonfigurasi di sistem.</p>
+                    <p class="lp-flow-role-desc">Pengguna yang mengelola data hasil pengujian predictive maintenance</p>
                     <div class="lp-flow-role-perms">
-                        <span class="lp-flow-role-perm"><span class="checkmark" aria-hidden="true">-</span>Soon</span>
-                        <span class="lp-flow-role-perm"><span class="checkmark" aria-hidden="true">-</span>Soon</span>
-                        <span class="lp-flow-role-perm"><span class="checkmark" aria-hidden="true">-</span>Soon</span>
+                        <span class="lp-flow-role-perm"><span class="checkmark" aria-hidden="true">✓</span> Semua hak
+                            akses Reviewer</span>
+                        <span class="lp-flow-role-perm"><span class="checkmark" aria-hidden="true">✓</span> Upload hasil
+                            uji CBM per parameter</span>
+                        <span class="lp-flow-role-perm"><span class="checkmark" aria-hidden="true">✓</span> Insert asset
+                            CBM &amp; pengaturan nama di file Excel</span>
+                        <span class="lp-flow-role-perm"><span class="checkmark" aria-hidden="true">✓</span> Pantau status
+                            hasil uji tiap PLTA</span>
                     </div>
                 </div>
 
@@ -810,13 +924,13 @@
                         <span class="lp-service-contact-name">Bunga Cinta L. A.</span>
                         <div class="lp-service-contact-item">
                             <span>WhatsApp:</span>
-                            <a href="https://wa.me/6285655290851" id="lp-cta-service-2-whatsapp" target="_blank"
+                            <a href="https://wa.me/62885655290851" id="lp-cta-service-2-whatsapp" target="_blank"
                                 rel="noopener noreferrer">0856 5529 0851</a>
                         </div>
                         <div class="lp-service-contact-item">
                             <span>LinkedIn:</span>
                             <a href="https://www.linkedin.com/company/dikkp-layanan-2" id="lp-cta-service-2-linkedin"
-                                target="_blank" rel="noopener noreferrer">linkedin.com/company/dikkp-layanan-2</a>
+                                target="_blank" rel="noopener noreferrer">linkedin.com/in/bungacintalovesia</a>
                         </div>
                     </div>
                 </div>

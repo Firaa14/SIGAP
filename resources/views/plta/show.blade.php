@@ -96,29 +96,17 @@
                 @endforeach
             </select>
         </div>
-
-        {{-- Filter parameter (khusus CBM) --}}
-        @if($isCbm)
-            <div class="filter-group" style="flex:0; min-width:auto;">
-                <span class="filter-label">Parameter:</span>
-                <select class="form-control select-sm" id="filter-parameter">
-                    <option value="">Semua Parameter</option>
-                    <option value="thermograph">Thermograph</option>
-                    <option value="vibrasi">Vibrasi</option>
-                    <option value="oilAnalysis">Oil Analysis</option>
-                    <option value="mca">MCA</option>
-                    <option value="pd">PD</option>
-                    <option value="dga">DGA</option>
-                </select>
-            </div>
-        @endif
-
         <div class="filter-group" style="flex:0; min-width:auto;">
             <span class="filter-label" data-i18n="plta_status_label">Status:</span>
             <select class="form-control select-sm" id="filter-status">
                 <option value="" data-i18n="plta_all_status">Semua Status</option>
                 @if($isCbm)
-                    {{-- Opsi status CBM diisi otomatis oleh JS sesuai parameter yang dipilih (dari $cbmStatusLegend) --}}
+                    <option value="N">N - Normal</option>
+                    <option value="L">L - Low</option>
+                    <option value="M">M - Medium</option>
+                    <option value="H">H - High</option>
+                    <option value="C">C - Critical</option>
+                    <option value="NM">Not Measured</option>
                 @else
                     <option value="Normal" data-i18n="status_normal">Normal</option>
                     <option value="Abnormal" data-i18n="status_abnormal">Abnormal</option>
@@ -144,20 +132,16 @@
             $uploadedParameters = \Illuminate\Support\Facades\Schema::hasTable('cbm_measurements')
                 ? \Illuminate\Support\Facades\DB::table('cbm_measurements')->distinct()->pluck('parameter')->all()
                 : [];
-
-            // Kode status untuk filter: pakai kode asli dari legend tiap parameter
-            // (tiap parameter punya kode sendiri). Kode yang tidak ada di legend / SOON = NM (Not Measured).
-            $normCbm = fn ($param, $v) => isset($cbmStatusLegend[$param][$v]) ? $v : 'NM';
         @endphp
         <div class="card" id="cbm-equipment-table-card">
             <div class="card-header">
                 <div class="card-title">
                     <span class="card-title-icon">⚙</span>
-                    <span>Data Pengujian CBM — {{ $currentPlta['name'] }}</span>
+                    <span><span data-cbm-i18n="plta_cbm_title">Data Pengujian CBM</span> — {{ $currentPlta['name'] }}</span>
                 </div>
                 <div class="card-actions">
                     <span id="equipment-count-label" style="font-size:11px;color:var(--text-muted);">
-                        {{ $cbmEquipments->count() }} equipment ditampilkan
+                        {{ $cbmEquipments->count() }} <span data-cbm-i18n="plta_cbm_shown">equipment ditampilkan</span>
                     </span>
                 </div>
             </div>
@@ -183,14 +167,14 @@
                         </thead>
                         <tbody>
                             @foreach($cbmEquipments as $index => $eq)
+                                @php
+                                    $thermo = in_array($eq['thermograph'], ['N', 'L', 'M', 'H', 'C'], true)
+                                        ? $eq['thermograph']
+                                        : 'NM';
+                                @endphp
                                 <tr class="equipment-row"
                                     data-unit="{{ $eq['unit'] }}"
-                                    data-thermograph="{{ $normCbm('thermograph', $eq['thermograph']) }}"
-                                    data-vibrasi="{{ $normCbm('vibrasi', $eq['vibrasi']) }}"
-                                    data-oil-analysis="{{ $normCbm('oil_analysis', $eq['oil_analysis']) }}"
-                                    data-mca="{{ $normCbm('mca', $eq['mca']) }}"
-                                    data-pd="{{ $normCbm('pd', $eq['pd']) }}"
-                                    data-dga="{{ $normCbm('dga', $eq['dga']) }}"
+                                    data-status="{{ $thermo }}"
                                     data-search="{{ strtolower($eq['equipment'] . ' ' . $eq['kks'] . ' ' . $eq['assetnum'] . ' ' . $eq['unit'] . ' ' . $eq['system']) }}">
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $eq['unit'] }}</td>
@@ -221,8 +205,8 @@
             @else
                 <div class="empty-state">
                     <div class="empty-state-icon">⚙</div>
-                    <div class="empty-state-title">Belum ada data equipment</div>
-                    <div class="empty-state-text">Data pengujian CBM untuk {{ $currentPlta['name'] }} belum tersedia.</div>
+                    <div class="empty-state-title" data-cbm-i18n="plta_cbm_empty_title">Belum ada data equipment</div>
+                    <div class="empty-state-text"><span data-cbm-i18n="plta_cbm_empty_a">Data pengujian CBM untuk</span> {{ $currentPlta['name'] }} <span data-cbm-i18n="plta_cbm_empty_b">belum tersedia.</span></div>
                 </div>
             @endif
 
@@ -466,6 +450,7 @@
 @endsection
 
 @section('scripts')
+    <script src="{{ asset('js/cbm-bahasa.js') }}"></script>
     <style>
         .cbm-status-badge {
             display: inline-flex;
@@ -754,29 +739,6 @@
         }
     </style>
 
-    @php
-        // Opsi filter status CBM per parameter, diambil dari legend masing-masing parameter
-        $cbmFilterOptions = [];
-        if ($isCbm) {
-            $legendKeyMap = [
-                'thermograph' => 'thermograph',
-                'vibrasi'     => 'vibrasi',
-                'oilAnalysis' => 'oil_analysis',
-                'mca'         => 'mca',
-                'pd'          => 'pd',
-                'dga'         => 'dga',
-            ];
-            foreach ($legendKeyMap as $jsKey => $legendKey) {
-                $opts = [];
-                foreach (($cbmStatusLegend[$legendKey] ?? []) as $code => $meta) {
-                    if ($code === 'SOON' || $code === 'NM') { continue; }
-                    $opts[] = ['code' => (string) $code, 'label' => (string) ($meta['label'] ?? $code)];
-                }
-                $cbmFilterOptions[$jsKey] = $opts;
-            }
-        }
-    @endphp
-
     {{-- Toast element --}}
     <div id="status-toast" role="alert" aria-live="polite"></div>
 
@@ -799,86 +761,26 @@
 
         // ============================================================
         // FILTER & SEARCH
-        // - Tampilan SO  : status difilter dari data-status (status operasi)
-        // - Tampilan CBM : status difilter per parameter (dropdown Parameter);
-        //                  kalau parameter "Semua", cocok jika salah satu
-        //                  parameter memiliki status tersebut.
         // ============================================================
         (function () {
-            const searchInput  = document.getElementById('search-equipment');
-            const unitFilter   = document.getElementById('filter-unit');
+            const searchInput = document.getElementById('search-equipment');
+            const unitFilter  = document.getElementById('filter-unit');
             const statusFilter = document.getElementById('filter-status');
-            const paramFilter  = document.getElementById('filter-parameter'); // hanya ada di CBM
-            const resetBtn     = document.getElementById('btn-reset-filter');
-            const rows         = document.querySelectorAll('.equipment-row');
-            const noResults    = document.getElementById('no-results');
-            const countLabel   = document.getElementById('equipment-count-label');
-
-            // Kunci dataset untuk tiap parameter CBM (data-oil-analysis => oilAnalysis)
-            const cbmKeys = ['thermograph', 'vibrasi', 'oilAnalysis', 'mca', 'pd', 'dga'];
-
-            // Opsi status per parameter (dari legend di server)
-            const cbmStatusOptions = @json($cbmFilterOptions);
-
-            // Isi ulang dropdown Status sesuai parameter yang dipilih (khusus CBM)
-            function fillStatusOptions() {
-                if (!paramFilter) { return; }
-
-                let list = [];
-                if (paramFilter.value) {
-                    list = cbmStatusOptions[paramFilter.value] || [];
-                } else {
-                    const seen = {};
-                    cbmKeys.forEach(function (key) {
-                        (cbmStatusOptions[key] || []).forEach(function (opt) {
-                            if (!seen[opt.code]) { seen[opt.code] = true; list.push(opt); }
-                        });
-                    });
-                }
-
-                const firstOption = statusFilter.options[0]; // "Semua Status"
-                statusFilter.innerHTML = '';
-                statusFilter.appendChild(firstOption);
-
-                list.concat([{ code: 'NM', label: 'Not Measured' }]).forEach(function (opt) {
-                    const el = document.createElement('option');
-                    el.value = opt.code;
-                    el.textContent = (opt.code === 'NM' || !opt.label || opt.label === opt.code)
-                        ? opt.label || opt.code
-                        : opt.code + ' - ' + opt.label;
-                    statusFilter.appendChild(el);
-                });
-                statusFilter.value = '';
-            }
-
-            fillStatusOptions();
+            const resetBtn    = document.getElementById('btn-reset-filter');
+            const rows        = document.querySelectorAll('.equipment-row');
+            const noResults   = document.getElementById('no-results');
+            const countLabel  = document.getElementById('equipment-count-label');
 
             function applyFilters() {
                 const searchVal  = searchInput.value.toLowerCase().trim();
                 const unitVal    = unitFilter.value;
                 const statusVal  = statusFilter.value;
-                const paramVal   = paramFilter ? paramFilter.value : '';
                 let visibleCount = 0;
 
                 rows.forEach(function (row) {
                     const matchSearch = !searchVal || row.dataset.search.includes(searchVal);
                     const matchUnit   = !unitVal   || row.dataset.unit === unitVal;
-
-                    let matchStatus = true;
-                    if (statusVal) {
-                        if (!paramFilter) {
-                            // SO: status operasi
-                            matchStatus = row.dataset.status === statusVal;
-                        } else if (paramVal) {
-                            // CBM: satu parameter yang dipilih
-                            matchStatus = row.dataset[paramVal] === statusVal;
-                        } else {
-                            // CBM: semua parameter, cukup salah satu cocok
-                            matchStatus = cbmKeys.some(function (key) {
-                                return row.dataset[key] === statusVal;
-                            });
-                        }
-                    }
+                    const matchStatus = !statusVal || row.dataset.status === statusVal;
 
                     if (matchSearch && matchUnit && matchStatus) {
                         row.style.display = '';
@@ -901,19 +803,12 @@
             if (searchInput)  { searchInput.addEventListener('input', applyFilters); }
             if (unitFilter)   { unitFilter.addEventListener('change', applyFilters); }
             if (statusFilter) { statusFilter.addEventListener('change', applyFilters); }
-            if (paramFilter)  {
-                paramFilter.addEventListener('change', function () {
-                    fillStatusOptions();
-                    applyFilters();
-                });
-            }
 
             if (resetBtn) {
                 resetBtn.addEventListener('click', function () {
                     searchInput.value  = '';
                     unitFilter.value   = '';
                     statusFilter.value = '';
-                    if (paramFilter) { paramFilter.value = ''; fillStatusOptions(); }
                     applyFilters();
                 });
             }

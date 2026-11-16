@@ -122,53 +122,6 @@
             </form>
         </div>
     </div>
-
-    {{-- ===== 2. Atur alias & parameter equipment yang sudah ada ===== --}}
-    <div class="box card">
-        <div class="box-h" data-cbm-i18n="as_edit_title">Atur nama di file Excel dan parameter equipment yang sudah ada</div>
-        <div class="box-b">
-            <form method="POST" action="{{ route('cbm.asset.alias') }}" id="aliasForm">
-                @csrf
-                <div class="grid2">
-                    <div class="f">
-                        <label class="l" for="plta2">PLTA</label>
-                        <select id="plta2">
-                            <option value="" data-cbm-i18n="as_select_plta">Pilih PLTA</option>
-                            @foreach ($pltas as $p)
-                                <option value="{{ $p->id }}">{{ $p->nama_plta }} ({{ $p->kode_prefix }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="f">
-                        <label class="l" for="assetnum2">Equipment</label>
-                        <select name="assetnum" id="assetnum2" required>
-                            <option value="" data-cbm-i18n="as_select_plta_first">Pilih PLTA lebih dulu</option>
-                        </select>
-                    </div>
-
-                    <div class="f span2">
-                        <label class="l" for="alias2" data-cbm-i18n="as_alias_label">Nama di file Excel</label>
-                        <input type="text" name="cbm_alias" id="alias2" placeholder="Contoh: Turbin #1, Turbine Vib X #1" data-cbm-i18n-placeholder="as_alias2_ph">
-                        <span class="hint" data-cbm-i18n="as_alias2_hint">Pisahkan dengan koma. Baris di Excel dengan nama ini otomatis masuk ke equipment di atas saat upload.</span>
-                    </div>
-
-                    <div class="f span2">
-                        <label class="l" data-cbm-i18n="as_params_label">Parameter yang berlaku</label>
-                        <div id="params2">
-                            @foreach ($parameters as $key => $label)
-                                <label class="chk"><input type="checkbox" name="parameters[]" value="{{ $key }}">{{ $label }}</label>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-
-                <div class="actions">
-                    <button type="submit" class="btn btn-primary" data-cbm-i18n="as_save_settings">Simpan pengaturan</button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 
 <script src="{{ asset('js/cbm-bahasa.js') }}"></script>
@@ -210,53 +163,6 @@
     unit.addEventListener('change', suggest);
     unit.addEventListener('blur', suggest);
     fillUnits();
-
-    // ---- Atur alias equipment yang sudah ada ----
-    const plta2 = document.getElementById('plta2');
-    const eqSelect = document.getElementById('assetnum2');
-    const alias2 = document.getElementById('alias2');
-    const boxes = [...document.querySelectorAll('#params2 input[type=checkbox]')];
-    let items = [];
-
-    // Opsi kosong pada daftar equipment (teks mengikuti bahasa aktif).
-    let eqPlaceholderKey = 'as_select_plta_first';
-    const setEqPlaceholder = key => {
-        eqPlaceholderKey = key;
-        eqSelect.innerHTML = '';
-        const o = document.createElement('option');
-        o.value = '';
-        o.textContent = CBM_T(key);
-        eqSelect.appendChild(o);
-    };
-    document.addEventListener('cbm:langapplied', () => {
-        const first = eqSelect.options[0];
-        if (first && first.value === '') { first.textContent = CBM_T(eqPlaceholderKey); }
-    });
-
-    const showItem = () => {
-        const item = items.find(i => i.assetnum === eqSelect.value);
-        alias2.value = item ? item.alias : '';
-        boxes.forEach(b => { b.checked = !!item && item.parameters.includes(b.value); });
-    };
-
-    plta2.addEventListener('change', async () => {
-        setEqPlaceholder('js_loading');
-        items = [];
-        showItem();
-        if (!plta2.value) { setEqPlaceholder('as_select_plta_first'); return; }
-        try {
-            const res = await fetch(listUrl + '?plta_id=' + encodeURIComponent(plta2.value), { headers: { 'Accept': 'application/json' } });
-            items = res.ok ? await res.json() : [];
-        } catch (e) { items = []; }
-        setEqPlaceholder('js_select_equipment');
-        items.forEach(i => {
-            const o = document.createElement('option');
-            o.value = i.assetnum;
-            o.textContent = i.assetnum + ' — ' + i.equipment;
-            eqSelect.appendChild(o);
-        });
-    });
-    eqSelect.addEventListener('change', showItem);
 })();
 </script>
 @endsection

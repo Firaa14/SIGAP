@@ -15,13 +15,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 
     {{-- Landing Page CSS --}}
-    <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/landing.css') }}?v={{ filemtime(public_path('css/landing.css')) }}">
 
-    {{-- Tambahan: kartu hasil uji CBM --}}
+    {{-- Tambahan: kartu hasil uji CBM (class sendiri, tidak bergantung pada landing.css) --}}
     <style>
-        .lp-cbm-block {
-            margin-top: 28px;
-        }
+        .lp-cbm-block { margin-top: 28px; }
 
         .lp-cbm-title {
             font-size: 12px;
@@ -32,8 +30,69 @@
             margin-bottom: 12px;
         }
 
-        .lp-stat-grid--cbm {
-            grid-template-columns: repeat(6, minmax(0, 1fr));
+        .lp-cbm-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .lp-cbm-card {
+            --accent: #10b981;
+            --accent-bg: #ecfdf5;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 0;
+            padding: 18px 18px 16px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-top: 3px solid var(--accent);
+            border-radius: 16px;
+            box-sizing: border-box;
+        }
+
+        .lp-cbm-card--green  { --accent: #10b981; --accent-bg: #ecfdf5; }
+        .lp-cbm-card--blue   { --accent: #2563eb; --accent-bg: #eff6ff; }
+        .lp-cbm-card--amber  { --accent: #f59e0b; --accent-bg: #fffbeb; }
+        .lp-cbm-card--purple { --accent: #7c3aed; --accent-bg: #f5f3ff; }
+        .lp-cbm-card--red    { --accent: #ef4444; --accent-bg: #fef2f2; }
+
+        .lp-cbm-card-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lp-cbm-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: var(--accent-bg);
+            color: #1e293b;
+            font-size: 15px;
+        }
+
+        .lp-cbm-value {
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1;
+            color: #0f172a;
+        }
+
+        /* Label ada di bawah angka, lebar penuh kartu, tidak pernah dipotong */
+        .lp-cbm-label {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            line-height: 1.3;
+            text-transform: uppercase;
+            color: #64748b;
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
 
         .lp-cbm-caption {
@@ -42,16 +101,8 @@
             color: var(--color-gray-400, #94a3b8);
         }
 
-        @media (max-width: 1100px) {
-            .lp-stat-grid--cbm {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-            }
-        }
-
         @media (max-width: 600px) {
-            .lp-stat-grid--cbm {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
+            .lp-cbm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
     </style>
 </head>
@@ -313,26 +364,42 @@
                 {{-- Hasil uji CBM per parameter --}}
                 @if(!empty($cbmParameterStats))
                     @php
-                        $cbmCardColors = ['green', 'blue', 'amber', 'purple', 'red', 'blue'];
+                        $cbmColors = [
+                            ['#10b981', '#ecfdf5'],
+                            ['#2563eb', '#eff6ff'],
+                            ['#f59e0b', '#fffbeb'],
+                            ['#7c3aed', '#f5f3ff'],
+                            ['#ef4444', '#fef2f2'],
+                            ['#2563eb', '#eff6ff'],
+                        ];
                     @endphp
-                    <div class="lp-cbm-block lp-reveal lp-reveal-delay-3">
-                        <div class="lp-cbm-title">Hasil Uji CBM</div>
-                        <div class="lp-stat-grid lp-stat-grid--cbm" role="list"
-                            aria-label="Jumlah equipment yang sudah diuji per parameter CBM">
+                    <div style="margin-top:28px;">
+                        <div style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#94a3b8;margin-bottom:12px;">
+                            Hasil Uji CBM
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
                             @foreach($cbmParameterStats as $i => $param)
-                                <div class="lp-stat-card lp-stat-card--{{ $cbmCardColors[$i % count($cbmCardColors)] }}"
-                                    role="listitem">
-                                    <div class="lp-stat-icon" aria-hidden="true">◉</div>
-                                    <div class="lp-stat-body">
-                                        <div class="lp-stat-value" id="lp-cbm-{{ $param['key'] }}"
-                                            data-lp-cbm="{{ $param['key'] }}">{{ $param['total'] }}</div>
-                                        <div class="lp-stat-label">{{ $param['label'] }}</div>
+                                @php [$accent, $accentBg] = $cbmColors[$i % count($cbmColors)]; @endphp
+                                <div style="display:flex;flex-direction:column;gap:12px;min-width:0;padding:18px 18px 16px;background:#fff;border:1px solid #e2e8f0;border-top:3px solid {{ $accent }};border-radius:16px;box-sizing:border-box;">
+
+                                    <div style="display:flex;align-items:center;gap:12px;">
+                                        <div style="flex-shrink:0;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:{{ $accentBg }};color:#1e293b;font-size:15px;"
+                                            aria-hidden="true">◉</div>
+                                        <div style="font-size:32px;font-weight:800;line-height:1;color:#0f172a;"
+                                            id="lp-cbm-{{ $param['key'] }}" data-lp-cbm="{{ $param['key'] }}">{{ $param['total'] }}</div>
                                     </div>
+
+                                    <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;line-height:1.3;text-transform:uppercase;color:#64748b;white-space:normal;overflow:visible;overflow-wrap:anywhere;">
+                                        {{ $param['label'] }}
+                                    </div>
+
                                 </div>
                             @endforeach
                         </div>
+
                         @if($cbmUpdatedAt)
-                            <div class="lp-cbm-caption">
+                            <div style="margin-top:10px;font-size:12px;color:#94a3b8;">
                                 Data CBM diperbarui: <span id="lp-cbm-updated">{{ $cbmUpdatedAt }}</span>
                             </div>
                         @endif

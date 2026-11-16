@@ -24,6 +24,24 @@
 
 @section('content')
 
+    @php
+        // Parameter CBM yang sudah pernah diupload (minimal 1 data di database).
+        // - Parameter yang belum pernah diupload                          -> "SOON"
+        // - Parameter yang sudah diupload tapi equipment ini tidak ada datanya -> "Not Measured"
+        $uploadedParameters = \Illuminate\Support\Facades\Schema::hasTable('cbm_measurements')
+            ? \Illuminate\Support\Facades\DB::table('cbm_measurements')->distinct()->pluck('parameter')->all()
+            : [];
+
+        // Teks yang ditampilkan untuk satu parameter CBM pada satu equipment.
+        $cbmParamText = function ($cbmEq, $parameter) use ($uploadedParameters) {
+            $value = $cbmEq[$parameter] ?? 'SOON';
+            if ($value === 'SOON' && in_array($parameter, $uploadedParameters, true)) {
+                return 'Not Measured';
+            }
+            return $value;
+        };
+    @endphp
+
     {{-- ======================================================
     PLTA HEADER INFO
     ====================================================== --}}
@@ -125,14 +143,6 @@
     TABEL EQUIPMENT
     ====================================================== --}}
     @if($isCbm)
-        @php
-            // Parameter CBM yang sudah pernah diupload (minimal 1 data di database).
-            // Parameter yang belum pernah diupload -> "SOON".
-            // Parameter yang sudah diupload tapi equipment ini tidak punya data -> "Not Measured".
-            $uploadedParameters = \Illuminate\Support\Facades\Schema::hasTable('cbm_measurements')
-                ? \Illuminate\Support\Facades\DB::table('cbm_measurements')->distinct()->pluck('parameter')->all()
-                : [];
-        @endphp
         <div class="card" id="cbm-equipment-table-card">
             <div class="card-header">
                 <div class="card-title">
@@ -338,18 +348,18 @@
                                             data-duration="{{ $eq['durasi_hari'] }}"
                                             data-so-status-class="{{ $statusSelectClass }}"
                                             data-work-orders="{{ base64_encode(json_encode($eq['keterangan'], JSON_UNESCAPED_UNICODE)) }}"
-                                            data-thermograph="{{ $cbmEq['thermograph'] ?? 'SOON' }}"
+                                            data-thermograph="{{ $cbmParamText($cbmEq, 'thermograph') }}"
                                             data-thermograph-color="{{ $cbmMeta['thermograph']['color'] ?? '#64748B' }}"
                                             data-thermograph-label="{{ $cbmMeta['thermograph']['label'] ?? 'Belum tersedia' }}"
-                                            data-vibrasi="{{ $cbmEq['vibrasi'] ?? 'SOON' }}"
+                                            data-vibrasi="{{ $cbmParamText($cbmEq, 'vibrasi') }}"
                                             data-vibrasi-color="{{ $cbmMeta['vibrasi']['color'] ?? '#64748B' }}"
                                             data-vibrasi-label="{{ $cbmMeta['vibrasi']['label'] ?? 'Belum tersedia' }}"
-                                            data-oil-analysis="{{ $cbmEq['oil_analysis'] ?? 'SOON' }}"
+                                            data-oil-analysis="{{ $cbmParamText($cbmEq, 'oil_analysis') }}"
                                             data-oil-analysis-color="{{ $cbmMeta['oil_analysis']['color'] ?? '#64748B' }}"
                                             data-oil-analysis-label="{{ $cbmMeta['oil_analysis']['label'] ?? 'Belum tersedia' }}"
-                                            data-mca="{{ $cbmEq['mca'] ?? 'SOON' }}"
-                                            data-pd="{{ $cbmEq['pd'] ?? 'SOON' }}"
-                                            data-dga="{{ $cbmEq['dga'] ?? 'SOON' }}"
+                                            data-mca="{{ $cbmParamText($cbmEq, 'mca') }}"
+                                            data-pd="{{ $cbmParamText($cbmEq, 'pd') }}"
+                                            data-dga="{{ $cbmParamText($cbmEq, 'dga') }}"
                                             data-dga-color="{{ $cbmMeta['dga']['color'] ?? '#64748B' }}"
                                             data-dga-label="{{ $cbmMeta['dga']['label'] ?? 'Belum tersedia' }}">
                                             <span class="equipment-detail-btn-icon" aria-hidden="true">↗</span>
@@ -506,14 +516,15 @@
 
         .equipment-detail-name {
             margin: -12px 0 22px;
-            color: var(--text-secondary);
+            color: #475569 !important;
             font-size: 13px;
             font-weight: 600;
         }
 
+        /* Judul modal: warna gelap tetap, supaya terbaca di dialog putih (juga saat tema gelap) */
         .equipment-detail-dialog h2 {
             margin: 6px 0 16px;
-            color: var(--text-primary);
+            color: #0F172A !important;
         }
 
         .equipment-detail-close {
@@ -522,7 +533,7 @@
             right: 16px;
             border: 0;
             background: transparent;
-            color: var(--text-secondary);
+            color: #475569;
             font-size: 26px;
             cursor: pointer;
         }
@@ -545,12 +556,12 @@
         }
 
         .equipment-detail-grid span {
-            color: var(--text-muted);
+            color: #64748B;
             font-size: 11px;
         }
 
         .equipment-detail-grid strong {
-            color: var(--text-primary);
+            color: #0F172A;
             font-size: 13px;
         }
 
@@ -560,7 +571,7 @@
 
         .equipment-detail-section h3 {
             margin: 0 0 10px;
-            color: var(--text-primary);
+            color: #0F172A !important;
             font-size: 14px;
         }
 
@@ -939,7 +950,11 @@
                         badge.style.color = button.dataset[key + 'Color'] || '#64748B';
                         badge.style.backgroundColor = (button.dataset[key + 'Color'] || '#64748B') + '1A';
                         badge.title = button.dataset[key + 'Label'] || 'Belum tersedia';
-                        if ((button.dataset[key] || '') === 'SOON') {
+
+                        // SOON (belum pernah diupload) dan Not Measured (sudah diupload,
+                        // tapi equipment ini tidak ada datanya) tampil abu-abu.
+                        const value = button.dataset[key] || '';
+                        if (value === 'SOON' || value === 'Not Measured') {
                             badge.classList.add('detail-soon');
                             badge.style.color = '#64748B';
                             badge.style.backgroundColor = '#F1F5F9';

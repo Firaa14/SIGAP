@@ -15,11 +15,12 @@ use Illuminate\View\View;
 /**
  * Halaman "Insert Asset CBM" (khusus peran CBM, terpisah dari halaman equipment milik SO).
  *  - Tambah asset baru ke master (PLTA, unit, system, equipment, KKS, ASSETNUM).
+ *  - Edit asset yang sudah ada lewat /cbm/asset?edit=ASSETNUM (ASSETNUM tidak berubah).
  *  - Isi "nama di file Excel" (alias) dan parameter yang berlaku untuk equipment yang sudah ada.
  */
 class CbmAssetController extends Controller
 {
-    public function create(): View
+    public function create(Request $request): View
     {
         $this->authorizeCbm();
 
@@ -33,11 +34,17 @@ class CbmAssetController extends Controller
             ->groupBy('plta_id')
             ->map(fn ($rows) => $rows->pluck('unit')->filter()->values()->all());
 
+        // Mode edit: /cbm/asset?edit=BSTM010101
+        $edit = $request->query('edit')
+            ? Equipment::query()->where('assetnum', (string) $request->query('edit'))->first()
+            : null;
+
         return view('cbm.asset', [
             'pltas' => $pltas,
             'unitsByPlta' => $unitsByPlta,
             'parameters' => CbmEquipmentService::PARAMETERS,
             'hasCbmColumns' => $this->hasCbmColumns(),
+            'edit' => $edit,
         ]);
     }
 
@@ -94,7 +101,7 @@ class CbmAssetController extends Controller
             'equipment' => ['required', 'string', 'max:255'],
             'kks' => ['nullable', 'string', 'max:100'],
             'assetnum' => ['nullable', 'string', 'max:50'],
-            'cbm_alias' => ['nullable', 'string', 'max:255'],
+            'edit_assetnum' => ['nullable', 'string', 'max:50'],
             'parameters' => ['nullable', 'array'],
             'parameters.*' => ['string', Rule::in(array_keys(CbmEquipmentService::PARAMETERS))],
         ], [
@@ -104,6 +111,38 @@ class CbmAssetController extends Controller
             'equipment.required' => 'Isi nama equipment.',
         ]);
 
+        // ── Mode edit: ubah alat yang sudah ada, ASSETNUM tidak berubah ──
+        if (! empty($data['edit_assetnum'])) {
+            $target = Equipment::query()->where('assetnum', $data['edit_assetnum'])->first();
+
+            if (! $target) {
+                return back()->withInput()
+                    ->withErrors(['assetnum' => 'Alat yang akan diedit tidak ditemukan.']);
+            }
+
+            $changes = [
+                'plta_id' => (int) $data['plta_id'],
+                'unit' => trim($data['unit']),
+                'system' => trim($data['system']),
+                'equipment' => trim($data['equipment']),
+                'kks' => trim((string) ($data['kks'] ?? '')),
+            ];
+
+            if ($this->hasCbmColumns()) {
+                // Nama equipment baru ditambahkan ke alias, alias lama tetap.
+                $changes['cbm_alias'] = $this->normalizeAlias(
+                    trim((string) $target->cbm_alias.','.$data['equipment'], ',')
+                );
+                $changes['cbm_parameters'] = $this->joinParameters($data['parameters'] ?? []);
+            }
+
+            $target->forceFill($changes)->save();
+
+            return redirect()->route('cbm.asset.create')
+                ->with('status', "Asset {$target->assetnum} berhasil diperbarui.");
+        }
+
+        // ── Mode tambah: asset baru ──
         $assetnum = strtoupper(trim((string) ($data['assetnum'] ?? '')));
         if ($assetnum === '') {
             $assetnum = (string) $this->nextAssetnum((int) $data['plta_id'], $data['unit']);
@@ -129,7 +168,7 @@ class CbmAssetController extends Controller
         ];
 
         if ($this->hasCbmColumns()) {
-            $attributes['cbm_alias'] = $this->normalizeAlias($data['cbm_alias'] ?? null);
+            $attributes['cbm_alias'] = $this->normalizeAlias($data['equipment']);
             $attributes['cbm_parameters'] = $this->joinParameters($data['parameters'] ?? []);
         }
 

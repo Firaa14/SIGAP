@@ -62,6 +62,10 @@
     ====================================================== --}}
     <div class="plta-summary-bar" id="plta-status-summary">
         @if($isCbm)
+            <span class="cbm-summary-caption" id="cbm-summary-caption" style="width:100%;font-size:12px;opacity:.75;margin-bottom:6px;">
+                Ringkasan parameter: <strong id="cbm-summary-param">Thermograph</strong>
+            </span>
+            <div id="cbm-summary-chips" style="display:contents;"></div>
             @php
                 $cbmChips = [
                     'N'  => ['label' => 'Normal',       'class' => 'cbm-chip-n'],
@@ -73,7 +77,7 @@
                 ];
             @endphp
             @foreach($cbmChips as $code => $chip)
-                <div class="summary-chip cbm-chip {{ $chip['class'] }}">
+                <div class="summary-chip cbm-chip {{ $chip['class'] }} cbm-chip-fallback">
                     <span class="summary-chip-count">{{ $statusSummary[$code] }}</span>
                     {{ $code === 'NM' ? $chip['label'] : $code . ' - ' . $chip['label'] }}
                 </div>
@@ -114,6 +118,24 @@
                 @endforeach
             </select>
         </div>
+        @if($isCbm)
+        <div class="filter-group" style="flex:0; min-width:auto;">
+            <span class="filter-label">Parameter:</span>
+            <select class="form-control select-sm" id="filter-param">
+                <option value="">Semua Parameter</option>
+                <option value="thermograph" selected>Thermograph</option>
+                <option value="vibrasi">Vibrasi</option>
+                <option value="oil_analysis">Oil Analysis</option>
+                <option value="mca">MCA</option>
+                <option value="pd">PD</option>
+                <option value="dga">DGA</option>
+            </select>
+        </div>
+        <div class="filter-group" style="flex:0; min-width:auto;">
+            <span class="filter-label" data-i18n="plta_status_label">Status:</span>
+            <select class="form-control select-sm" id="filter-status"></select>
+        </div>
+        @else
         <div class="filter-group" style="flex:0; min-width:auto;">
             <span class="filter-label" data-i18n="plta_status_label">Status:</span>
             <select class="form-control select-sm" id="filter-status">
@@ -132,6 +154,7 @@
                 @endif
             </select>
         </div>
+        @endif
         <div style="margin-left:auto;">
             <button class="btn btn-secondary btn-sm" id="btn-reset-filter" type="button" data-i18n="plta_reset_filter">
                 ↺ Reset Filter
@@ -173,6 +196,7 @@
                                 <th>MCA</th>
                                 <th>PD</th>
                                 <th>DGA</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -185,6 +209,9 @@
                                 <tr class="equipment-row"
                                     data-unit="{{ $eq['unit'] }}"
                                     data-status="{{ $thermo }}"
+                                    @foreach(['thermograph', 'vibrasi', 'oil_analysis', 'mca', 'pd', 'dga'] as $__p)
+                                        data-p-{{ str_replace('_', '-', $__p) }}="{{ isset($cbmStatusLegend[$__p][$eq[$__p]]) ? $eq[$__p] : 'NM' }}"
+                                    @endforeach
                                     data-search="{{ strtolower($eq['equipment'] . ' ' . $eq['kks'] . ' ' . $eq['assetnum'] . ' ' . $eq['unit'] . ' ' . $eq['system']) }}">
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $eq['unit'] }}</td>
@@ -207,6 +234,11 @@
                                             </span>
                                         </td>
                                     @endforeach
+                                    <td style="white-space:nowrap;">
+                                        <a href="{{ route('cbm.asset.create', ['edit' => $eq['assetnum']]) }}"
+                                           class="btn btn-secondary btn-sm"
+                                           title="Edit {{ $eq['equipment'] }}">✎ Edit</a>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -786,12 +818,19 @@
                 const searchVal  = searchInput.value.toLowerCase().trim();
                 const unitVal    = unitFilter.value;
                 const statusVal  = statusFilter.value;
+                const paramSel   = document.getElementById('filter-param');
+                const paramKey   = paramSel ? paramSel.value : '';
                 let visibleCount = 0;
 
                 rows.forEach(function (row) {
                     const matchSearch = !searchVal || row.dataset.search.includes(searchVal);
                     const matchUnit   = !unitVal   || row.dataset.unit === unitVal;
-                    const matchStatus = !statusVal || row.dataset.status === statusVal;
+                    // Mode CBM: status dibaca dari parameter yang dipilih (kode asli parameter itu).
+                    // 'Semua Parameter' = filter status tidak dipakai.
+                    const rowStatus   = paramSel
+                        ? row.dataset['p' + paramKey.replace(/(^|_)(\w)/g, function (m, a, c) { return c.toUpperCase(); })]
+                        : row.dataset.status;
+                    const matchStatus = !statusVal || rowStatus === statusVal;
 
                     if (matchSearch && matchUnit && matchStatus) {
                         row.style.display = '';
@@ -809,6 +848,76 @@
                     ? window.SIGAP_I18N[lang].plta_equipment_shown
                     : 'equipment ditampilkan';
                 countLabel.innerHTML = visibleCount + ' <span data-i18n="plta_equipment_shown">' + shownLabel + '</span>';
+            }
+
+            // ---- CBM: filter status & ringkasan per parameter ----
+            const paramFilter = document.getElementById('filter-param');
+            if (paramFilter) {
+                const LEGEND = @json($cbmStatusLegend ?? []);
+                const PARAM_LABEL = { thermograph:'Thermograph', vibrasi:'Vibrasi', oil_analysis:'Oil Analysis', mca:'MCA', pd:'PD', dga:'DGA' };
+                const chipsBox = document.getElementById('cbm-summary-chips');
+                const captionParam = document.getElementById('cbm-summary-param');
+
+                function dsKey(param) {
+                    return 'p' + param.replace(/(^|_)(\w)/g, function (m, a, c) { return c.toUpperCase(); });
+                }
+
+                function rebuildStatusOptions() {
+                    const param = paramFilter.value;
+                    statusFilter.innerHTML = '';
+                    if (!param) {
+                        statusFilter.disabled = true;
+                        statusFilter.add(new Option('Pilih parameter dulu', ''));
+                        return;
+                    }
+                    statusFilter.disabled = false;
+                    statusFilter.add(new Option('Semua Status (' + PARAM_LABEL[param] + ')', ''));
+                    Object.keys(LEGEND[param] || {}).forEach(function (code) {
+                        statusFilter.add(new Option(code + ' - ' + LEGEND[param][code].label, code));
+                    });
+                    statusFilter.add(new Option('Not Measured / SOON', 'NM'));
+                }
+
+                function rebuildChips() {
+                    const param = paramFilter.value;
+                    chipsBox.innerHTML = '';
+                    document.querySelectorAll('.cbm-chip-fallback').forEach(function (el) { el.style.display = 'none'; });
+                    if (!param) {
+                        captionParam.textContent = 'pilih parameter untuk melihat ringkasan';
+                        return;
+                    }
+                    captionParam.textContent = PARAM_LABEL[param];
+                    const counts = {};
+                    rows.forEach(function (row) {
+                        const v = row.dataset[dsKey(param)] || 'NM';
+                        counts[v] = (counts[v] || 0) + 1;
+                    });
+                    const items = Object.keys(LEGEND[param] || {}).map(function (code) {
+                        return { code: code, label: LEGEND[param][code].label, color: LEGEND[param][code].color };
+                    });
+                    items.push({ code: 'NM', label: 'Not Measured', color: '#64748B' });
+                    items.forEach(function (it) {
+                        const chip = document.createElement('div');
+                        chip.className = 'summary-chip cbm-chip';
+                        chip.style.cssText = 'cursor:pointer;background:' + it.color + '22;color:' + it.color + ';border-color:' + it.color + '55;';
+                        chip.title = 'Klik untuk memfilter';
+                        chip.innerHTML = '<span class="summary-chip-count">' + (counts[it.code] || 0) + '</span> ' +
+                            (it.code === 'NM' ? it.label : it.code + ' - ' + it.label);
+                        chip.addEventListener('click', function () {
+                            statusFilter.value = it.code;
+                            applyFilters();
+                        });
+                        chipsBox.appendChild(chip);
+                    });
+                }
+
+                paramFilter.addEventListener('change', function () {
+                    rebuildStatusOptions();
+                    rebuildChips();
+                    applyFilters();
+                });
+                rebuildStatusOptions();
+                rebuildChips();
             }
 
             if (searchInput)  { searchInput.addEventListener('input', applyFilters); }

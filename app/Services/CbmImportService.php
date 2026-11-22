@@ -35,6 +35,7 @@ class CbmImportService
 
     /** Skor minimum agar sebuah equipment dianggap cocok. */
     private const MATCH_THRESHOLD = 0.6;
+    private const DUPLICATE_SUSPECT = 0.4;
 
     public function __construct(private CbmEquipmentService $cbm)
     {
@@ -204,6 +205,16 @@ class CbmImportService
                         'equipment' => $e['name'].($e['noeq'] !== '' ? ' ('.$e['noeq'].')' : ''),
                         'assetnum' => $match['hint'] ?? '—',
                         'reason' => $match['error'],
+                        'auto_key' => md5($key),
+                        'auto' => [
+                            'plta' => $e['plta'],
+                            'name' => $e['name'],
+                            'noeq' => $e['noeq'],
+                            'near' => $match['near'] ?? null,
+                        ],
+                        'near' => $match['near'] ?? null,
+                        'suspect' => isset($match['near'])
+                            && ($match['near']['noeq_match'] || $match['near']['score'] >= self::DUPLICATE_SUSPECT),
                     ]);
 
                     continue;
@@ -533,11 +544,21 @@ class CbmImportService
         $topScore = $scored[0][0];
         $best = $scored[0][1];
 
-        if ($topScore < self::MATCH_THRESHOLD) {
-            return $fail(
+                if ($topScore < self::MATCH_THRESHOLD) {
+            $result = $fail(
                 'Tidak ada padanan di master equipment. Terdekat: '.$best['assetnum'].' ('.$best['label'].').',
                 $best['assetnum'].'?'
             );
+
+            $result['near'] = [
+                'assetnum' => $best['assetnum'],
+                'label' => $best['label'],
+                'score' => round($topScore, 2),
+                'noeq_match' => $noeqKey !== ''
+                    && ($best['kks'] === $noeqKey || isset($best['set'][$noeqKey])),
+            ];
+
+            return $result;
         }
 
         $tied = array_filter($scored, fn (array $s): bool => $s[0] >= $topScore - 0.0001);

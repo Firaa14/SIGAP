@@ -1,7 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CbmUploadController; // <-- BARU
+use App\Http\Controllers\CbmAssetController;
+use App\Http\Controllers\CbmUploadController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\EquipmentStatusController;
@@ -9,7 +10,6 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PltaController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CbmAssetController;
 
 // ================================
 // LANDING PAGE (halaman awal publik)
@@ -72,11 +72,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/upload/result/{history}', [UploadController::class, 'result'])
         ->name('upload.result');
 
-    // UPLOAD CBM <-- BARU
+    // UPLOAD CBM
     Route::prefix('cbm/upload')->name('cbm.upload.')->group(function () {
         Route::get('/', [CbmUploadController::class, 'index'])->name('index');
         Route::get('/template/{parameter}', [CbmUploadController::class, 'template'])->name('template');
         Route::post('/preview', [CbmUploadController::class, 'preview'])->name('preview');
+        Route::post('/auto-create', [CbmUploadController::class, 'autoCreate'])->name('auto-create');
         Route::post('/confirm', [CbmUploadController::class, 'confirm'])->name('confirm');
         Route::post('/cancel', [CbmUploadController::class, 'cancel'])->name('cancel');
     });
@@ -93,10 +94,10 @@ Route::middleware('auth')->group(function () {
 
     // ASSET CBM (khusus peran CBM)
     Route::prefix('cbm/asset')->name('cbm.asset.')->group(function () {
-    Route::get('/', [CbmAssetController::class, 'create'])->name('create');
-    Route::post('/', [CbmAssetController::class, 'store'])->name('store');
-    Route::get('/next', [CbmAssetController::class, 'next'])->name('next');
-    Route::get('/equipments', [CbmAssetController::class, 'equipments'])->name('equipments');
-    Route::post('/alias', [CbmAssetController::class, 'updateAlias'])->name('alias');
-});
+        Route::get('/', [CbmAssetController::class, 'create'])->name('create');
+        Route::post('/', [CbmAssetController::class, 'store'])->name('store');
+        Route::get('/next', [CbmAssetController::class, 'next'])->name('next');
+        Route::get('/equipments', [CbmAssetController::class, 'equipments'])->name('equipments');
+        Route::post('/alias', [CbmAssetController::class, 'updateAlias'])->name('alias');
+    });
 });

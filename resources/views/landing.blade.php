@@ -19,7 +19,9 @@
 
     {{-- Tambahan: kartu hasil uji CBM (class sendiri, tidak bergantung pada landing.css) --}}
     <style>
-        .lp-cbm-block { margin-top: 28px; }
+        .lp-cbm-block {
+            margin-top: 28px;
+        }
 
         .lp-cbm-title {
             font-size: 12px;
@@ -51,11 +53,30 @@
             box-sizing: border-box;
         }
 
-        .lp-cbm-card--green  { --accent: #10b981; --accent-bg: #ecfdf5; }
-        .lp-cbm-card--blue   { --accent: #2563eb; --accent-bg: #eff6ff; }
-        .lp-cbm-card--amber  { --accent: #f59e0b; --accent-bg: #fffbeb; }
-        .lp-cbm-card--purple { --accent: #7c3aed; --accent-bg: #f5f3ff; }
-        .lp-cbm-card--red    { --accent: #ef4444; --accent-bg: #fef2f2; }
+        .lp-cbm-card--green {
+            --accent: #10b981;
+            --accent-bg: #ecfdf5;
+        }
+
+        .lp-cbm-card--blue {
+            --accent: #2563eb;
+            --accent-bg: #eff6ff;
+        }
+
+        .lp-cbm-card--amber {
+            --accent: #f59e0b;
+            --accent-bg: #fffbeb;
+        }
+
+        .lp-cbm-card--purple {
+            --accent: #7c3aed;
+            --accent-bg: #f5f3ff;
+        }
+
+        .lp-cbm-card--red {
+            --accent: #ef4444;
+            --accent-bg: #fef2f2;
+        }
 
         .lp-cbm-card-top {
             display: flex;
@@ -102,7 +123,9 @@
         }
 
         @media (max-width: 600px) {
-            .lp-cbm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .lp-cbm-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
     </style>
 </head>
@@ -374,23 +397,27 @@
                         ];
                     @endphp
                     <div style="margin-top:28px;">
-                        <div style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#94a3b8;margin-bottom:12px;">
+                        <div
+                            style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#94a3b8;margin-bottom:12px;">
                             Hasil Uji CBM
                         </div>
 
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
                             @foreach($cbmParameterStats as $i => $param)
                                 @php [$accent, $accentBg] = $cbmColors[$i % count($cbmColors)]; @endphp
-                                <div style="display:flex;flex-direction:column;gap:12px;min-width:0;padding:18px 18px 16px;background:#fff;border:1px solid #e2e8f0;border-top:3px solid {{ $accent }};border-radius:16px;box-sizing:border-box;">
+                                <div
+                                    style="display:flex;flex-direction:column;gap:12px;min-width:0;padding:18px 18px 16px;background:#fff;border:1px solid #e2e8f0;border-top:3px solid {{ $accent }};border-radius:16px;box-sizing:border-box;">
 
                                     <div style="display:flex;align-items:center;gap:12px;">
                                         <div style="flex-shrink:0;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:{{ $accentBg }};color:#1e293b;font-size:15px;"
                                             aria-hidden="true">◉</div>
                                         <div style="font-size:32px;font-weight:800;line-height:1;color:#0f172a;"
-                                            id="lp-cbm-{{ $param['key'] }}" data-lp-cbm="{{ $param['key'] }}">{{ $param['total'] }}</div>
+                                            id="lp-cbm-{{ $param['key'] }}" data-lp-cbm="{{ $param['key'] }}">{{ $param['total'] }}
+                                        </div>
                                     </div>
 
-                                    <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;line-height:1.3;text-transform:uppercase;color:#64748b;white-space:normal;overflow:visible;overflow-wrap:anywhere;">
+                                    <div
+                                        style="font-size:12px;font-weight:600;letter-spacing:0.06em;line-height:1.3;text-transform:uppercase;color:#64748b;white-space:normal;overflow:visible;overflow-wrap:anywhere;">
                                         {{ $param['label'] }}
                                     </div>
 
@@ -708,7 +735,8 @@
                     <div>
                         <strong>Upload hasil uji CBM hanya dapat dilakukan melalui Dashboard DIKKP.</strong>
                         Fitur ini memerlukan autentikasi sebagai <strong>Condition Based Maintenance (CBM)</strong>.
-                        Upload dilakukan <strong>satu parameter per file</strong> memakai file resume bulanan apa adanya.
+                        Upload dilakukan <strong>satu parameter per file</strong> memakai file resume bulanan apa
+                        adanya.
                     </div>
                 </div>
 
@@ -735,7 +763,8 @@
                             <h3 class="lp-guide-step-title">Siapkan File Resume Hasil Uji</h3>
                             <p class="lp-guide-step-desc">
                                 Siapkan file Excel (<code>.xlsx</code>, <code>.xls</code>, atau <code>.csv</code>)
-                                resume bulanan untuk <strong>satu parameter</strong>: Thermograph, Vibrasi, Oil Analysis,
+                                resume bulanan untuk <strong>satu parameter</strong>: Thermograph, Vibrasi, Oil
+                                Analysis,
                                 MCA, PD, atau DGA. Gunakan file apa adanya, tidak perlu menambah kolom ASSETNUM.
                                 Kolom yang dibaca: <strong>PLTA, Equipment, No. Equip.</strong>, dan hasil akhir
                                 (<strong>Status Terakhir</strong> / Status Akhir / Resume).
@@ -793,7 +822,8 @@
                             <h3 class="lp-guide-step-title">Lihat Hasil di Dashboard</h3>
                             <p class="lp-guide-step-desc">
                                 Dashboard menampilkan jumlah equipment yang sudah diuji per parameter dan aktivitas
-                                upload terbaru. Di halaman tiap PLTA, status terbaru tampil per parameter. Parameter yang
+                                upload terbaru. Di halaman tiap PLTA, status terbaru tampil per parameter. Parameter
+                                yang
                                 belum pernah diupload tampil <strong>SOON</strong>, sedangkan equipment yang tidak
                                 memiliki data pada parameter yang sudah diupload tampil
                                 <strong>Not Measured</strong>.
@@ -823,7 +853,8 @@
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 24px;">
                         @foreach($cbmLegend as $parameterName => $codes)
                             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;">
-                                <span style="min-width:96px;font-weight:600;color:var(--color-gray-500);">{{ $parameterName }}</span>
+                                <span
+                                    style="min-width:96px;font-weight:600;color:var(--color-gray-500);">{{ $parameterName }}</span>
                                 @foreach($codes as [$code, $color])
                                     <span
                                         style="padding:3px 10px;border-radius:6px;background:{{ $color }};color:#fff;font-weight:700;font-size:11px;">{{ $code }}</span>
@@ -946,7 +977,8 @@
                             uji CBM per parameter</span>
                         <span class="lp-flow-role-perm"><span class="checkmark" aria-hidden="true">✓</span> Insert asset
                             CBM &amp; pengaturan nama di file Excel</span>
-                        <span class="lp-flow-role-perm"><span class="checkmark" aria-hidden="true">✓</span> Pantau status
+                        <span class="lp-flow-role-perm"><span class="checkmark" aria-hidden="true">✓</span> Pantau
+                            status
                             hasil uji tiap PLTA</span>
                     </div>
                 </div>
@@ -982,8 +1014,8 @@
                         </div>
                         <div class="lp-service-contact-item">
                             <span>LinkedIn:</span>
-                            <a href="https://www.linkedin.com/company/dikkp-layanan-1" id="lp-cta-service-1-linkedin"
-                                target="_blank" rel="noopener noreferrer">linkedin.com/company/syafirafn</a>
+                            <a href="https://www.linkedin.com/in/syafirafn/" id="lp-cta-service-1-linkedin"
+                                target="_blank" rel="noopener noreferrer">linkedin.com/syafirafn</a>
                         </div>
                     </div>
                     <div class="lp-service-contact">

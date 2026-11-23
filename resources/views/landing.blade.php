@@ -1028,8 +1028,8 @@
                         </div>
                         <div class="lp-service-contact-item">
                             <span>LinkedIn:</span>
-                            <a href="https://www.linkedin.com/company/dikkp-layanan-2" id="lp-cta-service-2-linkedin"
-                                target="_blank" rel="noopener noreferrer">linkedin.com/in/bungacintalovesia</a>
+                            <a href="https://www.linkedin.com/in/bungacnta/" id="lp-cta-service-2-linkedin"
+                                target="_blank" rel="noopener noreferrer">linkedin.com/in/bungacnta/</a>
                         </div>
                     </div>
                 </div>

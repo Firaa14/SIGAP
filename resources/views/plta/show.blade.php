@@ -196,7 +196,6 @@
                                 <th>MCA</th>
                                 <th>PD</th>
                                 <th>DGA</th>
-                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -234,11 +233,6 @@
                                             </span>
                                         </td>
                                     @endforeach
-                                    <td style="white-space:nowrap;">
-                                        <a href="{{ route('cbm.asset.create', ['edit' => $eq['assetnum']]) }}"
-                                           class="btn btn-secondary btn-sm"
-                                           title="Edit {{ $eq['equipment'] }}">✎ Edit</a>
-                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

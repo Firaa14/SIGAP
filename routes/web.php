@@ -96,7 +96,6 @@ Route::middleware('auth')->group(function () {
     Route::prefix('cbm/asset')->name('cbm.asset.')->group(function () {
         Route::get('/', [CbmAssetController::class, 'create'])->name('create');
         Route::post('/', [CbmAssetController::class, 'store'])->name('store');
-        Route::get('/next', [CbmAssetController::class, 'next'])->name('next');
         Route::get('/equipments', [CbmAssetController::class, 'equipments'])->name('equipments');
         Route::post('/alias', [CbmAssetController::class, 'updateAlias'])->name('alias');
     });

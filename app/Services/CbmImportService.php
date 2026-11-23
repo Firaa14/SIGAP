@@ -35,6 +35,8 @@ class CbmImportService
 
     /** Skor minimum agar sebuah equipment dianggap cocok. */
     private const MATCH_THRESHOLD = 0.6;
+
+    /** Skor kemiripan (di bawah MATCH_THRESHOLD) yang sudah dianggap "mungkin alat yang sama". */
     private const DUPLICATE_SUSPECT = 0.4;
 
     public function __construct(private CbmEquipmentService $cbm)
@@ -46,12 +48,11 @@ class CbmImportService
      *
      * Dua format didukung:
      *  1. Format lama  : header ASSETNUM + STATUS (ASSETNUM dipakai langsung).
-     *  2. Format resume: header PLTA + EQUIPMENT + (No. Equip.) + Status Terakhir / Status Akhir /
-     *     Resume / Status. ASSETNUM dicari otomatis di master equipment dari kode PLTA,
-     *     nama equipment, dan No. Equip.
+     *  2. Format resume: header PLTA + EQUIPMENT + (No. Equip.) + (ASSETNUM) + (KKS) + Status Terakhir /
+     *     Status Akhir / Resume / Status. Kalau kolom ASSETNUM di file terisi dan terdaftar di master,
+     *     dipakai langsung. Kalau tidak, dicari di master dari kode PLTA, nama equipment, dan No. Equip.
      *
-     * Jika satu ASSETNUM muncul di banyak baris, status terparah yang dipakai
-     * (urutan keparahan = urutan kode di legenda parameter, dari ringan ke berat).
+     * Jika satu ASSETNUM muncul di banyak baris, status terparah yang dipakai.
      * Tanggal uji = tanggal upload.
      *
      * @return array{valid: array<int, array<string, mixed>>, errors: array<int, array<string, mixed>>}
@@ -105,6 +106,8 @@ class CbmImportService
                         'plta' => '',
                         'name' => '',
                         'noeq' => '',
+                        'asset_file' => '',
+                        'kks_file' => '',
                         'status' => $status,
                     ];
                 }
@@ -141,6 +144,15 @@ class CbmImportService
         }
 
         [$index, $known] = $this->equipmentIndex();
+
+        // Nama master per ASSETNUM (untuk kolom "Equipment (master)" saat ASSETNUM langsung dari file).
+        $labels = [];
+        foreach ($index as $list) {
+            foreach ($list as $c) {
+                $labels[$c['assetnum']] = $c['label'];
+            }
+        }
+
         $date = now()->toDateString();
 
         $best = [];       // assetnum => ['rank','status','where','plta','name']
@@ -189,40 +201,51 @@ class CbmImportService
                     continue;
                 }
             } else {
-                // Format resume: cari ASSETNUM di master.
-                $key = $e['plta'].'|'.$e['name'].'|'.$e['noeq'];
+                // Format resume.
+                $assetFile = strtoupper((string) ($e['asset_file'] ?? ''));
 
-                if (! array_key_exists($key, $matchCache)) {
-                    $matchCache[$key] = $this->matchEquipment($index, $e['plta'], $e['name'], $e['noeq']);
-                }
+                if ($assetFile !== '' && isset($known[$assetFile])) {
+                    // ASSETNUM di file sudah terdaftar di master: dipakai langsung, tanpa tebakan nama.
+                    $assetnum = $assetFile;
+                    $label = (string) ($labels[$assetFile] ?? '');
+                    $note = null;
+                } else {
+                    $key = $e['plta'].'|'.$e['name'].'|'.$e['noeq'].'|'.$assetFile;
 
-                $match = $matchCache[$key];
+                    if (! array_key_exists($key, $matchCache)) {
+                        $matchCache[$key] = $this->matchEquipment($index, $e['plta'], $e['name'], $e['noeq']);
+                    }
 
-                if ($match['error'] !== null) {
-                    $pushError('match|'.$key, [
-                        'row' => $e['where'],
-                        'plta' => $e['plta'],
-                        'equipment' => $e['name'].($e['noeq'] !== '' ? ' ('.$e['noeq'].')' : ''),
-                        'assetnum' => $match['hint'] ?? '—',
-                        'reason' => $match['error'],
-                        'auto_key' => md5($key),
-                        'auto' => [
+                    $match = $matchCache[$key];
+
+                    if ($match['error'] !== null) {
+                        $pushError('match|'.$key, [
+                            'row' => $e['where'],
                             'plta' => $e['plta'],
-                            'name' => $e['name'],
-                            'noeq' => $e['noeq'],
+                            'equipment' => $e['name'].($e['noeq'] !== '' ? ' ('.$e['noeq'].')' : ''),
+                            'assetnum' => $match['hint'] ?? '—',
+                            'reason' => $match['error'],
+                            'auto_key' => md5($key),
+                            'auto' => [
+                                'plta' => $e['plta'],
+                                'name' => $e['name'],
+                                'noeq' => $e['noeq'],
+                                'assetnum_file' => $assetFile,
+                                'kks_file' => (string) ($e['kks_file'] ?? ''),
+                                'near' => $match['near'] ?? null,
+                            ],
                             'near' => $match['near'] ?? null,
-                        ],
-                        'near' => $match['near'] ?? null,
-                        'suspect' => isset($match['near'])
-                            && ($match['near']['noeq_match'] || $match['near']['score'] >= self::DUPLICATE_SUSPECT),
-                    ]);
+                            'suspect' => isset($match['near'])
+                                && ($match['near']['noeq_match'] || $match['near']['score'] >= self::DUPLICATE_SUSPECT),
+                        ]);
 
-                    continue;
+                        continue;
+                    }
+
+                    $assetnum = $match['assetnum'];
+                    $label = (string) $match['label'];
+                    $note = $match['note'];
                 }
-
-                $assetnum = $match['assetnum'];
-                $label = (string) $match['label'];
-                $note = $match['note'];
             }
 
             if (! isset($best[$assetnum]) || $rank > $best[$assetnum]['rank']) {
@@ -274,7 +297,7 @@ class CbmImportService
     /**
      * Cari baris header format resume di 20 baris pertama sebuah sheet.
      *
-     * @return array{row: int, plta: int, equip: int, noeq: int|null, status: int}|null
+     * @return array{row: int, plta: int, equip: int, noeq: int|null, asset: int|null, kks: int|null, status: int}|null
      */
     private function findResumeHeader(array $rows): ?array
     {
@@ -293,6 +316,8 @@ class CbmImportService
 
             $equip = null;
             $noeq = null;
+            $asset = null;
+            $kks = null;
 
             foreach ($cells as $idx => $name) {
                 if ($equip === null && str_starts_with($name, 'EQUIPMENT')) {
@@ -300,6 +325,12 @@ class CbmImportService
                 }
                 if ($noeq === null && (str_starts_with($name, 'NO. EQUIP') || str_starts_with($name, 'NO EQUIP'))) {
                     $noeq = $idx;
+                }
+                if ($asset === null && in_array($name, self::ASSET_HEADERS, true)) {
+                    $asset = $idx;
+                }
+                if ($kks === null && ($name === 'KKS' || str_starts_with($name, 'KKS '))) {
+                    $kks = $idx;
                 }
             }
 
@@ -312,6 +343,8 @@ class CbmImportService
                 'plta' => (int) $plta,
                 'equip' => (int) $equip,
                 'noeq' => $noeq !== null ? (int) $noeq : null,
+                'asset' => $asset !== null ? (int) $asset : null,
+                'kks' => $kks !== null ? (int) $kks : null,
                 'status' => $status,
             ];
         }
@@ -347,7 +380,8 @@ class CbmImportService
     /**
      * Kumpulkan baris data format resume.
      * - Baris pemisah ("PLTA SENGGURUH") dan baris tanpa kode PLTA dilewati.
-     * - Nama equipment yang kosong (baris lanjutan item uji) diisi dari baris di atasnya.
+     * - Nama equipment yang kosong (baris lanjutan item uji) diisi dari baris di atasnya,
+     *   begitu juga No. Equip., ASSETNUM, dan KKS.
      * - Baris tanpa status dilewati (belum ada hasil uji).
      */
     private function collectResumeRows(array $rows, array $h, string $sheetTitle, string $parameter, array &$entries): void
@@ -355,6 +389,8 @@ class CbmImportService
         $lastPlta = '';
         $lastName = '';
         $lastNo = '';
+        $lastAsset = '';
+        $lastKks = '';
 
         for ($i = $h['row'] + 1, $n = count($rows); $i < $n; $i++) {
             $row = $rows[$i];
@@ -362,17 +398,19 @@ class CbmImportService
             $plta = $this->pltaCode(trim((string) ($row[$h['plta']] ?? '')));
 
             if ($plta === '') {
-                $lastPlta = $lastName = $lastNo = '';
+                $lastPlta = $lastName = $lastNo = $lastAsset = $lastKks = '';
 
                 continue;
             }
 
             $name = trim((string) ($row[$h['equip']] ?? ''));
             $noeq = $h['noeq'] !== null ? trim((string) ($row[$h['noeq']] ?? '')) : '';
+            $asset = $h['asset'] !== null ? strtoupper(trim((string) ($row[$h['asset']] ?? ''))) : '';
+            $kks = $h['kks'] !== null ? trim((string) ($row[$h['kks']] ?? '')) : '';
 
             // Baris pemisah per PLTA.
             if (str_starts_with(strtoupper($name), 'PLTA ')) {
-                $lastPlta = $lastName = $lastNo = '';
+                $lastPlta = $lastName = $lastNo = $lastAsset = $lastKks = '';
 
                 continue;
             }
@@ -385,10 +423,14 @@ class CbmImportService
             if ($name === '' && $lastPlta === $plta) {
                 $name = $lastName;
                 $noeq = $noeq !== '' ? $noeq : $lastNo;
+                $asset = $asset !== '' ? $asset : $lastAsset;
+                $kks = $kks !== '' ? $kks : $lastKks;
             } elseif ($name !== '') {
                 $lastPlta = $plta;
                 $lastName = $name;
                 $lastNo = $noeq;
+                $lastAsset = $asset;
+                $lastKks = $kks;
             }
 
             $status = strtoupper(trim((string) ($row[$h['status']] ?? '')));
@@ -403,6 +445,8 @@ class CbmImportService
                 'plta' => $plta,
                 'name' => $name,
                 'noeq' => $noeq,
+                'asset_file' => $asset,
+                'kks_file' => $kks,
                 'status' => $status,
             ];
         }
@@ -544,7 +588,7 @@ class CbmImportService
         $topScore = $scored[0][0];
         $best = $scored[0][1];
 
-                if ($topScore < self::MATCH_THRESHOLD) {
+        if ($topScore < self::MATCH_THRESHOLD) {
             $result = $fail(
                 'Tidak ada padanan di master equipment. Terdekat: '.$best['assetnum'].' ('.$best['label'].').',
                 $best['assetnum'].'?'

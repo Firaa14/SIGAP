@@ -14,7 +14,7 @@ use Illuminate\View\View;
 
 /**
  * Halaman "Insert Asset CBM" (khusus peran CBM, terpisah dari halaman equipment milik SO).
- *  - Tambah asset baru ke master (PLTA, unit, system, equipment, KKS, ASSETNUM).
+ *  - Tambah asset baru ke master (PLTA, unit, system, equipment, KKS, ASSETNUM diisi manual).
  *  - Edit asset yang sudah ada lewat /cbm/asset?edit=ASSETNUM (ASSETNUM tidak berubah).
  *  - Isi "nama di file Excel" (alias) dan parameter yang berlaku untuk equipment yang sudah ada.
  */
@@ -45,21 +45,6 @@ class CbmAssetController extends Controller
             'parameters' => CbmEquipmentService::PARAMETERS,
             'hasCbmColumns' => $this->hasCbmColumns(),
             'edit' => $edit,
-        ]);
-    }
-
-    /** Saran ASSETNUM berikutnya: B + kode PLTA + nomor unit 2 digit + nomor urut 4 digit. */
-    public function next(Request $request): JsonResponse
-    {
-        $this->authorizeCbm();
-
-        $data = $request->validate([
-            'plta_id' => ['required', 'integer'],
-            'unit' => ['required', 'string', 'max:150'],
-        ]);
-
-        return response()->json([
-            'assetnum' => $this->nextAssetnum((int) $data['plta_id'], $data['unit']),
         ]);
     }
 
@@ -100,7 +85,7 @@ class CbmAssetController extends Controller
             'system' => ['required', 'string', 'max:255'],
             'equipment' => ['required', 'string', 'max:255'],
             'kks' => ['nullable', 'string', 'max:100'],
-            'assetnum' => ['nullable', 'string', 'max:50'],
+            'assetnum' => ['required', 'string', 'max:50'],
             'edit_assetnum' => ['nullable', 'string', 'max:50'],
             'parameters' => ['nullable', 'array'],
             'parameters.*' => ['string', Rule::in(array_keys(CbmEquipmentService::PARAMETERS))],
@@ -109,6 +94,7 @@ class CbmAssetController extends Controller
             'unit.required' => 'Isi unit.',
             'system.required' => 'Isi system.',
             'equipment.required' => 'Isi nama equipment.',
+            'assetnum.required' => 'Isi ASSETNUM sesuai nomor resmi (tidak dibuat otomatis).',
         ]);
 
         // ── Mode edit: ubah alat yang sudah ada, ASSETNUM tidak berubah ──
@@ -142,17 +128,8 @@ class CbmAssetController extends Controller
                 ->with('status', "Asset {$target->assetnum} berhasil diperbarui.");
         }
 
-        // ── Mode tambah: asset baru ──
-        $assetnum = strtoupper(trim((string) ($data['assetnum'] ?? '')));
-        if ($assetnum === '') {
-            $assetnum = (string) $this->nextAssetnum((int) $data['plta_id'], $data['unit']);
-        }
-
-        if ($assetnum === '') {
-            return back()->withInput()->withErrors([
-                'assetnum' => 'ASSETNUM tidak bisa dibuat otomatis dari unit ini. Isi ASSETNUM secara manual.',
-            ]);
-        }
+        // ── Mode tambah: asset baru, ASSETNUM diisi manual ──
+        $assetnum = strtoupper(trim($data['assetnum']));
 
         if (Equipment::query()->where('assetnum', $assetnum)->exists()) {
             return back()->withInput()->withErrors(['assetnum' => "ASSETNUM {$assetnum} sudah terdaftar."]);
@@ -212,41 +189,6 @@ class CbmAssetController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-
-    private function nextAssetnum(int $pltaId, string $unit): ?string
-    {
-        $plta = Plta::query()->find($pltaId);
-        $number = $this->unitNumber($unit);
-
-        if (! $plta || $number === null || ! $plta->kode_prefix) {
-            return null;
-        }
-
-        $prefix = strtoupper($plta->kode_prefix).sprintf('%02d', $number);
-        $length = strlen($prefix) + 4;
-
-        $max = Equipment::query()
-            ->where('assetnum', 'like', $prefix.'%')
-            ->pluck('assetnum')
-            ->map(fn ($a): string => strtoupper((string) $a))
-            ->filter(fn (string $a): bool => strlen($a) === $length && ctype_digit(substr($a, strlen($prefix))))
-            ->map(fn (string $a): int => (int) substr($a, strlen($prefix)))
-            ->max() ?? 0;
-
-        return $prefix.sprintf('%04d', $max + 1);
-    }
-
-    /** "PLTA SENGGURUH COMMON" → 0, "PLTA AMPELGADING UNIT 1" → 1, selain itu null. */
-    private function unitNumber(string $unit): ?int
-    {
-        $text = strtoupper($unit);
-
-        if (str_contains($text, 'COMMON')) {
-            return 0;
-        }
-
-        return preg_match('/UNIT\s*#?\s*(\d+)/', $text, $m) ? (int) $m[1] : null;
-    }
 
     private function normalizeAlias(?string $alias): ?string
     {

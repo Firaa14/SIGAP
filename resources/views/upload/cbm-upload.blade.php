@@ -53,9 +53,6 @@
     .cbm-up .scroll { max-height:380px; overflow:auto; }
     .cbm-up .hide { display:none; }
     .cbm-up .opt { color:var(--c-mute); font-size:12px; }
-    .cbm-up .meta-box { margin-top:6px; display:grid; gap:4px; min-width:230px; }
-    .cbm-up .meta-box input { width:100%; padding:6px 8px; font-size:12px; border-radius:6px; border:1px solid var(--c-line);
-                              background:var(--bg-surface-2, #fff); color:var(--text-primary); }
 </style>
 
 <div class="cbm-up">
@@ -73,7 +70,7 @@
             <li data-cbm-i18n="up_info_1">Upload dilakukan <b>satu parameter per file</b>: Thermograph, Vibrasi, Oil Analysis, MCA, PD, atau DGA.</li>
             <li data-cbm-i18n="up_info_2">Pilih parameter yang sesuai dengan file. Parameter otomatis dipilih dari nama file, tetapi tetap periksa kembali.</li>
             <li data-cbm-i18n="up_info_3">Gunakan file resume bulanan apa adanya. Yang dibaca: <b>PLTA</b>, <b>Equipment</b>, <b>No. Equip.</b>, dan hasil akhir (<b>Status Terakhir</b> / Status Akhir / Resume).</li>
-            <li data-cbm-i18n="up_info_4"><b>ASSETNUM tidak perlu ada di file</b>. Sistem mencarinya otomatis dari master equipment. Tanggal uji otomatis memakai tanggal upload.</li>
+            <li>Hanya alat yang <b>sudah terdaftar</b> di master yang disimpan. Alat yang belum terdaftar ditampilkan sebagai baris gagal beserta alasannya. Daftarkan lewat <b>Insert Asset CBM</b>, lalu upload ulang. Tanggal uji otomatis memakai tanggal upload.</li>
             <li data-cbm-i18n="up_info_5">Baris yang belum punya hasil uji (status kosong) dilewati dan tidak dihitung sebagai error.</li>
         </ul>
     </div>
@@ -154,44 +151,11 @@
                 <tr><td class="mono">PLTA</td><td data-cbm-i18n="up_col_plta">Kode PLTA (contoh: SGR, STM, TLG)</td><td style="text-align:right;color:#16a34a">✓</td></tr>
                 <tr><td class="mono">EQUIPMENT</td><td data-cbm-i18n="up_col_equipment">Nama equipment sesuai file resume (contoh: Turbin #1)</td><td style="text-align:right;color:#16a34a">✓</td></tr>
                 <tr><td class="mono">STATUS TERAKHIR</td><td data-cbm-i18n="up_col_status">Hasil akhir pengujian (kode sesuai parameter). Nama kolom bisa juga Status Akhir atau Resume</td><td style="text-align:right;color:#16a34a">✓</td></tr>
+                <tr><td class="mono">ASSETNUM</td><td>Jika ada dan terdaftar di master, dipakai langsung. Jika tidak ada, dicari dari nama equipment</td><td style="text-align:right" class="opt" data-cbm-i18n="up_optional">opsional</td></tr>
                 <tr><td class="mono">NO. EQUIP.</td><td data-cbm-i18n="up_col_noequip">Kode equipment (contoh: H101). Membantu mencocokkan ke master equipment</td><td style="text-align:right" class="opt" data-cbm-i18n="up_optional">opsional</td></tr>
-                <tr><td class="mono">ASSETNUM</td><td data-cbm-i18n="up_col_assetnum">Jika ada, dipakai langsung. Jika tidak ada, dicari otomatis dari master equipment</td><td style="text-align:right" class="opt" data-cbm-i18n="up_optional">opsional</td></tr>
             </tbody>
         </table>
     </div>
-
-    {{-- Hasil proses otomatis (asset baru / nama ditambahkan / nama diganti) --}}
-    @if (! empty($created) && (count($created['created']) || count($created['linked']) || count($created['skipped'])))
-        <div class="box card">
-            <div class="box-h">Hasil proses otomatis</div>
-            <div class="box-b">
-                @if (count($created['created']))
-                    <p>{{ count($created['created']) }} asset baru dibuat. Cek kalau ada yang salah:</p>
-                    <ul style="font-size:13px;margin:8px 0 14px">
-                        @foreach ($created['created'] as $c)
-                            <li><code>{{ $c['assetnum'] }}</code> ({{ $c['plta'] }}) {{ $c['equipment'] }}</li>
-                        @endforeach
-                    </ul>
-                @endif
-                @if (count($created['linked']))
-                    <p>{{ count($created['linked']) }} alat yang sudah ada dihubungkan atau diganti namanya:</p>
-                    <ul style="font-size:13px;margin:8px 0 14px">
-                        @foreach ($created['linked'] as $l)
-                            <li>"{{ $l['equipment'] }}" → <code>{{ $l['assetnum'] }}</code> ({{ $l['master'] }})</li>
-                        @endforeach
-                    </ul>
-                @endif
-                @if (count($created['skipped']))
-                    <p>{{ count($created['skipped']) }} baris dilewati:</p>
-                    <ul style="font-size:13px;margin:8px 0">
-                        @foreach ($created['skipped'] as $s)
-                            <li>{{ $s['equipment'] }}: {{ $s['reason'] }}</li>
-                        @endforeach
-                    </ul>
-                @endif
-            </div>
-        </div>
-    @endif
 
     {{-- Hasil preview --}}
     @if ($preview)
@@ -212,82 +176,40 @@
                     @endforeach
                 </div>
 
+                {{-- Baris gagal: hanya menampilkan baris mana dan kenapa --}}
                 @if (count($preview['errors']))
-                    @php $autoCount = collect($preview['errors'])->filter(fn ($e) => ! empty($e['auto_key']))->count(); @endphp
-                    <form method="POST" action="{{ route('cbm.upload.auto-create') }}">
-                        @csrf
-                        <div class="scroll" style="margin-bottom:16px">
-                            <table class="errtbl">
-                                <thead><tr>
-                                    <th data-cbm-i18n="up_th_row">BARIS</th><th>PLTA</th><th>EQUIPMENT</th>
-                                    <th data-cbm-i18n="up_th_reason">ALASAN</th>
-                                    @if ($autoCount)<th>TINDAKAN</th>@endif
-                                </tr></thead>
-                                <tbody>
-                                    @foreach ($preview['errors'] as $err)
-                                        @php
-                                            $near = $err['near'] ?? null;
-                                            $suspect = ! empty($err['suspect']);
-                                        @endphp
-                                        <tr @if ($suspect) style="background:rgba(234,179,8,.12)" @endif>
-                                            <td>{{ $err['row'] }}</td>
-                                            <td>{{ $err['plta'] ?? '—' }}</td>
-                                            <td>{{ $err['equipment'] ?? '—' }}</td>
-                                            <td>
-                                                @if ($suspect && $near)
-                                                    ⚠ <strong>Kemungkinan sudah ada:</strong>
-                                                    {{ $near['assetnum'] }} ({{ $near['label'] }}),
-                                                    kemiripan {{ round($near['score'] * 100) }}%
-                                                    @if ($near['noeq_match']) · No. Equip. sama dengan KKS @endif
-                                                @elseif ($near)
-                                                    Alat baru. Tidak mirip alat yang ada (terdekat {{ round($near['score'] * 100) }}%).
-                                                @else
-                                                    {{ $err['reason'] }}
-                                                @endif
-                                            </td>
-                                            @if ($autoCount)
-                                                <td>
-                                                    @if (! empty($err['auto_key']))
-                                                        <select name="action[{{ $err['auto_key'] }}]" class="form-control act-select">
-                                                            <option value="new" @selected(! $suspect)>Buat asset baru</option>
-                                                            @if ($near)
-                                                                <option value="alias">Pakai alat terdekat</option>
-                                                                <option value="rename">Ganti nama alat terdekat</option>
-                                                            @endif
-                                                            <option value="skip" @selected($suspect)>Lewati</option>
-                                                        </select>
+                    <div class="scroll" style="margin-bottom:16px">
+                        <table class="errtbl">
+                            <thead><tr>
+                                <th data-cbm-i18n="up_th_row">BARIS</th><th>PLTA</th><th>EQUIPMENT</th>
+                                <th data-cbm-i18n="up_th_reason">ALASAN</th>
+                            </tr></thead>
+                            <tbody>
+                                @foreach ($preview['errors'] as $err)
+                                    @php
+                                        $fileAsset = (string) ($err['auto']['assetnum_file'] ?? '');
 
-                                                        {{-- Unit & System disalin dari alat terdekat (atau disusun dari pola master). Silakan koreksi. --}}
-                                                        @php $ni = $err['near_info'] ?? []; @endphp
-                                                        <div class="meta-box" @if ($suspect) style="display:none" @endif>
-                                                            <input type="text" name="meta[{{ $err['auto_key'] }}][unit]" value="{{ $ni['unit'] ?? '' }}" placeholder="Unit (mis. PLTA SENGGURUH COMMON)">
-                                                            <input type="text" name="meta[{{ $err['auto_key'] }}][system]" value="{{ $ni['system'] ?? '' }}" placeholder="System">
-                                                            <input type="text" name="meta[{{ $err['auto_key'] }}][kks]" value="{{ $err['auto']['noeq'] ?? '' }}"
-                                                                   placeholder="KKS, contoh: {{ $ni['kks'] ?? 'BSGRTA000XJA10AG001' }}">
-                                                        </div>
-                                                    @endif
-                                                </td>
-                                            @endif
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-
-                        @if ($autoCount)
-                            <p style="font-size:13px;margin-bottom:10px">
-                                Baris kuning = kemungkinan alat itu <strong>sudah ada</strong>, jadi tidak dibuat otomatis.
-                                Pilih <em>Pakai alat terdekat</em> kalau memang sama, <em>Ganti nama alat terdekat</em> kalau nama di master salah,
-                                atau <em>Buat asset baru</em> kalau berbeda. Isian Unit, System, dan KKS hanya dipakai untuk <em>Buat asset baru</em>.
-                                Unit dan System terisi dari alat terdekat, jadi <strong>cek dan koreksi</strong> sebelum diproses.
-                            </p>
-                            <button class="btn btn-ok" type="submit"
-                                onclick="return confirm('Proses semua baris sesuai pilihan lalu cek ulang file?')">
-                                Proses sesuai pilihan
-                            </button>
-                        @endif
-                    </form>
-                    <div style="margin-bottom:16px"></div>
+                                        if (! empty($err['auto_key'])) {
+                                            $reason = $fileAsset === ''
+                                                ? 'ASSETNUM kosong di file dan alat belum terdaftar di master. Lengkapi ASSETNUM di Excel atau daftarkan alatnya lewat Insert Asset CBM.'
+                                                : 'ASSETNUM '.$fileAsset.' belum terdaftar di master. Daftarkan lewat Insert Asset CBM, lalu upload ulang.';
+                                        } else {
+                                            $reason = $err['reason'] ?? '—';
+                                        }
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $err['row'] }}</td>
+                                        <td>{{ $err['plta'] ?? '—' }}</td>
+                                        <td>{{ $err['equipment'] ?? '—' }}</td>
+                                        <td>{{ $reason }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="font-size:13px;margin-bottom:16px">
+                        Baris gagal <strong>tidak ikut tersimpan</strong>. Perbaiki file atau daftarkan alatnya, lalu upload ulang.
+                    </p>
                 @endif
 
                 @if (count($preview['valid']))
@@ -397,14 +319,6 @@
     ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
     drop.addEventListener('drop', e => { if (e.dataTransfer.files.length) { file.files = e.dataTransfer.files; showFile(); } });
     document.getElementById('reset').addEventListener('click', () => { file.value = ''; showFile(); });
-
-    // Kotak Unit/System/KKS disembunyikan hanya saat "Lewati"
-    document.querySelectorAll('.act-select').forEach(sel => {
-        const box = sel.parentElement.querySelector('.meta-box');
-        const toggle = () => { if (box) box.style.display = sel.value === 'skip' ? 'none' : ''; };
-        sel.addEventListener('change', toggle);
-        toggle();
-    });
 })();
 </script>
 @endsection

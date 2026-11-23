@@ -118,11 +118,11 @@
                     <div class="f">
                         <label class="l" for="assetnum">ASSETNUM</label>
                         <input type="text" name="assetnum" id="assetnum" value="{{ old('assetnum', $edit->assetnum ?? '') }}"
-                               placeholder="Terisi otomatis" data-cbm-i18n-placeholder="as_assetnum_ph" @if ($edit) readonly @endif>
+                               placeholder="Contoh: BSGR010001" autocomplete="off" required @if ($edit) readonly @endif>
                         @if ($edit)
                             <span class="hint">ASSETNUM tidak bisa diubah pada mode edit.</span>
                         @else
-                            <span class="hint" data-cbm-i18n="as_assetnum_hint">Terisi otomatis dari PLTA, unit, dan nomor urut. Bisa diubah.</span>
+                            <span class="hint">Isi manual sesuai nomor resmi.</span>
                         @endif
                     </div>
 
@@ -158,17 +158,11 @@
 <script>
 (() => {
     const unitsByPlta = @json($unitsByPlta);
-    const nextUrl = @json(route('cbm.asset.next'));
 
-    // ---- Form tambah / edit asset ----
     const plta = document.getElementById('plta_id');
-    const unit = document.getElementById('unit');
     const unitList = document.getElementById('unitList');
-    const assetnum = document.getElementById('assetnum');
-    // Saat edit (atau ada isian lama), ASSETNUM sudah terisi, jadi saran otomatis tidak menimpanya.
-    let assetnumTouched = assetnum.value !== '';
-    assetnum.addEventListener('input', () => { assetnumTouched = true; });
 
+    // Daftar saran unit mengikuti PLTA yang dipilih.
     const fillUnits = () => {
         unitList.innerHTML = '';
         (unitsByPlta[plta.value] || []).forEach(u => {
@@ -178,20 +172,7 @@
         });
     };
 
-    const suggest = async () => {
-        if (assetnumTouched || !plta.value || !unit.value.trim()) { return; }
-        try {
-            const url = nextUrl + '?plta_id=' + encodeURIComponent(plta.value) + '&unit=' + encodeURIComponent(unit.value.trim());
-            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-            if (!res.ok) { return; }
-            const data = await res.json();
-            assetnum.value = data.assetnum || '';
-        } catch (e) { /* abaikan, ASSETNUM bisa diisi manual */ }
-    };
-
-    plta.addEventListener('change', () => { fillUnits(); suggest(); });
-    unit.addEventListener('change', suggest);
-    unit.addEventListener('blur', suggest);
+    plta.addEventListener('change', fillUnits);
     fillUnits();
 })();
 </script>

@@ -11,7 +11,7 @@ class CbmAutoAssetService
 {
     /**
      * Tiap item punya 'action':
-     *  - new    : buat asset baru (boleh membawa unit_in, system_in, kks_in)
+     *  - new    : buat asset baru. ASSETNUM WAJIB dari file (assetnum_file), tidak dibuat sistem.
      *  - alias  : tambahkan nama Excel sebagai alias alat terdekat
      *  - rename : ganti nama alat terdekat sesuai Excel (koreksi nama)
      *  - skip   : lewati
@@ -27,9 +27,8 @@ class CbmAutoAssetService
         $created = [];
         $linked = [];
         $skipped = [];
-        $counters = [];
 
-        DB::transaction(function () use ($items, $parameter, $hasCbm, &$created, &$linked, &$skipped, &$counters) {
+        DB::transaction(function () use ($items, $parameter, $hasCbm, &$created, &$linked, &$skipped) {
             foreach ($items as $it) {
                 $action = $it['action'] ?? 'new';
                 $name = trim((string) ($it['name'] ?? ''));
@@ -121,29 +120,49 @@ class CbmAutoAssetService
                     continue;
                 }
 
-                $unitIn = trim((string) ($it['unit_in'] ?? ''));
-                $unitSrc = $unitIn !== '' ? $unitIn : $name;
+                // ASSETNUM harus dari file. Sistem tidak membuat nomor sendiri.
+                $assetnum = strtoupper(trim((string) ($it['assetnum_file'] ?? '')));
 
-                if ($unitIn !== '' && stripos($unitIn, 'COMMON') !== false) {
-                    $unitNo = 0;
-                } else {
-                    $unitNo = preg_match('/UNIT\s*#?\s*(\d+)/i', $unitSrc, $m) ? (int) $m[1] : 0;
+                if ($assetnum === '') {
+                    $skipped[] = [
+                        'equipment' => $name,
+                        'reason' => 'ASSETNUM di file kosong. Lengkapi di Excel lalu upload ulang',
+                    ];
+
+                    continue;
                 }
 
+                $pref = strtoupper((string) $plta->kode_prefix);
+
+                if (! str_starts_with($assetnum, $pref)) {
+                    $skipped[] = [
+                        'equipment' => $name,
+                        'reason' => "ASSETNUM {$assetnum} tidak diawali {$pref}. Periksa kode PLTA atau ASSETNUM di file",
+                    ];
+
+                    continue;
+                }
+
+                if (Equipment::query()->where('assetnum', $assetnum)->exists()) {
+                    $skipped[] = [
+                        'equipment' => $name,
+                        'reason' => "ASSETNUM {$assetnum} sudah terdaftar. Pilih Pakai alat terdekat atau Ganti nama",
+                    ];
+
+                    continue;
+                }
+
+                // Unit dibaca dari ASSETNUM (B + PLTA + 2 digit unit + urutan), kalau polanya cocok.
+                $unitNo = 0;
+                $unitDigits = substr($assetnum, strlen($pref), 2);
+                if ($unitDigits !== '' && ctype_digit($unitDigits)) {
+                    $unitNo = (int) $unitDigits;
+                }
+
+                $unitIn = trim((string) ($it['unit_in'] ?? ''));
                 $unitText = $unitIn !== ''
                     ? $unitIn
                     : strtoupper($plta->nama_plta).($unitNo === 0 ? ' COMMON' : ' UNIT '.$unitNo);
-
-                $prefix = strtoupper($plta->kode_prefix).sprintf('%02d', $unitNo);
-
-                if (! isset($counters[$prefix])) {
-                    $counters[$prefix] = $this->maxSequence($prefix);
-                }
-
-                do {
-                    $counters[$prefix]++;
-                    $assetnum = $prefix.sprintf('%04d', $counters[$prefix]);
-                } while (Equipment::query()->where('assetnum', $assetnum)->exists());
 
                 $systemIn = trim((string) ($it['system_in'] ?? ''));
                 $kksIn = trim((string) ($it['kks_in'] ?? ''));
@@ -153,7 +172,11 @@ class CbmAutoAssetService
                     'unit' => mb_substr($unitText, 0, 50),
                     'system' => mb_substr($systemIn !== '' ? $systemIn : 'AUTO DARI UPLOAD CBM', 0, 255),
                     'equipment' => mb_substr($name, 0, 150),
-                    'kks' => mb_substr($kksIn !== '' ? $kksIn : trim((string) ($it['noeq'] ?? '')), 0, 100),
+                    'kks' => mb_substr(
+                        $kksIn !== '' ? $kksIn : trim((string) ($it['kks_file'] ?? $it['noeq'] ?? '')),
+                        0,
+                        100
+                    ),
                     'assetnum' => $assetnum,
                 ];
 
@@ -169,18 +192,5 @@ class CbmAutoAssetService
         });
 
         return ['created' => $created, 'linked' => $linked, 'skipped' => $skipped];
-    }
-
-    private function maxSequence(string $prefix): int
-    {
-        $length = strlen($prefix) + 4;
-
-        return Equipment::query()
-            ->where('assetnum', 'like', $prefix.'%')
-            ->pluck('assetnum')
-            ->map(fn ($a): string => strtoupper((string) $a))
-            ->filter(fn (string $a): bool => strlen($a) === $length && ctype_digit(substr($a, strlen($prefix))))
-            ->map(fn (string $a): int => (int) substr($a, strlen($prefix)))
-            ->max() ?? 0;
     }
 }

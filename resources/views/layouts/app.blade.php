@@ -712,12 +712,11 @@
                     <ol>
                         <li>Login dulu sebagai CBM.</li>
                         <li>Buka menu Insert Asset CBM, lalu pilih PLTA dan unit (pilih dari daftar atau ketik unit baru).</li>
-                        <li>Isi System dan Equipment. </li>
-                        <li>ASSETNUM terisi otomatis dari PLTA, unit, dan nomor urut. Ubah jika perlu.</li>
-                        <li>Isi Nama di file Excel kalau namanya berbeda dengan nama equipment (pisahkan dengan koma), lalu centang Parameter yang berlaku.</li>
+                        <li>Isi System dan Equipment.</li>
+                        <li>Isi ASSETNUM secara manual. 4 karakter pertama harus sesuai kode PLTA yang dipilih, dan pastikan belum dipakai asset lain.</li>
                         <li>Klik Simpan asset.</li>
                     </ol>
-                    <p>Insert hanya dipakai untuk menambah asset baru. Kalau asset sudah terdaftar, langsung saja Upload. 4 karakter pertama ASSETNUM adalah kode PLTA, jadi pastikan sesuai dengan PLTA yang dipilih. Parameter yang tidak dicentang tampil "-" di tabel PLTA.</p>`,
+                    <p>Insert hanya dipakai untuk menambah asset baru. Kalau asset sudah terdaftar, langsung saja Upload.</p>`,
             },
 
             en: {
@@ -938,12 +937,11 @@
                     <ol>
                         <li>Log in first as CBM.</li>
                         <li>Open Insert Asset CBM, then select the PLTA and unit (pick from the list or type a new one).</li>
-                        <li>Fill in System and Equipment. KKS can be left empty.</li>
-                        <li>ASSETNUM is filled in automatically from the PLTA, unit, and sequence number. Change it if needed.</li>
-                        <li>Fill in the name used in the Excel file if it differs from the equipment name (separate with commas), then tick the applicable Parameters.</li>
+                        <li>Fill in System and Equipment.</li>
+                        <li>Fill in ASSETNUM manually. The first 4 characters must match the selected PLTA's code, and it must not already be used by another asset.</li>
                         <li>Click Save asset.</li>
                     </ol>
-                    <p>Insert is only for adding a new asset. If the asset is already registered, go straight to Upload. The first 4 characters of ASSETNUM are the PLTA code, so make sure it matches the selected PLTA. Unticked parameters show "-" in the PLTA table.</p>`,
+                    <p>Insert is only for adding a new asset. If the asset is already registered, go straight to Upload.</p>`,
             },
         };
 
